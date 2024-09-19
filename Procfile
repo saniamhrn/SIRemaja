@@ -1,1 +1,1 @@
-web: gunicorn masaremaja.wsgi
+web: gunicorn masaremaja.masaremaja.wsgi
