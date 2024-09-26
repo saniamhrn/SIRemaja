@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Update User{% endblock %}
+
+{% block content %}
+<div class="container mt-4 d-flex justify-content-center">
+    <div class="card shadow-lg" style="width: 100%; max-width: 800px;">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">Update User</h2>
+
+            {% if messages %}
+            <!-- <div class="container mt-4"> -->
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <!-- </div> -->
+            {% endif %}
+
+            <form method="post" novalidate >
+                {% csrf_token %}
+                 <!-- Display general form errors (non-field errors) -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <!-- Name field -->
+                <div class="form-group mb-3">
+                    <label for="id_first_name" class="form-label">Name</label>
+                    <input type="text" name="first_name" id="id_first_name" class="form-control {% if form.name.errors %}is-invalid{% endif %}" value="{{ form.first_name.value }}">
+                    {% if form.first_name.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.first_name.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Username field -->
+                <div class="form-group mb-3 w-100 me-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" value="{{ form.username.value }}">
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Email field -->
+                <div class="form-group mb-3 w-100 me-3">
+                    <label for="id_email" class="form-label">Email</label>
+                    <input type="email" name="email" id="id_email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" value="{{ form.email.value }}">
+                    {% if form.email.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.email.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Role dropdown -->
+                <div class="form-group mb-3 w-100">
+                    <label for="id_role" class="form-label">Role</label>
+                    <select name="role" id="id_role" class="form-select {% if form.role.errors %}is-invalid{% endif %}">
+                        {% for choice in form.role.field.choices %}
+                            <option value="{{ choice.0 }}" {% if form.role.value == choice.0 %}selected{% endif %}>{{ choice.1 }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if form.role.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.role.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Submit and Set New Password buttons side by side -->
+                <div class="d-flex">
+                    <button type="submit" class="btn btn-primary">Update User</button>
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#passwordModal">Set New Password</button>
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary">Back to User List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Setting New Password -->
+<div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="passwordModalLabel">Set New Password</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="passwordForm" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Password1 field -->
+                    <div class="form-group mb-3">
+                        <label for="id_password1" class="form-label">New Password</label>
+                        <input type="password" name="password1" id="id_password1" class="form-control {% if password_form.password1.errors %}is-invalid{% endif %}" placeholder="Enter new password">
+                        {% if password_form.password1.errors %}
+                            <div class="invalid-feedback">
+                                {{ password_form.password1.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password2 field (Confirm password) -->
+                    <div class="form-group mb-3">
+                        <label for="id_password2" class="form-label">Confirm New Password</label>
+                        <input type="password" name="password2" id="id_password2" class="form-control {% if password_form.password2.errors %}is-invalid{% endif %}" placeholder="Confirm new password">
+                        {% if password_form.password2.errors %}
+                            <div class="invalid-feedback">
+                                {{ password_form.password2.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit button for password -->
+                    <button type="submit" class="btn btn-primary">Set Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

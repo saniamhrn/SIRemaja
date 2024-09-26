@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}User List{% endblock %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-lg" style="width: 100%; max-width: 800px;">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">User List</h2>
+
+            {% if messages %}
+            <!-- <div class="container mt-4"> -->
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <!-- </div> -->
+            {% endif %}
+
+            <a href="{% url 'user_create' %}" class="btn btn-primary mb-3">Add User</a>
+
+            <!-- Filter for Role -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="roleFilter">Filter by Role</label>
+                    <select id="roleFilter" class="form-select">
+                        <option value="">All</option>
+                        <option value="Admin">Admin</option>
+                        <option value="Project Manager">Project Manager</option>
+                        <option value="Creative Team">Creative Team</option>
+                        <option value="Client">Client</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-responsive-sm">
+                <table id="userTable" class="table table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.first_name }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.role }}</td>
+                            <td>
+                                <a href="{% url 'user_update' user.id %}" class="btn btn-primary btn-sm mb-2">Edit</a>
+                                <button type="button" class="btn btn-danger btn-sm sm-3 mb-2" data-bs-toggle="modal" data-bs-target="#deleteModal" data-userid="{{ user.id }}" data-username="{{ user.username }}">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete user <strong id="userToDelete"></strong>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteForm" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
