@@ -42,7 +42,7 @@ SIRemaja/
 
 1. Clone Repository
 ```bash
-git clone https://gitlab.cs.ui.ac.id/sania.rizqi/siremaja.git
+git clone https://github.com/saniamhrn/SIRemaja.git
 cd siremaja
 ```
 
