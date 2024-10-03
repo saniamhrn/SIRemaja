@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}User List{% endblock %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-lg" style="width: 100%; max-width: 800px;">
+        <div class="card-body">
+
+            {% if messages %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            
+            <h1>Profile</h1>
+            <p>Username: {{ user.username }}</p>
+            <p>Email: {{ user.email }}</p>
+            <p>Role: {{ user.role }}</p>
+
+            <div class="d-flex">
+                <a href="{% url 'account_management:update_username' %}" class="btn btn-primary">Update Username</a>
+                <a href="{% url 'account_management:update_email' %}" class="btn btn-primary">Update Email</a>
+                <a href="{% url 'account_management:update_password' %}" class="btn btn-primary">Update Password</a>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

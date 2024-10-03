@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5 d-flex flex-column align-items-center">
+    <h1 class="text-center mb-4">Admin Dashboard</h1>
+    <div class="card shadow-lg" style="width: 100%; max-width: 800px;">
+        <div class="card-body">
+            <p>Welcome to the admin dashboard!</p>
+            <a href="{% url 'user_management:user_list' %}" class="btn btn-primary">Manage Users</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
