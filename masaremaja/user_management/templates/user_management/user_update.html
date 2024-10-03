@@ -21,6 +21,24 @@
 
             <form method="post" novalidate >
                 {% csrf_token %}
+                <!-- Dump all form errors for debugging -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Debugging Form Errors:</strong>
+                    <ul>
+                        {% for field, errors in form.errors.items %}
+                            <li><strong>{{ field }}:</strong>
+                                <ul>
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
                  <!-- Display general form errors (non-field errors) -->
                 {% if form.non_field_errors %}
                 <div class="alert alert-danger">
@@ -31,7 +49,7 @@
                 <!-- Name field -->
                 <div class="form-group mb-3">
                     <label for="id_first_name" class="form-label">Name</label>
-                    <input type="text" name="first_name" id="id_first_name" class="form-control {% if form.name.errors %}is-invalid{% endif %}" value="{{ form.first_name.value }}">
+                    <input type="text" name="first_name" id="id_first_name" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" value="{{ form.first_name.value }}">
                     {% if form.first_name.errors %}
                         <div class="invalid-feedback">
                             {{ form.first_name.errors.0 }}
@@ -42,9 +60,11 @@
                 <!-- Username field -->
                 <div class="form-group mb-3 w-100 me-3">
                     <label for="id_username" class="form-label">Username</label>
-                    <input type="text" name="username" id="id_username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" value="{{ form.username.value }}">
+                    <input type="text" name="username" id="id_username" 
+                            class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                            value="{{ form.username.value }}">
                     {% if form.username.errors %}
-                        <div class="invalid-feedback">
+                        <div class="invalid-feedback d-block">
                             {{ form.username.errors.0 }}
                         </div>
                     {% endif %}
@@ -55,7 +75,7 @@
                     <label for="id_email" class="form-label">Email</label>
                     <input type="email" name="email" id="id_email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" value="{{ form.email.value }}">
                     {% if form.email.errors %}
-                        <div class="invalid-feedback">
+                        <div class="invalid-feedback d-block">
                             {{ form.email.errors.0 }}
                         </div>
                     {% endif %}
@@ -78,7 +98,7 @@
 
                 <!-- Submit and Set New Password buttons side by side -->
                 <div class="d-flex">
-                    <button type="submit" class="btn btn-primary">Update User</button>
+                    <button type="submit" class="btn btn-primary" name="update_user">Update User</button>
                     <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#passwordModal">Set New Password</button>
                     <a href="{% url 'user_management:user_list' %}" class="btn btn-secondary">Back to User List</a>
                 </div>
@@ -96,33 +116,41 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- Password Form -->
                 <form method="post" id="passwordForm" novalidate>
                     {% csrf_token %}
-                    
-                    <!-- Password1 field -->
+
+
+                    <!-- Password1 field with toggle and help text -->
                     <div class="form-group mb-3">
                         <label for="id_password1" class="form-label">New Password</label>
-                        <input type="password" name="password1" id="id_password1" class="form-control {% if password_form.password1.errors %}is-invalid{% endif %}" placeholder="Enter new password">
-                        {% if password_form.password1.errors %}
-                            <div class="invalid-feedback">
-                                {{ password_form.password1.errors.0 }}
-                            </div>
-                        {% endif %}
+                        <div class="input-group">
+                            <input type="password" name="new_password1" id="id_password1" class="form-control {% if password_form.new_password1.errors %}is-invalid{% endif %}" placeholder="Enter new password">
+                            <span class="input-group-text">
+                                <i class="fas fa-eye" id="togglePassword1" style="cursor: pointer;"></i>
+                            </span>
+                        </div>
+                        <small class="form-text text-muted">{{ password_form.new_password1.help_text }}</small> <!-- Help text for guidance -->
+                        <div class="invalid-feedback" id="password1Error">Password must contain at least 8 characters.</div> 
+                        <div class="invalid-feedback" id="passwordNumericError">Password cannot be entirely numeric.</div>
                     </div>
 
-                    <!-- Password2 field (Confirm password) -->
+                    <!-- Password2 field with toggle -->
                     <div class="form-group mb-3">
                         <label for="id_password2" class="form-label">Confirm New Password</label>
-                        <input type="password" name="password2" id="id_password2" class="form-control {% if password_form.password2.errors %}is-invalid{% endif %}" placeholder="Confirm new password">
-                        {% if password_form.password2.errors %}
-                            <div class="invalid-feedback">
-                                {{ password_form.password2.errors.0 }}
-                            </div>
-                        {% endif %}
+                        <div class="input-group">
+                            <input type="password" name="new_password2" id="id_password2" class="form-control {% if password_form.new_password2.errors %}is-invalid{% endif %}" placeholder="Confirm new password">
+                            <span class="input-group-text">
+                                <i class="fas fa-eye" id="togglePassword2" style="cursor: pointer;"></i>
+                            </span>
+                        </div>
+                        <div class="invalid-feedback" id="password2Error">Passwords do not match.</div> <!-- Client-side error for mismatched passwords -->
                     </div>
 
-                    <!-- Submit button for password -->
-                    <button type="submit" class="btn btn-primary">Set Password</button>
+                    <!-- Submit button for password update -->
+                    <div class="d-flex">
+                        <button type="submit" class="btn btn-primary" id="submitPasswordButton" name="set_password">Set Password</button>
+                    </div>
                 </form>
             </div>
         </div>

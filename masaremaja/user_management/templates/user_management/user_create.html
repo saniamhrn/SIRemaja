@@ -11,10 +11,21 @@
             <form method="post" novalidate>
                 {% csrf_token %}
                 
+                <!-- Display general form errors (non-field errors) -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <ul>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
                 <!-- Name field -->
                 <div class="form-group mb-3">
                     <label for="id_first_name" class="form-label">Name</label>
-                    <input type="text" name="first_name" id="id_first_name" class="form-control {% if form.name.errors %}is-invalid{% endif %}" placeholder="Enter full name or nickname">
+                    <input type="text" name="first_name" id="id_first_name" class="form-control {% if form.first_name.errors %}is-invalid{% endif %}" placeholder="Enter full name or nickname">
                     {% if form.first_name.errors %}
                         <div class="invalid-feedback">
                             {{ form.first_name.errors.0 }}
@@ -47,11 +58,20 @@
                 <!-- Password1 field -->
                 <div class="form-group mb-3">
                     <label for="id_password1" class="form-label">Password</label>
-                    <input type="password" name="password1" id="id_password1" class="form-control {% if form.password1.errors %}is-invalid{% endif %}" placeholder="Enter password">
+                    <div class="input-group">
+                        <input type="password" name="password1" id="id_password1" class="form-control {% if form.password1.errors or form.password2.errors %}is-invalid{% endif %}" placeholder="Enter password">
+                        <span class="input-group-text">
+                            <i class="fas fa-eye" id="togglePassword1" style="cursor: pointer;"></i>
+                        </span>
+                    </div>
                     {% if form.password1.errors %}
-                        <div class="invalid-feedback">
+                        <div class="invalid-feedback d-block">
                             {{ form.password1.errors.0 }}
                         </div>
+                    {% elif form.password2.errors %}
+                        <di class="invalid-feedback d-block">
+                            {{ form.password2.errors.0 }}
+                        </di>
                     {% endif %}
                     <small class="form-text text-muted">{{ form.password1.help_text }}</small>
                 </div>
@@ -59,9 +79,14 @@
                 <!-- Password2 field (Confirm password) -->
                 <div class="form-group mb-3">
                     <label for="id_password2" class="form-label">Confirm Password</label>
-                    <input type="password" name="password2" id="id_password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" placeholder="Confirm password">
+                    <div class="input-group">
+                        <input type="password" name="password2" id="id_password2" class="form-control {% if form.password2.errors %}is-invalid{% endif %}" placeholder="Confirm password">
+                        <span class="input-group-text">
+                            <i class="fas fa-eye" id="togglePassword2" style="cursor: pointer;"></i>
+                        </span>
+                    </div>
                     {% if form.password2.errors %}
-                        <div class="invalid-feedback">
+                        <div class="invalid-feedback d-block">
                             {{ form.password2.errors.0 }}
                         </div>
                     {% endif %}
