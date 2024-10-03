@@ -44,7 +44,13 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'user_management',
+    'authentication',
+    'account_management',
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # Default backend
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -87,16 +93,6 @@ WSGI_APPLICATION = 'masaremaja.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'masaremaja',
-#         'USER': 'sania',
-#         'PASSWORD': 'wonwoo',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
 AUTH_USER_MODEL = 'user_management.CustomUser'
 
 if os.getenv('DATABASE_URL'): 
@@ -115,9 +111,6 @@ else:
         }
     }
 
-# DATABASES = {
-#     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
