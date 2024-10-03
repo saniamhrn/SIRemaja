@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Username{% endblock %}
+
+{% block content %}
+<div class="container mt-4 d-flex justify-content-center">
+    <div class="card shadow-lg" style="width: 100%; max-width: 800px;">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">Update Username</h2>
+
+
+            <form method="post" novalidate >
+                {% csrf_token %}
+                 <!-- Display general form errors (non-field errors) -->
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                
+                <!-- Username field -->
+                <div class="form-group mb-3 w-100 me-3">
+                    <label for="id_username" class="form-label">Username</label>
+                    <input type="text" name="username" id="id_username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" value="{{ form.username.value }}">
+                    {% if form.username.errors %}
+                        <div class="invalid-feedback">
+                            {{ form.username.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex">
+                    <button type="submit" class="btn btn-primary">Update Username</button>
+                    <a href="{% url 'account_management:profile' %}" class="btn btn-secondary">Back to Profile</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
