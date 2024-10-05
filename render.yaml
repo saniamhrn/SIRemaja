@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: SIRemaja
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --chdir masaremaja masaremaja.wsgi"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: siremaja-db
+    migrateCommand: "python manage.py migrate" # run migrations on each deploy
