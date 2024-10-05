@@ -1,0 +1,142 @@
+/* Basic reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body style */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Container */
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+}
+
+header h1 {
+    font-size: 2.5em;
+}
+
+/* Links */
+a {
+    color: #333;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #007BFF;
+}
+
+/* Buttons */
+button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Simple form style */
+form {
+    margin-top: 20px;
+}
+
+/* form input, form select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+} */
+
+
+/* Card styling */
+.card {
+    width: 100%;
+    max-width: 800px;
+    border-radius: 10px;
+}
+
+/* Center the card on the page */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+.table {
+    margin-bottom: 0; /* Remove extra margin for a cleaner card layout */
+}
+
+/* Adjust button spacing */
+.btn {
+    margin-right: 5px;
+}
+
+/* Adjust the icon size */
+.footer-icons i {
+    font-size: 1.8rem;
+}
+
+/* Adjust the spacing between icons */
+.footer-icons a {
+    margin: 0 10px;
+}
+
+.custom-error {
+    color: #dc3545; /* Same color as Bootstrap's invalid-feedback */
+    font-size: 0.875em; /* Same size as invalid-feedback */
+    margin-top: 0.25rem; /* Add space between input and error message */
+}
+
+/* Adjust the social media icon size for mobile */
+@media (max-width: 576px) {
+    footer i {
+        font-size: 1.5rem;
+    }
+    footer img {
+        max-width: 120px;
+    }
+
+    .footer-column {
+        justify-content: center;
+        text-align: center;
+    }
+    
+    .card {
+        padding: 10px;
+    }
+    
+    .table-responsive {
+        margin: 0;
+        padding: 0;
+    }
+
+    .btn-sm {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.75rem;
+    }
+}
