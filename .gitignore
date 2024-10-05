@@ -16,9 +16,6 @@ __pycache__/
 .env
 db.sqlite3
 
-# Ignore Django migrations (optional if you choose not to track migrations)
-**/migrations/*
-
 # Ignore system files
 .DS_Store
 Thumbs.db
