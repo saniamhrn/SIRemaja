@@ -19,49 +19,63 @@
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
-                        <!-- Show these links for all users -->
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'account_management:public_home' %}">Home</a>
+                            <a class="nav-link" href="#">Why Us?</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">About Us</a>
+                            <a class="nav-link" href="#">Portofolio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Our Services</a>
                         </li>
 
                         <!-- Conditional Links for Logged-In Users -->
-                        {% if user.is_authenticated %}
-                            {% if user.role == 'Admin' %}
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{% url 'account_management:home' %}">Admin Page</a>
-                                </li>
-                            {% elif user.role == 'Project Manager' %}
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Project Manager Dashboard</a>
-                                </li>
-                            {% elif user.role == 'Client' %}
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Client Dashboard</a>
-                                </li>
-                            {% elif user.role == 'Creative Team' %}
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Creative Dashboard</a>
-                                </li>
-                            {% endif %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarProfile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{% static 'images/profile-icon.png' %}" alt="Profile" class="rounded-circle" width="30" height="30"> <!-- Profile Icon -->
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarProfile">
+                                {% if user.is_authenticated %}
+                                    <a class="dropdown-item" href="{% url 'account_management:profile' %}">Profile</a>
+                            
+                                    {% if user.role == 'Admin' %}
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'account_management:home' %}">Dashboard</a>
+                                    </li>
 
-                            <li class="nav-item"></li>
-                                <a class="nav-link" href="{% url 'account_management:profile' %}">Profile</a>
-                            </li>
-                            <!-- Logout Link -->
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'authentication:logout' %}" id="logoutLink">Logout</a>
-                            </li>
-                        {% else %}
-                            <!-- Show Login link only for non-authenticated users -->
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'authentication:login' %}">Login</a>
-                            </li>
-                        {% endif %}
+                                    {% elif user.role == 'Project Manager' %}
+                                    <li>
+                                        <a class="dropdown-item" href="#">Project Manager Dashboard</a>
+                                    </li>
+
+                                    
+                                    {% elif user.role == 'Client' %}
+                                    <li>
+                                        <a class="dropdown-item" href="#">Client Dashboard</a>  
+                                    </li>
+
+                                    {% elif user.role == 'Creative Team' %}
+                                    <li>
+                                        <a class="dropdown-item" href="#">Creative Dashboard</a>
+                                    </li>
+                                    {% endif %}
+                                    
+                                    <li>
+                                        <a class="dropdown-item" href="{% url 'authentication:logout' %}" id="logoutLink">Logout</a>
+                                    </li>
+
+                                {% else %}
+                                <!-- Show Login link only for non-authenticated users -->
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'authentication:login' %}">Login</a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </li>
+                        
                     </ul>
                 </div>
             </div>
