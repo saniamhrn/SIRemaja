@@ -15,18 +15,16 @@ body {
 
 /* Container */
 .container {
-    width: 80%;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 20px auto;
     padding: 20px;
     background-color: #fff;
+    border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Header */
 header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 0;
     text-align: center;
 }
 
@@ -63,37 +61,62 @@ form {
     margin-top: 20px;
 }
 
-/* form input, form select {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-} */
-
-
 /* Card styling */
 .card {
     width: 100%;
-    max-width: 800px;
+    max-width: 400px; /* Adjusted to make cards smaller */
     border-radius: 10px;
+    background-color: #fff;
+    margin-bottom: 20px; /* Space between cards */
+    padding: 20px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Center the card on the page */
-.container {
+/* Styling for the card body */
+.card-body {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 50vh;
+    flex-direction: column;
 }
 
+/* Card footer for buttons */
+.card-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Adjust the button spacing inside the card */
+.card-footer .btn {
+    margin: 5px;
+}
+
+/* Card content styling */
+.card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 1rem;
+    margin: 5px 0;
+}
+
+/* Table styling */
 .table {
     margin-bottom: 0; /* Remove extra margin for a cleaner card layout */
 }
 
-/* Adjust button spacing */
-.btn {
-    margin-right: 5px;
+/* Search and Filter */
+.search-filter-bar {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Search input and select styling */
+.search-filter-bar input, .search-filter-bar select {
+    margin-right: 10px;
 }
 
 /* Adjust the icon size */
@@ -106,37 +129,25 @@ form {
     margin: 0 10px;
 }
 
-.custom-error {
-    color: #dc3545; /* Same color as Bootstrap's invalid-feedback */
-    font-size: 0.875em; /* Same size as invalid-feedback */
-    margin-top: 0.25rem; /* Add space between input and error message */
+/* Card View and Table View toggle buttons */
+.view-toggle {
+    margin-left: auto;
 }
 
-/* Adjust the social media icon size for mobile */
-@media (max-width: 576px) {
-    footer i {
-        font-size: 1.5rem;
-    }
-    footer img {
-        max-width: 120px;
-    }
-
-    .footer-column {
-        justify-content: center;
-        text-align: center;
-    }
-    
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .card {
-        padding: 10px;
-    }
-    
-    .table-responsive {
-        margin: 0;
-        padding: 0;
+        max-width: 100%; /* Make cards full width on smaller screens */
     }
 
-    .btn-sm {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.75rem;
+    .search-filter-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .search-filter-bar input, .search-filter-bar select {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 100%;
     }
 }

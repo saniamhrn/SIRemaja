@@ -104,4 +104,57 @@ $(document).ready(function() {
         }
     });
 
+    // Toggle between card view and table view
+    $('#cardViewButton').on('click', function() {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+    });
+
+    $('#tableViewButton').on('click', function() {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+    });
+
+    // Filter and search function
+    function filterUsers() {
+        let searchInput = $('#searchUser').val().toLowerCase();
+        let selectedRole = $('#roleFilter').val();
+        let sortOrder = $('#sortByName').val();
+
+        let users = $('.user-card');
+
+        // Filter by role and search query
+        users.each(function() {
+            let username = $(this).data('username').toLowerCase();
+            let name = $(this).data('name').toLowerCase();
+            let role = $(this).data('role');
+
+            let matchesSearch = username.includes(searchInput) || name.includes(searchInput);
+            let matchesRole = selectedRole === '' || role === selectedRole;
+
+            if (matchesSearch && matchesRole) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+
+        // Sort the visible users
+        let sortedUsers = users.filter(':visible').sort(function(a, b) {
+            let nameA = $(a).data('name').toLowerCase();
+            let nameB = $(b).data('name').toLowerCase();
+
+            if (sortOrder === 'asc') {
+                return nameA.localeCompare(nameB);
+            } else {
+                return nameB.localeCompare(nameA);
+            }
+        });
+
+        $('#userCards').html(sortedUsers);
+    }
+
+    // Event listeners for search, filter, and sort
+    $('#searchUser, #roleFilter, #sortByName').on('input change', filterUsers);
+
 });
