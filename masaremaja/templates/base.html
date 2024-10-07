@@ -41,27 +41,9 @@
                                 {% if user.is_authenticated %}
                                     <a class="dropdown-item" href="{% url 'account_management:profile' %}">Profile</a>
                             
-                                    {% if user.role == 'Admin' %}
                                     <li>
                                         <a class="dropdown-item" href="{% url 'account_management:home' %}">Dashboard</a>
                                     </li>
-
-                                    {% elif user.role == 'Project Manager' %}
-                                    <li>
-                                        <a class="dropdown-item" href="#">Project Manager Dashboard</a>
-                                    </li>
-
-                                    
-                                    {% elif user.role == 'Client' %}
-                                    <li>
-                                        <a class="dropdown-item" href="#">Client Dashboard</a>  
-                                    </li>
-
-                                    {% elif user.role == 'Creative Team' %}
-                                    <li>
-                                        <a class="dropdown-item" href="#">Creative Dashboard</a>
-                                    </li>
-                                    {% endif %}
                                     
                                     <li>
                                         <a class="dropdown-item" href="{% url 'authentication:logout' %}" id="logoutLink">Logout</a>
