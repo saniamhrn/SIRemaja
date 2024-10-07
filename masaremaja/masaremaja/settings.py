@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'user_management',
     'authentication',
     'account_management',
+    'projects'
 ]
 
 AUTHENTICATION_BACKENDS = (
