@@ -30,10 +30,112 @@ $(document).ready(function() {
         "pageLength": 10
     });
 
-    // Role filter for DataTable
+    // === Card View Filtering, Searching, and Sorting Functions === //
+
+    // Search function for card view
+    function searchCardView() {
+        let searchInput = $('#searchUser').val().toLowerCase().trim();
+        let users = $('.user-card');
+
+        users.each(function() {
+            let username = $(this).data('username').toLowerCase();
+            let name = $(this).data('name').toLowerCase();
+
+            let matchesSearch = searchInput === '' || username.includes(searchInput) || name.includes(searchInput);
+            $(this).toggle(matchesSearch);  // Show or hide the card based on search
+        });
+    }
+
+    // Role filtering function for card view
+    function filterCardByRole() {
+        let selectedRole = $('#roleFilter').val();
+        let users = $('.user-card');
+
+        users.each(function() {
+            let role = $(this).data('role');
+            let matchesRole = selectedRole === '' || role === selectedRole;
+            $(this).toggle(matchesRole);  // Show or hide the card based on role
+        });
+    }
+
+    // Sorting function for card view
+    function sortCardView() {
+        let sortOrder = $('#sortByName').val();
+        let users = $('.user-card:visible').sort(function(a, b) {
+            let nameA = $(a).data('name').toLowerCase();
+            let nameB = $(b).data('name').toLowerCase();
+
+            return sortOrder === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+        });
+
+        $('#cardView').html(users);  // Update the card view with sorted users
+    }
+
+    // === Table View Filtering and Sorting Functions === //
+
+    // Search function for table view (via DataTables)
+    function searchTableView() {
+        let searchInput = $('#searchUser').val().toLowerCase();
+        table.search(searchInput).draw();  // Apply search in DataTable
+    }
+
+    // Role filtering function for table view
+    function filterTableByRole() {
+        let selectedRole = $('#roleFilter').val();
+        table.column(5).search(selectedRole).draw();  // Column 5 is the role column
+    }
+
+    // === Event Listeners for Search, Role Filtering, and Sorting === //
+
+    // Search input event listener
+    $('#searchUser').on('input', function() {
+        searchCardView();  // Apply search to the card view
+        searchTableView();  // Apply search to the table view
+    });
+
+    // Role filter change event listener
     $('#roleFilter').on('change', function() {
-        var selectedRole = $(this).val();
-        table.column(4).search(selectedRole).draw(); // Column index starts from 0
+        filterCardByRole();  // Apply role filter to the card view
+        filterTableByRole();  // Apply role filter to the table view
+    });
+
+    // Sort by name change event listener
+    $('#sortByName').on('change', function() {
+        sortCardView();  // Apply sorting to the card view only
+    });
+
+    // Save the user's view preference to local storage
+    function saveViewPreference(view) {
+        localStorage.setItem('viewPreference', view);
+    }
+
+    // Load the user's view preference from local storage
+    function loadViewPreference() {
+        return localStorage.getItem('viewPreference') || 'card'; // Default to 'card' view if none is set
+    }
+
+    // Apply the saved view preference on page load
+    let savedView = loadViewPreference();
+
+    if (savedView === 'table') {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+    } else {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+    }
+
+    // Toggle between card view and table view
+    $('#cardViewButton').on('click', function() {
+        $('#cardView').removeClass('d-none');
+        $('#tableView').addClass('d-none');
+        saveViewPreference('card');
+    });
+
+    $('#tableViewButton').on('click', function() {
+        $('#tableView').removeClass('d-none');
+        $('#cardView').addClass('d-none');
+        saveViewPreference('table');
     });
 
     // Password visibility toggle
@@ -52,7 +154,7 @@ $(document).ready(function() {
     togglePasswordVisibility('#id_password2', '#togglePassword2');
 
     
-    // Client-side password validation
+    // Password validation
     $('#passwordForm').on('submit', function(e) {
         let password1 = $('#id_password1').val();
         let password2 = $('#id_password2').val();
@@ -103,58 +205,5 @@ $(document).ready(function() {
             event.preventDefault();  // Stop the logout request
         }
     });
-
-    // Toggle between card view and table view
-    $('#cardViewButton').on('click', function() {
-        $('#cardView').removeClass('d-none');
-        $('#tableView').addClass('d-none');
-    });
-
-    $('#tableViewButton').on('click', function() {
-        $('#tableView').removeClass('d-none');
-        $('#cardView').addClass('d-none');
-    });
-
-    // Filter and search function
-    function filterUsers() {
-        let searchInput = $('#searchUser').val().toLowerCase();
-        let selectedRole = $('#roleFilter').val();
-        let sortOrder = $('#sortByName').val();
-
-        let users = $('.user-card');
-
-        // Filter by role and search query
-        users.each(function() {
-            let username = $(this).data('username').toLowerCase();
-            let name = $(this).data('name').toLowerCase();
-            let role = $(this).data('role');
-
-            let matchesSearch = username.includes(searchInput) || name.includes(searchInput);
-            let matchesRole = selectedRole === '' || role === selectedRole;
-
-            if (matchesSearch && matchesRole) {
-                $(this).show();
-            } else {
-                $(this).hide();
-            }
-        });
-
-        // Sort the visible users
-        let sortedUsers = users.filter(':visible').sort(function(a, b) {
-            let nameA = $(a).data('name').toLowerCase();
-            let nameB = $(b).data('name').toLowerCase();
-
-            if (sortOrder === 'asc') {
-                return nameA.localeCompare(nameB);
-            } else {
-                return nameB.localeCompare(nameA);
-            }
-        });
-
-        $('#userCards').html(sortedUsers);
-    }
-
-    // Event listeners for search, filter, and sort
-    $('#searchUser, #roleFilter, #sortByName').on('input change', filterUsers);
 
 });

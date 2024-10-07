@@ -3,91 +3,119 @@
 {% block title %}User List{% endblock %}
 
 {% block content %}
-<div class="container mt-5 d-flex justify-content-center">
-    <div class="card shadow-lg justify-content-center" style="width: 100%; max-width: 900px;">
-        <div class="card-body">
-            <h2 class="card-title text-center my-4">User List</h2>
+<div class="container mt-5">
+    {% if messages %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
 
-            {% if messages %}
-            <!-- <div class="container mt-4"> -->
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {% for message in messages %}
-                        {{ message }}
-                    {% endfor %}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <!-- </div> -->
-            {% endif %}
+    <h2 class="card-title text-center mb-4">User List</h2>
+    <br>
+    <a href="{% url 'user_management:user_create' %}" class="btn btn-primary">Add User</a>
+    
 
-            <a href="{% url 'user_management:user_create' %}" class="btn btn-primary mb-3">Add User</a>
+    <!-- Toggle for View Mode -->
+    <div class="my-3 d-flex justify-content-between align-items-center">
+        <div>
+            <!-- Search and Filter Options -->
+            <input type="text" id="searchUser" class="form-control d-inline-block me-2" placeholder="Search by username or name" style="width: 250px;">
+            <select id="roleFilter" class="form-select d-inline-block me-2" style="width: 150px;">
+                <option value="">All Roles</option>
+                <option value="Admin">Admin</option>
+                <option value="Project Manager">Project Manager</option>
+                <option value="Creative Team">Creative Team</option>
+                <option value="Client">Client</option>
+            </select>
+            <select id="sortByName" class="form-select d-inline-block" style="width: 150px;">
+                <option value="asc">Sort by Name (A-Z)</option>
+                <option value="desc">Sort by Name (Z-A)</option>
+            </select>
+        </div>
 
-            <!-- Filter for Role -->
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <label for="roleFilter">Filter by Role</label>
-                    <select id="roleFilter" class="form-select">
-                        <option value="">All</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Project Manager">Project Manager</option>
-                        <option value="Creative Team">Creative Team</option>
-                        <option value="Client">Client</option>
-                    </select>
-                </div>
-            </div>
-            <div class="table-responsive-sm">
-                <table id="userTable" class="table table-hover">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>#</th>
-                            <th>Is Active</th>
-                            <th>Username</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{% if user.is_active %}Yes{% else %}No{% endif %}</td>
-                            <td>{{ user.username }}</td>
-                            <td>{{ user.first_name }}</td>
-                            <td>{{ user.email }}</td>
-                            <td>{{ user.role }}</td>
-                            <td>
-                                <a href="{% url 'user_management:user_update' user.id %}" class="btn btn-primary btn-sm mb-2">Edit</a>
-                                <button type="button" class="btn btn-danger btn-sm sm-3 mb-2" data-bs-toggle="modal" data-bs-target="#deleteModal" data-userid="{{ user.id }}" data-username="{{ user.username }}">
-                                    Delete
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <!-- Toggle between Card and Table View -->
+        <div>
+            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
         </div>
     </div>
-</div>
 
-<!-- Delete Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Card View -->
+    <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for user in users %}
+        <div class="col user-card" data-username="{{ user.username }}" data-role="{{ user.role }}" data-name="{{ user.first_name }}">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ user.first_name }}</h5>
+                    <p class="card-text"><strong>Username:</strong> {{ user.username }}</p>
+                    <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+                    <p class="card-text"><strong>Role:</strong> {{ user.role }}</p>
+                    <p class="card-text"><strong>Status:</strong> {% if user.is_active %}Active{% else %}Inactive{% endif %}</p>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <a href="{% url 'user_management:user_update' user.id %}" class="btn btn-primary btn-sm">Edit</a>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal" data-userid="{{ user.id }}" data-username="{{ user.username }}">Delete</button>
+                </div>
             </div>
-            <div class="modal-body">
-                Are you sure you want to delete user <strong id="userToDelete"></strong>?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger">Confirm Delete</button>
-                </form>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Table View -->
+    <div id="tableView" class="table-responsive-sm d-none">
+        <table id="userTable" class="table table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Is Active</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr class="user-card" data-username="{{ user.username }}" data-role="{{ user.role }}" data-name="{{ user.first_name }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{% if user.is_active %}Yes{% else %}No{% endif %}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.role }}</td>
+                    <td>
+                        <a href="{% url 'user_management:user_update' user.id %}" class="btn btn-primary btn-sm mb-2">Edit</a>
+                        <button type="button" class="btn btn-danger btn-sm sm-3 mb-2" data-bs-toggle="modal" data-bs-target="#deleteModal" data-userid="{{ user.id }}" data-username="{{ user.username }}">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Delete Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete user <strong id="userToDelete"></strong>?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="deleteForm" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
