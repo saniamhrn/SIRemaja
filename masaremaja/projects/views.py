@@ -6,13 +6,8 @@ from .models import Project
 from user_management.models import CustomUser
 from .serializers import ProjectSerializer
 from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
+from authentication.views import is_pm_or_admin
 # from django.views.decorators.csrf import csrf_exempt
-
-def is_pm(user):
-    return user.role == 'Project Manager'
-
-def is_admin(user):
-    return user.is_superuser or user.role == 'Admin'
 
 @api_view(['POST'])
 # @csrf_exempt
@@ -73,7 +68,7 @@ def update_project(request, project_id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
 # @csrf_exempt
-@user_passes_test(is_pm or is_admin)
+@user_passes_test(is_pm_or_admin)
 @login_required
 def view_all_projects(request):
     projects = Project.objects.all()

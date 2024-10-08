@@ -6,16 +6,11 @@ from django.contrib.auth.forms import SetPasswordForm
 from django.core.exceptions import PermissionDenied
 from .forms import CustomUserCreationForm, CustomUserUpdateForm
 from .models import CustomUser
-
-def is_admin(user):
-    return user.is_superuser or user.role == 'Admin'
+from authentication.views import is_admin
 
 # Create a new user
 @user_passes_test(is_admin)
 def user_create(request):
-    if not is_admin(request.user):
-        raise PermissionDenied
-    
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         # Check if form is valid
@@ -30,18 +25,12 @@ def user_create(request):
 # List users
 @user_passes_test(is_admin)
 def user_list(request):
-    if not is_admin(request.user):
-        raise PermissionDenied
-    
     users = get_user_model().objects.all()
     return render(request, 'user_management/user_list.html', {'users': users})
 
 # Update user details
 @user_passes_test(is_admin)
 def user_update(request, user_id):
-    if not is_admin(request.user):
-        raise PermissionDenied
-    
     user = get_object_or_404(get_user_model(), id=user_id)
 
     if request.method == 'POST':
@@ -80,9 +69,6 @@ def user_update(request, user_id):
 # Delete a user
 @user_passes_test(is_admin)
 def user_delete(request, user_id):
-    if not is_admin(request.user):
-        raise PermissionDenied
-
     user = get_object_or_404(get_user_model(), id=user_id)
     if request.method == 'POST':
         user.delete()
@@ -92,9 +78,6 @@ def user_delete(request, user_id):
 
 @user_passes_test(is_admin)
 def user_summary(request):
-    if not is_admin(request.user):
-        raise PermissionDenied
-    
     users = CustomUser.objects.all()[:5]
     total_users = CustomUser.objects.count()
     active_users = CustomUser.objects.filter(is_active=True).count()

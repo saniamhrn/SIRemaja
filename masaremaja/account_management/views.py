@@ -3,8 +3,10 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash, get_user_model
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from .forms import EmailUpdateForm, PasswordUpdateForm, UsernameUpdateForm
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import EmailUpdateForm, UsernameUpdateForm
+from django.core.exceptions import PermissionDenied
+from authentication.views import is_admin, is_pm, is_client, is_creative
 
 User = get_user_model()
 
@@ -69,18 +71,22 @@ def update_username(request):
     return render(request, 'account_management/update_username.html', {'form': form})
 
 # For testing
+@user_passes_test(is_admin)
 @login_required
 def admin_home(request):
     return render(request, 'account_management/admin_home.html')  # Admin-specific homepage
 
+@user_passes_test(is_pm)
 @login_required
 def pm_home(request):
     return render(request, 'account_management/pm_home.html')  # Project Manager-specific homepage
 
+@user_passes_test(is_client)
 @login_required
 def client_home(request):
     return render(request, 'account_management/client_home.html')  # Client-specific homepage
 
+@user_passes_test(is_creative) 
 @login_required
 def creative_home(request):
     return render(request, 'account_management/creative_home.html')  # Creative Team-specific homepage

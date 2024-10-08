@@ -15,12 +15,12 @@ class EmailUpdateForm(UserChangeForm):
         return email
 
 
-class PasswordUpdateForm(PasswordChangeForm):
-    def clean_new_password1(self):
-        password = self.cleaned_data['new_password1']
-        if len(password) < 8:
-            raise forms.ValidationError('Password should be at least 8 characters long.')
-        return password
+# class PasswordUpdateForm(PasswordChangeForm):
+#     def clean_new_password1(self):
+#         password = self.cleaned_data['new_password1']
+#         if len(password) < 8:
+#             raise forms.ValidationError('Password should be at least 8 characters long.')
+#         return password
 
 
 class UsernameUpdateForm(UserChangeForm):
