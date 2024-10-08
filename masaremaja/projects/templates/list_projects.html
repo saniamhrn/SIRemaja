@@ -1,0 +1,332 @@
+{% extends 'base.html' %}
+{% block title %}Project Management{% endblock %}
+
+{% block content %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function submitProjectForm() {
+        const name = document.getElementById('project-name').value;
+        const description = document.getElementById('project-description').value;
+        const status = document.getElementById('project-status').value;
+        const clientId = document.getElementById('project-client-id').value;
+        const managerId = document.getElementById('project-manager-id').value;
+        const dueDate = document.getElementById('project-due-date').value;
+
+        const today = new Date().toISOString().split('T')[0];
+        if (dueDate <= today) {
+            alert('Due date must be greater than today\'s date');
+            return;
+        }
+
+        if (!name || !description || !status || !clientId || !managerId || !dueDate) {
+            alert('All fields must be filled out');
+            return;
+        }
+
+        const projectData = {
+            name: name,
+            description: description,
+            status: status,
+            client_id: clientId,
+            project_manager_id: managerId,
+            due_date: dueDate
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        fetch('/project/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(projectData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Project added:', data);
+
+            const myModal = bootstrap.Modal.getInstance(document.getElementById('addProjectModal'));
+            myModal.hide();
+
+            window.location.reload();
+
+        })
+        .catch(error => console.error('Error adding project:', error));
+    }
+
+    function showUpdateModal(projectId) {
+        fetch(`/project/detail/${projectId}`)
+            .then(response => response.json())
+            .then(project => {
+                document.getElementById('update-project-id').value = project.id;
+                document.getElementById('update-project-name').value = project.name;
+                document.getElementById('update-project-description').value = project.description;
+                document.getElementById('update-project-status').value = project.status;
+                document.getElementById('update-project-client-id').value = project.client_id;
+                document.getElementById('update-project-manager-id').value = project.project_manager_id;
+
+                const dueDate = project.due_date.split('T')[0];
+                document.getElementById('update-project-due-date').value = dueDate;
+
+                var updateModal = new bootstrap.Modal(document.getElementById('updateProjectModal'));
+                updateModal.show();
+            })
+            .catch(error => console.error('Error fetching project for update:', error));
+    }
+
+    function updateProject() {
+        const projectId = document.getElementById('update-project-id').value;
+        const name = document.getElementById('update-project-name').value;
+        const description = document.getElementById('update-project-description').value;
+        const status = document.getElementById('update-project-status').value;
+        const clientId = document.getElementById('update-project-client-id').value;
+        const managerId = document.getElementById('update-project-manager-id').value;
+        const dueDate = document.getElementById('update-project-due-date').value;
+
+        const today = new Date().toISOString().split('T')[0];
+        if (dueDate <= today) {
+            alert('Due date must be greater than today\'s date');
+            return;
+        }
+
+        if (!name || !description || !status || !clientId || !managerId || !dueDate) {
+            alert('All fields must be filled out');
+            return;
+        }
+
+        const projectData = {
+            name: name,
+            description: description,
+            status: status,
+            client_id: clientId,
+            project_manager_id: managerId,
+            due_date: dueDate
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        fetch(`/project/update/${projectId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(projectData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Project updated:', data);
+
+            const myModal = bootstrap.Modal.getInstance(document.getElementById('updateProjectModal'));
+            myModal.hide();
+
+            window.location.reload();
+        })
+        .catch(error => console.error('Error updating project:', error));
+    }
+
+    function deleteProject(projectId, row) {
+        event.stopPropagation();
+        const csrftoken = getCookie('csrftoken');
+        if (confirm('Are you sure you want to delete this project?')) {
+            fetch(`/project/delete/${projectId}`, {
+                method: 'DELETE',
+                headers: {
+                    // 'X-CSRFToken': csrftoken
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Project deleted');
+                    row.remove();
+                } else {
+                    console.error('Error deleting project');
+                }
+            })
+            .catch(error => console.error('Error deleting project:', error));
+        }
+    }
+</script>
+
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Projects</h1>
+
+        <div class="mb-3 text-end">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                + Add Project
+            </button>
+        </div>
+
+        <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Client</th>
+                        <th>Project Manager</th>
+                        <th>Due Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="projects-table-body">
+                    {% for project in projects %}
+                    <tr>
+                        <td>{{ project.name }}</td>
+                        <td>{{ project.description }}</td>
+                        <td>{{ project.status }}</td>
+                        <td>{{ project.client_username }}</td>
+                        <td>{{ project.pm_username }}</td>
+                        <td>{{ project.due_date }}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="showUpdateModal({{ project.id }})">Update</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProjectModalLabel">Add New Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <!-- {% csrf_token %} -->
+                        <div class="mb-3">
+                            <label for="project-name" class="form-label">Project Name</label>
+                            <input type="text" class="form-control" id="project-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="project-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="project-description" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project-status" class="form-label">Status</label>
+                            <select class="form-select" id="project-status" required>
+                                <option value="To Do">To Do</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project-client-id" class="form-label">Client</label>
+                            <select name="project-client-id" id="project-client-id" class="form-select" required>
+                                <option value="" disabled selected>Select a Client</option>
+                                {% for client in client_list %}
+                                    <option value="{{ client.id }}">{{ client.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project-manager-id" class="form-label">Project Manager</label>
+                            <select name="project-manager-id" id="project-manager-id" class="form-select" required>
+                                <option value="" disabled selected>Select a Project Manager</option>
+                                {% for pm in pm_list %}
+                                    <option value="{{ pm.id }}">{{ pm.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="project-due-date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="project-due-date" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="submitProjectForm()">Save Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateProjectModal" tabindex="-1" aria-labelledby="updateProjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateProjectModalLabel">Update Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateProjectForm">
+                        <!-- {% csrf_token %} -->
+                        <input type="hidden" id="update-project-id">
+                        <div class="mb-3">
+                            <label for="update-project-name" class="form-label">Project Name</label>
+                            <input type="text" class="form-control" id="update-project-name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="update-project-description" class="form-label">Description</label>
+                            <textarea class="form-control" id="update-project-description" required></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="update-project-status" class="form-label">Status</label>
+                            <select class="form-select" id="update-project-status" required>
+                                <option value="To Do">To Do</option>
+                                <option value="In Progress">In Progress</option>
+                                <option value="Done">Done</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="update-project-client-id" class="form-label">Client</label>
+                            <select name="update-project-client-id" id="update-project-client-id" class="form-select" required>
+                                <option value="" disabled>Select a Client</option>
+                                {% for client in client_list %}
+                                    <option value="{{ client.id }}">{{ client.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="update-project-manager-id" class="form-label">Project Manager</label>
+                            <select name="update-project-manager-id" id="update-project-manager-id" class="form-select" required>
+                                <option value="" disabled>Select a Project Manager</option>
+                                {% for pm in pm_list %}
+                                    <option value="{{ pm.id }}">{{ pm.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="update-project-due-date" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="update-project-due-date" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="updateProject()">Update Project</button>
+                </div>
+            </div>
+        </div>
+    </div>    
+</body>
+{% endblock content %}

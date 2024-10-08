@@ -25,12 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-x=+=f*@t7o!^&(l5^h3#-@3&zb652da+g^2ih)gxaquygkessu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['.up.railway.app', 
                  'localhost', 
                  '127.0.0.1',
-                 '.onrender.com',]
+                 'siremaja.onrender.com',]
 
 
 # Application definition
@@ -44,10 +44,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'user_management',
+    'authentication',
+    'account_management',
+    'projects'
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # Default backend
+)
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -87,16 +95,6 @@ WSGI_APPLICATION = 'masaremaja.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'masaremaja',
-#         'USER': 'sania',
-#         'PASSWORD': 'wonwoo',
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
 AUTH_USER_MODEL = 'user_management.CustomUser'
 
 if os.getenv('DATABASE_URL'): 
@@ -115,9 +113,6 @@ else:
         }
     }
 
-# DATABASES = {
-#     'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'))
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -160,6 +155,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),  
 ]
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
