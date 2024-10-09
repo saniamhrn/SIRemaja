@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from .forms import EmailUpdateForm, UsernameUpdateForm
 from django.core.exceptions import PermissionDenied
 from authentication.views import is_admin, is_pm, is_client, is_creative
+from user_management.models import CustomUser
 
 User = get_user_model()
 
@@ -74,7 +75,19 @@ def update_username(request):
 @user_passes_test(is_admin)
 @login_required
 def admin_home(request):
-    return render(request, 'account_management/admin_home.html')  # Admin-specific homepage
+    users = CustomUser.objects.all()[:5]
+    total_users = CustomUser.objects.count()
+    active_users = CustomUser.objects.filter(is_active=True).count()
+    latest_users = CustomUser.objects.filter(last_login__isnull=False).order_by('-last_login')[:5]
+
+    context = {
+        'total_users': total_users,
+        'active_users': active_users,
+        'users': users,
+        'latest_users': latest_users,
+    }
+
+    return render(request, 'account_management/admin_home.html', context)  # Admin-specific homepage
 
 @user_passes_test(is_pm)
 @login_required
