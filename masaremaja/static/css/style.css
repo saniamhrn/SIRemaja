@@ -82,7 +82,7 @@ form {
 .card-footer {
     margin-top: auto;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
 }
 
 /* Adjust the button spacing inside the card */
@@ -104,6 +104,23 @@ form {
 /* Table styling */
 .table {
     margin-bottom: 0; /* Remove extra margin for a cleaner card layout */
+}
+
+/* Table styling */
+.table {
+    margin-bottom: 0; /* Remove extra margin for a cleaner card layout */
+}
+
+/* Table header styling */
+.table thead {
+    background-color: #4C0080; /* Purple color for the table headers */
+    color: whitesmoke; /* Ensure text is white for readability */
+    padding: 10px; /* Add some padding for a better look */
+}
+
+/* Table data styling */
+.table td {
+    padding: 10px; /* Ensure consistent padding across the table */
 }
 
 /* Search and Filter */

@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 # Login View
 def login_view(request):
@@ -13,7 +14,6 @@ def login_view(request):
             login(request, user)
             return redirect('account_management:home')  # Redirect to the home view
         else:
-            print(form.errors)  # Debugging: Print form errors to console/log
             messages.error(request, "Please enter a correct username and password.")
     else:
         form = AuthenticationForm()
@@ -35,3 +35,28 @@ def custom_500(request):
 
 def custom_400(request, exception=None):
     return render(request, 'error/400.html', status=400)
+
+def is_admin(user):
+    if user.is_superuser or user.role == 'Admin':
+        return True
+    raise PermissionDenied
+
+def is_pm(user):
+    if user.role == 'Project Manager':
+        return True
+    raise PermissionDenied
+
+def is_pm_or_admin(user):
+    if user.role == 'Project Manager' or user.is_superuser or user.role == 'Admin':
+        return True
+    raise PermissionDenied
+
+def is_client(user):
+    if user.role == 'Client':
+        return True
+    raise PermissionDenied
+
+def is_creative(user):
+    if user.role == 'Creative Team':
+        return True
+    raise PermissionDenied
