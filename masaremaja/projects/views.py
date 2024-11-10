@@ -1,17 +1,21 @@
-from django.shortcuts import render
+import json
+from django.shortcuts import redirect, render, get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Project
-from user_management.models import CustomUser
-from .serializers import ProjectSerializer
+from .models import Project, Task
+from user_management.models import CustomUser as User
+from .serializers import ProjectSerializer, TaskSerializer
 from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
 from authentication.views import is_pm_or_admin
 # from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.template.loader import render_to_string
+from django.db.models import Avg, Count, Q, F, ExpressionWrapper, DurationField
+from django.utils import timezone
+from datetime import timedelta
 
 @api_view(['POST'])
-# @csrf_exempt
-# @login_required
 def create_project(request):
     if request.method == 'POST':
         serializer = ProjectSerializer(data=request.data)
@@ -21,28 +25,30 @@ def create_project(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
-# @csrf_exempt
-# @login_required
 def get_projects(request):
     projects = Project.objects.all()
     serializer = ProjectSerializer(projects, many=True)
     return Response(serializer.data)
 
 @api_view(['GET'])
-# @csrf_exempt
-# @login_required
 def get_project_detail(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
+        serializer = ProjectSerializer(project)
+        project_data = serializer.data
+        #debug
+        print(project_data)
+
+        # Include tasks associated with this project
+        tasks = Task.objects.filter(project=project)
+        task_serializer = TaskSerializer(tasks, many=True)
+        project_data['tasks'] = task_serializer.data
+        
+        return JsonResponse(project_data)
     except Project.DoesNotExist:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-    
-    serializer = ProjectSerializer(project)
-    return Response(serializer.data)
+        return JsonResponse({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['DELETE'])
-# @csrf_exempt
-# @login_required
 def delete_project(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
@@ -53,49 +59,204 @@ def delete_project(request, project_id):
     return Response(status=status.HTTP_200_OK)
 
 @api_view(['PUT'])
-# @csrf_exempt
-# @login_required
 def update_project(request, project_id):
     try:
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
     
-    serializer = ProjectSerializer(project, data=request.data)
+    serializer = ProjectSerializer(project, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
 
-# @csrf_exempt
+        updated_data = serializer.data
+        updated_data['pm_name'] = project.project_manager.username if project.project_manager else 'N/A'
+        updated_data['client_name'] = project.client.username if project.client else 'N/A'
+
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @user_passes_test(is_pm_or_admin)
 @login_required
 def view_all_projects(request):
-    projects = Project.objects.all()
-
-    client_list = CustomUser.objects.filter(role='Client').values('id', 'username')
-    pm_list = CustomUser.objects.filter(role='Project Manager').values('id', 'username')
-
-    client_dict = {client['id']: client['username'] for client in client_list}
-    pm_dict = {pm['id']: pm['username'] for pm in pm_list}
+    # Get all projects with related client and project manager data
+    projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
 
     project_pm_client = []
     for project in projects:
-        client_username = client_dict.get(project.client_id)
-        pm_username = pm_dict.get(project.project_manager_id)
-
+        # debug
+        print(list(project.tasks.all()))
         project_pm_client.append({
             'id': project.id,
             'name': project.name,
             'description': project.description,
             'status': project.status,
-            'due_date': project.due_date,
-            'client_username': client_username,
-            'pm_username': pm_username
+            'due_date': project.due_date.strftime('%B %d, %Y') if project.due_date else None,
+            'client_username': project.client.username if project.client else 'N/A',
+            'pm_username': project.project_manager.username if project.project_manager else 'N/A',
+            'created_at': project.created_at.strftime('%B %d, %Y') if project.created_at else None,
+            'updated_at': project.updated_at.strftime('%B %d, %Y') if project.updated_at else None,
+            'tasks': [
+                {
+                    'id': task.id,
+                    'title': task.title,
+                    'description': task.description,
+                    'status': task.status,
+                    'due_date': task.due_date.strftime('%B %d, %Y') if task.due_date else None,
+                    'assigned_to': task.assigned_to.username if task.assigned_to else 'N/A',
+                    'created_at': task.created_at.strftime('%B %d, %Y') if task.created_at else None,
+                    'updated_at': task.updated_at.strftime('%B %d, %Y') if task.updated_at else None,
+                } for task in project.tasks.all().order_by('id')
+            ]
         })
+
+    # Fetch clients and project managers for the dropdowns in the form
+    client_list = list(User.objects.filter(role='Client').values('id', 'username'))
+    pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
+    creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
 
     return render(request, 'list_projects.html', {
         'client_list': client_list,
         'pm_list': pm_list,
-        'projects': project_pm_client
+        'projects': project_pm_client,
+        'creative_list': creative_list
     })
+
+@user_passes_test(is_pm_or_admin)
+@login_required
+@api_view(['POST'])
+def create_task(request):
+    serializer = TaskSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@login_required
+@api_view(['PUT'])
+def update_task(request, task_id):
+    try:
+        task = Task.objects.get(pk=task_id)
+    except Task.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    serializer = TaskSerializer(task, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@login_required
+@api_view(['GET'])
+def get_task_detail(request, task_id):
+    print('Task ID:', Task.objects.get(pk=task_id))
+    task = Task.objects.get(pk=task_id)
+    print(task.project)
+    try:
+        task = Task.objects.get(pk=task_id)
+        serializer = TaskSerializer(task)
+        print('task selializer:', serializer.data)
+        return Response(serializer.data)
+    except Task.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    
+@api_view(['DELETE'])
+def delete_task(request, task_id):
+    try:
+        task = Task.objects.get(id=task_id)
+        task.delete()
+        return Response({"message": "Task deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+    except Task.DoesNotExist:
+        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+
+def kanban_board(request):
+    tasks = Task.objects.all()
+    projects = Project.objects.all()
+    client_list = User.objects.filter(role='Client')
+    pm_list = User.objects.filter(role='Project Manager')
+    creative_list = User.objects.filter(role='Creative Team')
+    
+    context = {
+        'tasks': tasks,
+        'projects': projects,
+        'client_list': client_list,
+        'pm_list': pm_list,
+        'creative_list': creative_list
+    }
+    return render(request, 'kanban_board.html', context)
+
+@user_passes_test(is_pm_or_admin)
+@login_required
+def dashboard_view(request):
+    # Calculate Task Completion Rate
+    total_tasks = Task.objects.count()
+    completed_tasks = Task.objects.filter(status="Done").count()
+    task_completion_rate = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
+    project_completion_rate = (Project.objects.filter(status="Done").count() / Project.objects.count()) * 100 if Project.objects.count() > 0 else 0
+
+    # Calculate Average Task Duration (for completed tasks)
+    average_task_duration = (
+        Task.objects
+        .filter(status="Done", start_date__isnull=False, completion_date__isnull=False)
+        .annotate(duration=ExpressionWrapper(F("completion_date") - F("start_date"), output_field=DurationField()))
+        .aggregate(avg_duration=Avg("duration"))["avg_duration"]
+    )
+
+    # Format average_task_duration as a string if it exists
+    if average_task_duration:
+        # Convert `average_task_duration` (a timedelta) to days, hours, minutes, seconds
+        days = average_task_duration.days
+        hours, remainder = divmod(average_task_duration.seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        average_task_duration_str = f"{days}d {hours}h {minutes}m {seconds}s"
+    else:
+        average_task_duration_str = None
+
+    # Get overdue projects and tasks for display
+    overdue_projects = Project.objects.filter(due_date__lt=timezone.now(), status__in=["To Do", "In Progress"])
+    overdue_projects_count = overdue_projects.count()
+    overdue_tasks = Task.objects.filter(due_date__lt=timezone.now(), status__in=["To Do", "In Progress"])
+    overdue_tasks_count = overdue_tasks.count()
+
+    # Ongoing Projects with Progress Calculation
+    ongoing_projects = Project.objects.filter(status="In Progress")
+    projects_with_progress = []
+    for project in ongoing_projects:
+        total_project_tasks = project.tasks.count()
+        completed_project_tasks = project.tasks.filter(status="Done").count()
+        progress = int((completed_project_tasks / total_project_tasks) * 100) if total_project_tasks > 0 else 0
+        projects_with_progress.append({
+            'name': project.name,
+            'status': project.status,
+            'progress': progress,
+            'due_date': project.due_date,
+        })
+
+    # Tasks Near Due Date (within the next 7 days)
+    near_due_date_tasks = Task.objects.filter(
+        due_date__lte=timezone.now() + timezone.timedelta(days=7),
+        status__in=['To Do', 'In Progress']
+    ).order_by('due_date')
+
+    # Tasks Assigned per Team Member
+    tasks_per_member_data = Task.objects.values('assigned_to__username').annotate(task_count=Count('id')).order_by('-task_count')
+    member_names = [member['assigned_to__username'] for member in tasks_per_member_data]
+    task_counts = [member['task_count'] for member in tasks_per_member_data]
+
+    context = {
+        "project_completion_rate": project_completion_rate,
+        "task_completion_rate": task_completion_rate,
+        "average_task_duration": average_task_duration_str,
+        "overdue_projects": overdue_projects,
+        "overdue_projects_count": overdue_projects_count,
+        "overdue_tasks": overdue_tasks,
+        "overdue_tasks_count": overdue_tasks_count,
+        "projects_with_progress": projects_with_progress,
+        "near_due_date_tasks": near_due_date_tasks,
+        "member_names": member_names,
+        "task_counts": task_counts   
+        }
+    return context
+
+def view(request):
+    return render(request, 'modal.html')

@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+
+{% block title %}Progress Board{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4 card-title">Progress Board</h1>
+
+    <div id="kanban-board" class="d-flex justify-content-between">
+        <!-- To Do Column -->
+        <div id="to-do" class="kanban-column">
+            <h4 class="text-center mb-4">
+                To Do
+                <button class="btn btn-light btn-sm float-end" onclick="showCreateTaskModalWithStatus('To Do')">+</button>
+            </h4>
+            <div class="task-list">
+                {% for task in tasks %}
+                    {% if task.status == "To Do" %}
+                        <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }}, '{{ task.project_name }}', {{ task.project_id }})">
+                            <p>{{ task.title }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div id="in-progress" class="kanban-column">
+            <h5 class="card-title text-center mb-4">
+                In Progress
+                <button class="btn btn-light btn-sm float-end" onclick="showCreateTaskModalWithStatus('In Progress')">+</button>
+            </h5>
+            <div class="task-list">
+                {% for task in tasks %}
+                    {% if task.status == "In Progress" %}
+                        <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
+                            <p>{{ task.title }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Done Column -->
+        <div id="done" class="kanban-column">
+            <h5 class="card-title text-center mb-4">
+                Done
+                <button class="btn btn-light btn-sm float-end" onclick="showCreateTaskModalWithStatus('Done')">+</button>
+            </h5>
+            <div class="task-list">
+                {% for task in tasks %}
+                    {% if task.status == "Done" %}
+                        <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
+                            <p>{{ task.title }}</p>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Project Detail Modal -->
+<div class="modal fade" id="projectDetailModal" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="project-detail-name" ondblclick="editField(this, 'name', currentProjectId)"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-light" id="add-task-button">Add Task</button>
+                            <button type="button" class="btn btn-light" id="add-file-button">Add File</button>
+                        </div>
+                        <h6><strong>Description</strong></h6>
+                        <p id="project-detail-description" ondblclick="editField(this, 'description', currentProjectId)"></p>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0"><strong>Tasks</strong></h6>
+                            <button class="btn btn-light btn-sm p-1" onclick="showCreateTaskModal(currentProjectId)">
+                                <i class="fa-regular fa-plus"></i>
+                            </button>
+                        </div>
+                        <!-- Progress Bar -->
+                        <div class="progress mb-2">
+                            <div id="task-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0% Done</div>
+                        </div>
+
+                        <!-- Task List Table -->
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Assignee</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="project-task-list">
+                                <!-- Tasks will be loaded here dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-md-4">
+                        <h6><strong>Project Details</strong></h6>
+                        <p><strong>Project Manager:</strong> 
+                            <span id="project-detail-manager" ondblclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
+                        </p>
+                        <p><strong>Client:</strong> 
+                            <span id="project-detail-client" ondblclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
+                        </p>
+                        <p><strong>Status:</strong> 
+                            <span id="project-detail-status"></span>
+                        </p>
+                        <div>
+                            <p><strong>Due Date:</strong> <span id="project-detail-due-date"></span></p>
+                            <p><strong>Created At:</strong> <span id="project-detail-created-at"></span></p>
+                            <p><strong>Last Updated:</strong> <span id="project-detail-updated-at"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal-->
+<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="task-detail-title"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6><strong>Description</strong></h6>
+                <p id="task-detail-description" ondblclick="editField(this, 'description', currentTaskId, true)"></p>
+                <input type="hidden" id="current-task-id">
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6><strong>Task Details</strong></h6>
+                        <p><strong>Status:</strong> 
+                            <span id="task-detail-status" ondblclick="editStatus(this, 'status', currentTaskId, true)"></span>
+                        </p>
+                        <p><strong>Assignee:</strong> 
+                            <span id="task-detail-assignee" ondblclick="editDropdown(this, 'assigned_to', currentTaskId, creativeList, true)"></span>
+                        </p>
+                        <p><strong>Due Date:</strong> 
+                            <span id="task-detail-due-date" ondblclick="editDate(this, 'due_date', currentTaskId, true)"></span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><strong>Additional Information</strong></h6>
+                        <p><strong>Start Date:</strong> <span id="task-detail-start-date"></span></p>
+                        <p><strong>Completion Date:</strong> <span id="task-detail-completion-date"></span></p>
+                        <p><strong>Created At</strong> <span id="task-detail-created-at"></span></p>
+                        <p><strong>Last Updated</strong> <span id="task-detail-updated-at"></span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Task Modal -->
+<div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="task-id">
+                <input type="hidden" id="task-project-id">
+
+                <div class="mb-3">
+                    <label for="task-project-id" class="form-label">Project</label>
+                    <select class="form-select" id="task-project-id" required>
+                        <option value="" disabled selected>Select Project</option>
+                        {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="task-title" class="form-label">Task Title</label>
+                    <input type="text" class="form-control" id="task-title" required>
+                </div>
+
+                <div class="mb-3">
+                    <label for="task-description" class="form-label">Description</label>
+                    <textarea class="form-control" id="task-description" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="task-status" class="form-label">Status</label>
+                    <p id="task-status-text" style="font-weight: bold; display: none;"></p> 
+                    <select class="form-select" id="task-status-select" required style="display: none">
+                        <option value="To Do">To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="task-creative-id" class="form-label">Assigned To</label>
+                    <select name="task-creative-id" id="task-creative-id" class="form-select" required>
+                        <option value="" disabled selected>Select a Creative Team Member</option>
+                        {% for creative in creative_list %}
+                            <option value="{{ creative.id }}">{{ creative.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="task-due-date" class="form-label">Due Date</label>
+                    <input type="date" class="form-control" id="task-due-date" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submit-task-btn" onclick="submitTaskForm()">Add Task</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% load static %}
+
+{% block scripts %}
+<script>
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusMapping = {
+            'to-do': 'To Do',
+            'in-progress': 'In Progress',
+            'done': 'Done'
+        };
+
+        // Initialize Sortable for each column's task list
+        ['to-do', 'in-progress', 'done'].forEach(status => {
+            new Sortable(document.querySelector(`#${status} .task-list`), {
+                group: 'tasks',
+                animation: 150,
+                draggable: '.task-card',
+                onEnd: function(evt) {
+                    const taskId = evt.item.dataset.taskId;
+
+                    // Get the new status by checking the parent column's ID
+                    const newStatusColumn = evt.to.closest('.kanban-column').id;
+                    const newStatus = statusMapping[newStatusColumn]; 
+
+                    updateTaskStatus(taskId, newStatus); // Update task status on the server
+                }
+            });
+        });
+    });
+
+    // Function to update task status on the server
+    function updateTaskStatus(taskId, newStatus) {
+        const csrftoken = getCookie('csrftoken');
+        fetch(`/project/task/update/${taskId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log('Task status updated:', data);
+            
+            moveTaskCard(taskId, newStatus);    // Move the task card after the status update is successful
+        })
+        .catch(error => console.error('Error updating task status:', error));
+    }
+
+    // Function to open the modal with the status preset based on the column
+    function showCreateTaskModalWithStatus(defaultStatus) {
+        // Here we call the main showCreateTaskModal function from projectManagement.js
+        showCreateTaskModal(null, defaultStatus); // null for projectId if not using specific project in Kanban
+    }
+
+    // Function to move task card to the correct column after status update
+    function moveTaskCard(taskId, newStatus) {
+        const taskCard = document.querySelector(`.task-card[data-task-id="${taskId}"]`);
+        const statusColumn = {
+            'To Do': 'to-do',
+            'In Progress': 'in-progress',
+            'Done': 'done'
+        };
+
+        if (taskCard) {
+            taskCard.parentElement.removeChild(taskCard); // Remove from current column
+            const targetColumn = document.querySelector(`#${statusColumn[newStatus]} .task-list`);
+            if (targetColumn) {
+                targetColumn.appendChild(taskCard); // Move to the new column
+            }
+        }
+    }
+
+
+</script>
+<script src="{% static 'js/projectManagement.js' %}"></script>
+
+{% endblock %}
