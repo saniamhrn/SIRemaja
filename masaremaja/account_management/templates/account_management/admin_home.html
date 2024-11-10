@@ -3,35 +3,29 @@
 {% block title %}Admin Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4 text-center">Admin Dashboard</h2>
+<h2 class="card-title mt-5 text-center">Admin Dashboard</h2>
 
+<div class="container mt-5">
     <!-- User Summary Section -->
-    <div class="user-summary-section mb-5">
-        <div class="row">
-            <div class="col-md-12">
-                <h4>User Summary</h4>
-            </div>
-        </div>
+    <div class="user-summary-section">
+        <h5>User Summary</h5>
         <div class="row">
             <!-- Active Users Card -->
             <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card card-sm bg-primary text-white h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Active Users</h6>
+                <div class="info-card bg-light-purple">
+                    <h6>Active Users</h6>
+                    <div class="info-card-content">
                         <h3>{{ active_users }}</h3>
-                        <p>{{ active_users }} active users</p>
                     </div>
                 </div>
             </div>
 
             <!-- Total Users Card -->
             <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card card-sm bg-secondary text-white h-100">
-                    <div class="card-body">
-                        <h6 class="card-title">Total Users</h6>
-                        <h3>{{ total_users }}</h3>
-                        <p>Total registered users</p>
+                <div class="info-card bg-light-purple">
+                    <h6>Total Users</h6>
+                    <div class="info-card-content">
+                        <h3>{{ total_users }}</h3>                    
                     </div>
                 </div>
             </div>
@@ -42,7 +36,7 @@
             <div class="col-md-12">
                 <h5>Latest Logged-in Users</h5>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-striped">
+                    <table id="recentLoginsTable" class="dataTableClass table table-hover">
                         <thead>
                             <tr>
                                 <th>Username</th>
@@ -57,7 +51,7 @@
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.email }}</td>
                                 <td>{{ user.role }}</td>
-                                <td>{{ user.last_login }}</td>
+                                <td>{{ user.last_login|date:"F j, Y \a\\t g:i A" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -67,18 +61,168 @@
             </div>
         </div>
     </div>
-
-    <!-- Project Summary Section -->
-    <div class="project-summary-section">
-        <div class="row">
-            <div class="col-md-12">
-                <h4>Project Summary</h4>
-
-                <a href="{% url 'projects:view_all_projects' %}" class="btn btn-primary mt-3">View All Projects</a>
-            </div>
-        </div>
-        <!-- Project summary content goes here -->
-    </div>
 </div>
 
+<div class="container mt-5">
+    <!-- Project Summary Section -->
+    <div class="project-summary-section">
+        <h5>Project Summary</h5>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Project Completion Rate</h6>
+                    <div class="info-card-content">
+                        <h4>{{ project_completion_rate|floatformat:2 }}%</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Task Completion Rate</h6>
+                    <div class="info-card-content">
+                        <h4>{{ task_completion_rate|floatformat:2 }}%</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Average Task Duration</h6>
+                    <div class="info-card-content">
+                        {% if average_task_duration %}
+                            <h4>{{ average_task_duration }}</h4>
+                        {% else %}
+                            <p>No completed tasks.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Overdue Projects</h6>
+                    <div class="info-card-content">
+                        {% if overdue_projects_count %}
+                            <h4>{{ overdue_projects_count }}</h4>
+                        {% else %}
+                            <p>No Overdue Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Overdue Tasks</h6>
+                    <div class="info-card-content">
+                        {% if overdue_tasks_count %}
+                            <h4>{{ overdue_tasks_count }}</h4>
+                        {% else %}
+                            <p>No Overdue Tasks.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Projects Table -->
+        <h5>Ongoing Projects</h5>
+        <table class="table table-hover mb-4">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Status</th>
+                    <th>Progress</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects_with_progress %}
+                <tr>
+                    <td>{{ project.name }}</td>
+                    <td>{{ project.status }}</td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%;" aria-valuenow="{{ project.progress }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ project.progress }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ project.due_date|date:"F j, Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Tasks Near Due Date -->
+        <h5>Tasks Near Due Date</h5>
+        <table class="table table-hover mb-4">
+            <thead>
+                <tr>
+                    <th>Task Title</th>
+                    <th>Project</th>
+                    <th>Assigned To</th>
+                    <th>Due Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in near_due_date_tasks %}
+                <tr>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.project.name }}</td>
+                    <td>{{ task.assigned_to.username }}</td>
+                    <td>{{ task.due_date|date:"F j, Y, g:i A" }}</td>
+                </tr>
+                {% empty %}
+                <tr >
+                    <td colspan="4" class="text-muted" >
+                        <span>No tasks near due date.</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Tasks Assigned per Team Member -->
+        <h5>Tasks Assigned per Team Member</h5>
+        <canvas id="tasksPerMemberChart" width="300" height="250"></canvas>
+
+        <a href="{% url 'projects:view_all_projects' %}" class="btn btn-primary mt-3">View All Projects</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Get member names and task counts from the Django context
+    const memberNames = {{ member_names|safe }};
+    const taskCounts = {{ task_counts|safe }};
+
+    // Initialize Chart.js
+    const ctx = document.getElementById('tasksPerMemberChart').getContext('2d');
+    const tasksPerMemberChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: memberNames,
+            datasets: [{
+                label: 'Number of Tasks',
+                data: taskCounts,
+                backgroundColor: [
+                    '#4CAF50', '#FF9800', '#2196F3', '#F44336', '#9C27B0', '#3F51B5'
+                ],
+                borderColor: '#ddd',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: {
+                legend: {
+                    display: true,  // Enable legend for pie chart
+                    position: 'top'
+                }
+            }
+        }
+    });
+
+</script>
 {% endblock %}

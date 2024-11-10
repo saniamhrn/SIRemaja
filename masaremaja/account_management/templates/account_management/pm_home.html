@@ -3,9 +3,50 @@
 {% block title %}Project Manager Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-5" style="width:50%">
+<div class="container mt-5">
     <h1 class="card-title text-center mb-4">Project Manager Home</h1>
     <p class="text-center">Welcome to the project manager homepage!</p>
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Task Completion Rate</h5>
+                    <p>{{ task_completion_rate|floatformat:2 }}%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Average Task Duration</h5>
+                    {% if average_task_duration %}
+                        <p>{{ average_task_duration|date:"H:i:s" }}</p>
+                    {% else %}
+                        <p>No completed tasks.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Overdue Projects</h5>
+                    <p>{{ overdue_projects_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Overdue Tasks</h5>
+                    <p>{{ overdue_tasks_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
     <a href="{% url 'projects:view_all_projects' %}" class="btn btn-primary">Manage Projects</a>
 </div>
 {% endblock %}

@@ -8,6 +8,7 @@ from .forms import EmailUpdateForm, UsernameUpdateForm
 from django.core.exceptions import PermissionDenied
 from authentication.views import is_admin, is_pm, is_client, is_creative
 from user_management.models import CustomUser
+from projects.views import dashboard_view
 
 User = get_user_model()
 
@@ -80,11 +81,15 @@ def admin_home(request):
     active_users = CustomUser.objects.filter(is_active=True).count()
     latest_users = CustomUser.objects.filter(last_login__isnull=False).order_by('-last_login')[:5]
 
+    project_metrics = dashboard_view(request)
+
     context = {
         'total_users': total_users,
         'active_users': active_users,
         'users': users,
         'latest_users': latest_users,
+
+        **project_metrics,
     }
 
     return render(request, 'account_management/admin_home.html', context)  # Admin-specific homepage
@@ -92,7 +97,13 @@ def admin_home(request):
 @user_passes_test(is_pm)
 @login_required
 def pm_home(request):
-    return render(request, 'account_management/pm_home.html')  # Project Manager-specific homepage
+    project_metrics = dashboard_view(request)
+
+    context = {
+        **project_metrics,  # Unpack project metrics
+    }
+
+    return render(request, 'account_management/pm_home.html', context)  # Project Manager-specific homepage
 
 @user_passes_test(is_client)
 @login_required
