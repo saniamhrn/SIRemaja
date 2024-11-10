@@ -7,7 +7,7 @@
 
 /* Body style */
 body {
-    font-family: Arial, sans-serif;
+    font-family: Arial, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
     background-color: #f4f4f4;
     color: #333;
     line-height: 1.6;
@@ -64,10 +64,10 @@ form {
 /* Card styling */
 .card {
     width: 100%;
-    max-width: 400px; /* Adjusted to make cards smaller */
+    max-width: 400px; 
     border-radius: 10px;
     background-color: #fff;
-    margin-bottom: 20px; /* Space between cards */
+    margin-bottom: 20px; 
     padding: 20px;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
@@ -103,24 +103,20 @@ form {
 
 /* Table styling */
 .table {
-    margin-bottom: 0; /* Remove extra margin for a cleaner card layout */
-}
-
-/* Table styling */
-.table {
-    margin-bottom: 0; /* Remove extra margin for a cleaner card layout */
+    margin-bottom: 0; 
 }
 
 /* Table header styling */
 .table thead {
-    background-color: #4C0080; /* Purple color for the table headers */
-    color: whitesmoke; /* Ensure text is white for readability */
-    padding: 10px; /* Add some padding for a better look */
+    background-color: #4C0080; 
+    color: whitesmoke; 
+    padding: 10px; 
+    /* text-align: center; */
 }
 
 /* Table data styling */
 .table td {
-    padding: 10px; /* Ensure consistent padding across the table */
+    padding: 10px;
 }
 
 /* Search and Filter */
@@ -151,10 +147,309 @@ form {
     margin-left: auto;
 }
 
+/* Hide rows initially */
+.collapse {
+    display: none;
+}
+
+/* Display rows when the show class is added */
+.collapse.show {
+    display: table-row;
+}
+
+.add-task-btn {
+    visibility: hidden; 
+    background: none;
+    border: none;
+    color: #000;
+    font-size: 1em;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px; 
+    transition: background-color 0.2s;
+    padding: 0;
+}
+
+/* Show the + button only when the specific td element is hovered */
+tr:hover .add-task-btn {
+    visibility: visible;
+}
+
+/* Style the toggle button and "+" button */
+.toggle-task-btn {
+    background: none;
+    border: none;
+    font-size: 1em;
+    color: #000;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px; 
+    transition: background-color 0.2s;
+    padding: 0;
+}
+
+/* Background color on hover */
+.toggle-task-btn:hover,
+.add-task-btn:hover {
+    background-color: #e0e0e0; 
+}
+
+/* Style for the project name */
+.project-name {
+    color: black;
+    text-decoration: none;
+}
+
+/* Underline on hover for project name */
+.project-name:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+td input, td select {
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    width: 100%;
+    font-size: inherit;
+}
+
+td input:focus, td select:focus {
+    outline: none;
+}
+
+td[ondblclick]:hover {
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+.custom-dropdown {
+    position: absolute;
+    background-color: white;
+    border: 1px solid #ccc;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    width: 150px; /* Adjust as needed */
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.custom-dropdown-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.custom-dropdown-item:hover, .custom-dropdown-item.selected {
+    background-color: #f0f0f0;
+}
+
+/* Background colors for each card */
+.bg-light-blue {
+    background-color: #b4dce8; /* Light blue background */
+}
+
+.bg-light-purple {
+    background-color: #EEF1FA; /* Light purple background */
+}
+
+/* Common styles for info cards */
+.info-card {
+    border-radius: 12px;
+    padding: 20px;
+    text-align: left;
+    margin-top: 15px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    height: 120px;  /* Fixed height for consistent sizing */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.info-card h6 {
+    font-weight: 600;
+    color: #333;
+}
+
+.info-card-content {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.info-card-content h2 {
+    font-size: 2em;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.change-text {
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+}
+
+.change-text i {
+    margin-left: 5px;
+}
+
+#kanban-board {
+    display: flex;
+    gap: 20px;
+}
+
+.kanban-column {
+    width: 30%;
+    padding: 10px;
+    background-color: #f7f9fc;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.kanban-column h3 {
+    text-align: center;
+    color: #333;
+}
+
+.task-list {
+    min-height: 400px;  /* Ensures the drop area is sizable even if empty */
+    background-color: #f3f5f9;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.task-card {
+    background-color: #fff;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.1);
+    cursor: move;
+}
+
+.project-name-link {
+    color: black;
+    text-decoration: none;
+}
+
+.project-name-link:hover {
+    color: black; /* Prevents color change on hover */
+    text-decoration: underline;
+}
+
+/* Project Task List Styling */
+.task-item {
+    border: 1px solid #e1e4e8;
+    border-radius: 4px;
+    padding: 8px 12px;
+    transition: background-color 0.3s;
+    margin-bottom: 0;
+}
+
+.task-item:hover {
+    background-color: #f6f8fa;
+}
+
+.task-title {
+    /* font-weight: bold; */
+    color: #24292f;
+    text-decoration: none;
+    flex: 2;
+}
+
+.task-title:hover {
+    color: #24292f;
+    text-decoration: underline;
+}
+
+.task-item + .task-item {
+    border-top: none; /* Remove extra borders between items */
+}
+
+.task-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.task-status {
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+    background-color: #d0d7de;
+    text-align: center;
+    width: 100px; 
+    display: inline-block;
+    box-sizing: border-box;
+    flex: 1;
+}
+
+/* Ensure dropdown width consistency on edit */
+.task-status select,  .task-assignee select{
+    width: 100%; /* Ensures the dropdown takes the same width */
+    max-width: 80px; /* Same width as the display */
+}
+
+.task-assignee {
+    font-size: 0.9rem;
+    color: #586069;
+    text-align: right;
+    flex: 1;
+    width: 80px;
+}
+
+.progress-bar {
+    background-color: #28a745;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Detail Box Styling */
+.detail-box {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.additional-info {
+    padding-top: 16px;
+}
+
+.additional-info p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .card {
-        max-width: 100%; /* Make cards full width on smaller screens */
+        max-width: 100%; 
     }
 
     .search-filter-bar {
