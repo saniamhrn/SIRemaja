@@ -16,19 +16,9 @@ $(document).ready(function() {
     const alertElement = $('.alert');
     if (alertElement.length) {
         setTimeout(() => {
-            alertElement.alert('close'); // Bootstrap method to close alert
-        }, 3000); // The alert will fade away after 3 seconds
+            alertElement.alert('close'); 
+        }, 3000); 
     }
-
-    // Initialize DataTables
-    // var table = $('.dataTableClass').DataTable({
-    //     "paging": true,
-    //     "searching": true,
-    //     "ordering": true,
-    //     "info": true,
-    //     "lengthChange": true,
-    //     "pageLength": 10
-    // });
 
     $('.dataTableClass').each(function() {
         // Check if the table has a specific ID or attribute to distinguish it

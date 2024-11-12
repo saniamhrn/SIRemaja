@@ -3,6 +3,15 @@ let currentTaskId;
 let updatedProjectData = {};
 let updatedTaskData = {};
 
+// Define the Modal IDs dynamically based on the page
+const projectDetailModalId = document.getElementById('projectDetailModalKanban') 
+    ? 'projectDetailModalKanban' 
+    : 'projectDetailModalList';
+
+const taskDetailModalId = document.getElementById('taskDetailModalKanban') 
+    ? 'taskDetailModalKanban' 
+    : 'taskDetailModalList';    
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -91,33 +100,30 @@ function deleteProject(projectId, row) {
 }
 
 function showProjectDetail(projectId) {
-    console.log('showProjectDetail triggered for project:', projectId);
     currentProjectId = projectId;
     fetch(`/project/detail/${projectId}/`)
         .then(response => response.json())
         .then(project => {
-            console.log('Project data received:', project); // Log the response
-            console.log('Project ID:', projectId);
-
-            // Close the project detail modal if it's open
-            const taskDetailModalInstance = bootstrap.Modal.getInstance(document.getElementById('taskDetailModal'));
+            // Close the task detail modal if it's open
+            const taskDetailModalInstance = bootstrap.Modal.getInstance(document.getElementById(taskDetailModalId));
             if (taskDetailModalInstance) {
                 taskDetailModalInstance.hide();
             }
 
-            document.getElementById('project-detail-name').innerHTML = project.name;
-            document.getElementById('project-detail-description').innerHTML = `<span>${project.description}</span>`;
-            document.getElementById('project-detail-status').textContent = project.status || 'No Status';
-            document.getElementById('project-detail-client').textContent = project.client_name || 'N/A';
-            document.getElementById('project-detail-manager').textContent = project.pm_name || 'N/A';
+            // Update fields in the project detail modal with dynamic IDs
+            document.getElementById(`${projectDetailModalId}-name`).innerHTML = project.name;
+            document.getElementById(`${projectDetailModalId}-description`).innerHTML = `<span>${project.description}</span>`;
+            document.getElementById(`${projectDetailModalId}-status`).textContent = project.status || 'No Status';
+            document.getElementById(`${projectDetailModalId}-client`).textContent = project.client_name || 'N/A';
+            document.getElementById(`${projectDetailModalId}-project_manager`).textContent = project.pm_name || 'N/A';
 
             // Format Due Date
             if (project.due_date) {
                 const dueDate = new Date(project.due_date);
                 const formattedDate = dueDate.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById('project-detail-due-date').textContent = formattedDate;
+                document.getElementById(`${projectDetailModalId}-due_date`).textContent = formattedDate;
             } else {
-                document.getElementById('project-detail-due-date').textContent = 'No Due Date';
+                document.getElementById(`${projectDetailModalId}-due_date`).textContent = 'No Due Date';
             }
 
             // Format Created At
@@ -131,7 +137,7 @@ function showProjectDetail(projectId) {
                     minute: 'numeric',
                     hour12: true  // AM/PM format
                 });
-                document.getElementById('project-detail-created-at').textContent = formattedCreatedAt;
+                document.getElementById(`${projectDetailModalId}-created_at`).textContent = formattedCreatedAt;
             }
 
             // Format Updated At
@@ -145,22 +151,21 @@ function showProjectDetail(projectId) {
                     minute: 'numeric',
                     hour12: true  // AM/PM format
                 });
-                document.getElementById('project-detail-updated-at').textContent = formattedUpdatedAt;
+                document.getElementById(`${projectDetailModalId}-updated_at`).textContent = formattedUpdatedAt;
             }
 
             // Load tasks and calculate progress
             loadProjectTasks(project.tasks);
 
             // Show the modal
-            const detailModal = new bootstrap.Modal(document.getElementById('projectDetailModal'));
+            const detailModal = new bootstrap.Modal(document.getElementById(projectDetailModalId));
             detailModal.show();
         })
         .catch(error => console.error('Error fetching project details:', error));
 }
 
-// Function to load tasks and update progress bar
 function loadProjectTasks(tasks) {
-    const taskList = document.getElementById('project-task-list');
+    const taskList = document.getElementById(`${projectDetailModalId}-task-list`);
     taskList.innerHTML = '';  // Clear previous tasks
 
     let completedTasks = 0;
@@ -178,10 +183,10 @@ function loadProjectTasks(tasks) {
                 <span class="task-title" onclick="showTaskDetail(${task.id})" style="font-weight: bold;">${task.title}</span>
             </div>
             <div class="task-actions">
-                <span class="task-assignee" ondblclick="editDropdown(this, 'assigned_to', ${task.id}, creativeList, true)">
+                <span id="${projectDetailModalId}-task-assigned_to-${task.id}" class="task-assigned_to" onclick="editDropdown(this, 'assigned_to', ${task.id}, creativeList, true)">
                     ${task.creative_name || 'Unassigned'}
                 </span>
-                <span class="task-status" ondblclick="editStatus(this, 'status', ${task.id}, true)">
+                <span id="${projectDetailModalId}-task-status-${task.id}" class="task-status" onclick="editStatus(this, 'status', ${task.id}, true)" style="font-size: 0.8rem;">
                     ${task.status}
                 </span>
             </div>
@@ -191,15 +196,13 @@ function loadProjectTasks(tasks) {
 
     // Calculate and update progress bar
     const progressPercent = tasks.length ? (completedTasks / tasks.length) * 100 : 0;
-    const progressBar = document.getElementById('task-progress-bar');
+    const progressBar = document.getElementById(`${projectDetailModalId}-progress-bar`);
     progressBar.style.width = `${progressPercent}%`;
     progressBar.setAttribute('aria-valuenow', progressPercent);
     progressBar.textContent = `${Math.round(progressPercent)}% Done`;
 }
 
 function showCreateTaskModal(projectId = null, status = null) {
-    console.log('showCreateTaskModal triggered for project:', projectId, 'status:', status);
-
     const statusText = document.getElementById('task-status-text');
     const statusSelect = document.getElementById('task-status-select');
 
@@ -215,7 +218,7 @@ function showCreateTaskModal(projectId = null, status = null) {
     }
 
     // Close projectDetailModal if it is open
-    const detailModalInstance = bootstrap.Modal.getInstance(document.getElementById('projectDetailModal'));
+    const detailModalInstance = bootstrap.Modal.getInstance(document.getElementById(projectDetailModalId));
     if (detailModalInstance) {
         detailModalInstance.hide();
     }
@@ -234,11 +237,9 @@ function showCreateTaskModal(projectId = null, status = null) {
 
 // Function to show the Edit Task modal with pre-filled data
 function showEditTaskModal(taskId) {
-    console.log("showEditTaskModal triggered for task:", taskId);
     fetch(`/project/task/${taskId}/`)
         .then(response => response.json())
         .then(data => {
-            console.log('Task data received:', data);
             document.getElementById('task-id').value = taskId;
             document.getElementById('task-project-id').value = data.project;
             document.getElementById('task-title').value = data.title;
@@ -264,11 +265,10 @@ function showEditTaskModal(taskId) {
 }
 
 function showTaskDetail(taskId) {
-    console.log("showTaskDetail triggered for task:", taskId);
     currentTaskId = taskId;
 
     // Close the project detail modal if it's open
-    const projectDetailModalInstance = bootstrap.Modal.getInstance(document.getElementById('projectDetailModal'));
+    const projectDetailModalInstance = bootstrap.Modal.getInstance(document.getElementById(projectDetailModalId));
     if (projectDetailModalInstance) {
         projectDetailModalInstance.hide();
     }
@@ -276,67 +276,51 @@ function showTaskDetail(taskId) {
     fetch(`/project/task/${taskId}/`)
         .then(response => response.json())
         .then(data => {
-            console.log('Task data received:', data);
-
             const projectName = data.project_name || 'Unknown Project';
             const projectId = data.project;
 
             // Populate modal fields with task data
-            document.getElementById('task-detail-title').innerHTML = `
+            document.getElementById(`${taskDetailModalId}-title`).innerHTML = `
                 <a href="javascript:void(0);" onclick="showProjectDetail(${projectId})" class="project-name-link">${projectName}</a> / 
                 <span ondblclick="editField(this, 'title', ${taskId}, true)">${data.title}</span>
             `;
-            document.getElementById('task-detail-description').innerHTML = `<span>${data.description}</span>`;
-            document.getElementById('task-detail-status').textContent = data.status || 'No Status';
-            document.getElementById('task-detail-assignee').textContent = data.creative_name || 'Unassigned';
-            
+            document.getElementById(`${taskDetailModalId}-description`).innerHTML = `<span>${data.description}</span>`;
+            document.getElementById(`${taskDetailModalId}-status`).textContent = data.status || 'No Status';
+            document.getElementById(`${taskDetailModalId}-assigned_to`).textContent = data.creative_name || 'Unassigned';
+
             // Format Due Date
             if (data.due_date) {
-                const dueDate = new Date(data.due_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById('task-detail-due-date').textContent = dueDate;
+                const dueDate = new Date(data.due_date);
+                const formattedDueDate = dueDate.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+                document.getElementById(`${taskDetailModalId}-due_date`).textContent = formattedDueDate;
             } else {
-                document.getElementById('task-detail-due-date').textContent = 'No Due Date';
+                document.getElementById(`${taskDetailModalId}-due_date`).textContent = 'No Due Date';
             }
 
             // Display Start Date if available
             if (data.start_date) {
-                const startDate = new Date(data.start_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById('task-detail-start-date').textContent = startDate;
+                const startDate = new Date(data.start_date);
+                const formattedStartDate = startDate.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+                document.getElementById(`${taskDetailModalId}-start_date`).textContent = formattedStartDate;
             } else {
-                document.getElementById('task-detail-start-date').textContent = 'Not Started';
+                document.getElementById(`${taskDetailModalId}-start_date`).textContent = 'Not Started';
             }
 
             // Display Completion Date if available
             if (data.completion_date) {
-                const completionDate = new Date(data.completion_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById('task-detail-completion-date').textContent = completionDate;
+                const completionDate = new Date(data.completion_date);
+                const formattedCompletionDate = completionDate.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+                document.getElementById(`${taskDetailModalId}-completion_date`).textContent = formattedCompletionDate;
             } else {
-                document.getElementById('task-detail-completion-date').textContent = 'Not Completed';
-            }
-
-            // Display Created At date
-            if(data.created_at) {
-                const createdAt = new Date(data.created_at).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById('task-detail-created-at').textContent = createdAt;
-            } else {
-                document.getElementById('task-detail-created-at').textContent = 'Unknown';
-            }
-
-            // Display Updated At date
-            if(data.updated_at) {
-                const updatedAt = new Date(data.updated_at).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById('task-detail-updated-at').textContent = updatedAt;
-            } else {
-                document.getElementById('task-detail-updated-at').textContent = 'Unknown';
+                document.getElementById(`${taskDetailModalId}-completion_date`).textContent = 'Not Completed';
             }
 
             // Show the modal
-            const taskDetailModal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+            const taskDetailModal = new bootstrap.Modal(document.getElementById(taskDetailModalId));
             taskDetailModal.show();
         })
         .catch(error => console.error('Error fetching task data:', error));
 }
-
 
 function submitTaskForm(projectId, taskId = null, status = null) {
     // const projectId = document.getElementById('task-project-id').value;
@@ -380,9 +364,6 @@ function submitTaskForm(projectId, taskId = null, status = null) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log(taskId ? 'Task updated:' : 'Task created:', data);
-        console.log('projectlist', projectList)
-
         // Update or create the task row in the DOM
         const taskRowId = `task-${data.id}`;
         let taskRow = document.getElementById(taskRowId);
@@ -416,7 +397,19 @@ function submitTaskForm(projectId, taskId = null, status = null) {
             taskRow.id = taskRowId;
             taskRow.classList.add('task-row');
             taskRow.dataset.projectId = projectId;
-            projectRow.insertAdjacentElement('afterend', taskRow);  // Insert the new row after the project row
+            // projectRow.insertAdjacentElement('afterend', taskRow);  // Insert the new row after the project row
+            // Find the last task row related to this project
+            const projectTaskRows = Array.from(document.querySelectorAll(`tr.task-row[data-project-id="${projectId}"]`));
+            const lastTaskRow = projectTaskRows[projectTaskRows.length - 1];
+
+            if (lastTaskRow) {
+                // Insert after the last task row of the project
+                lastTaskRow.insertAdjacentElement('afterend', taskRow);
+            } else {
+                // If there are no task rows yet, insert it directly after the project row
+                const projectRow = document.getElementById(`project-${projectId}`);
+                projectRow.insertAdjacentElement('afterend', taskRow);
+            }
         }
 
         // Populate the task row with updated task data
@@ -433,12 +426,11 @@ function submitTaskForm(projectId, taskId = null, status = null) {
                 <span>${data.status}</span>
             </td>
             <td><span>${clientName}</span></td>
-            <td id="task-assignee-${data.id}"><span>${assigneeName}</span></td>
-            <td id="task-due-date-${data.id}" onclick="editDate(this, 'due_date', ${data.id}, true)">
+            <td id="task-assigned_to-${data.id}"><span>${assigneeName}</span></td>
+            <td id="task-due_date-${data.id}" onclick="editDate(this, 'due_date', ${data.id}, true)">
                 <span>${formattedDueDate}</span>
             </td>
             <td>
-                <button class="btn btn-warning btn-sm" onclick="showEditTaskModal(${data.id})">Update</button>
                 <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
             </td>
         `;
@@ -448,11 +440,15 @@ function submitTaskForm(projectId, taskId = null, status = null) {
             showDeleteConfirmation(data.id, taskRow);
         });
 
-        // if (!taskId && typeof moveTaskCard === "function") {
-        //     moveTaskCard(data.id, status);
-        // }
         if (status) {
             moveTaskCard(data.id, status);
+        }
+
+        // Automatically expand task rows if they are hidden
+        const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
+        const anyTaskVisible = Array.from(taskRows).some(taskRow => taskRow.style.display === "table-row");
+        if (!anyTaskVisible) {
+            toggleTaskCollapse(projectId);
         }
 
         // Close the modal after updating
@@ -516,8 +512,6 @@ function editDate(element, field, id, isTask = false) {
 
 // Function to edit text fields (name, description)
 function editField(element, field, id, isTask = false) {
-    // debug
-    console.log('editField triggered:', element, field, id, isTask);
     const currentText = element.querySelector('span') ? element.querySelector('span').innerText : element.innerText;
     element.innerHTML = `<input type="text" value="${currentText}" onblur="saveField(this, '${field}', ${id}, ${isTask})">`;
     const input = element.querySelector('input');
@@ -527,62 +521,80 @@ function editField(element, field, id, isTask = false) {
 
 function editStatus(element, field, id, isTask = false) {
     const currentStatus = element.innerText.trim();
+
     element.innerHTML = `
-        <select>
-            <option value="To Do" ${currentStatus === 'To Do' ? 'selected' : ''}>To Do</option>
-            <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
-            <option value="Done" ${currentStatus === 'Done' ? 'selected' : ''}>Done</option>
-        </select>`;
+        <div class="dropdown-menu-container">
+            <button type="button" class="btn btn-light btn-sm dropdown-toggle">${currentStatus}</button>
+            <ul class="dropdown-menu show">
+                <li><a href="#" class="dropdown-item ${currentStatus === 'To Do' ? 'active' : ''}" onclick="selectOption('${field}', ${id}, 'To Do', 'To Do', ${isTask}); event.preventDefault();">To Do</a></li>
+                <li><a href="#" class="dropdown-item ${currentStatus === 'In Progress' ? 'active' : ''}" onclick="selectOption('${field}', ${id}, 'In Progress', 'In Progress', ${isTask}); event.preventDefault();">In Progress</a></li>
+                <li><a href="#" class="dropdown-item ${currentStatus === 'Done' ? 'active' : ''}" onclick="selectOption('${field}', ${id}, 'Done', 'Done', ${isTask}); event.preventDefault();">Done</a></li>
+            </ul>
+        </div>
+    `;
 
-    const status = element.querySelector('select');
-    status.focus();
-
-    // Save when the selection changes
-    status.addEventListener('change', function() {
-        saveField(this, field, id, isTask);
-    });
-
-    // Save when the dropdown loses focus (even if the value hasn't changed)
-    status.addEventListener('blur', function() {
-        setTimeout(() => saveField(this, field, id, isTask), 100); // Small delay to avoid conflicts with 'change'
+    document.addEventListener('click', function closeDropdown(event) {
+        if (!element.contains(event.target)) {
+            element.innerHTML = `<span>${currentStatus}</span>`;  // Reset to initial view
+            document.removeEventListener('click', closeDropdown);
+        }
     });
 }
 
 function editDropdown(element, field, id, list, isTask = false) {
     const currentText = element.querySelector('span') ? element.querySelector('span').innerText : element.innerText;
-    let label;
-    if (field === 'client') {
-        label = 'Client';
-    } else if (field === 'project_manager') {
-        label = 'Project Manager';
-    } else if (field === 'assigned_to') {
-        label = 'Creative';
-    } else {
-        label = 'Option';
-    }
-    let options = `<option value="" disabled>Select ${label}</option>`;
-    
+
+    const label = field === 'client' ? 'Client' :
+                  field === 'project_manager' ? 'Project Manager' :
+                  field === 'assigned_to' ? 'Creative' : 'Option';
+
+    let options = '';
     list.forEach(item => {
-        options += `<option value="${item.id}" ${currentText.trim() === item.username.trim() ? 'selected' : ''}>${item.username}</option>`;
+        const isActive = currentText === item.username ? 'active' : '';
+        options += `<li><a href="#" class="dropdown-item ${isActive}" onclick="selectOption('${field}', ${id}, '${item.id}', '${item.username}', ${isTask}); event.preventDefault();">${item.username}</a></li>`;
     });
 
-    element.innerHTML = `<select>${options}</select>`;
-    const dropdown = element.querySelector('select');
-    dropdown.focus();
+    element.innerHTML = `
+        <div class="dropdown-menu-container">
+            <button type="button" class="btn btn-light btn-sm dropdown-toggle">${currentText || `Select ${label}`}</button>
+            <ul class="dropdown-menu show">${options}</ul>
+        </div>
+    `;
 
-    // Save on change
-    dropdown.addEventListener('change', function() {
-        saveField(this, field, id, isTask);
-    });
-
-    // Save on blur (to capture if the user clicks outside without making a selection)
-    dropdown.addEventListener('blur', function() {
-        setTimeout(() => saveField(this, field, id, isTask), 100); // Small delay to handle modal quirks
+    // Close the dropdown when clicking outside of it
+    document.addEventListener('click', function closeDropdown(event) {
+        if (!element.contains(event.target)) {
+            element.innerHTML = `<span>${currentText}</span>`;  // Reset to initial view
+            document.removeEventListener('click', closeDropdown);
+        }
     });
 }
 
+function selectOption(field, id, newValue, displayText, isTask) {
+    const element = document.querySelector(`#${isTask ? 'task-' : ''}${field}-${id}`);
+    const modalElement = document.querySelector(`#${isTask ? 'task' : 'project'}-detail-${field}`);
+    const modalProjectDetailTask = document.querySelector(`#modal-task-${field}-${id}`);
+
+
+    if (element) {
+        element.innerHTML = `<span>${displayText}</span>`;
+    }
+
+    if (modalElement) {
+        modalElement.innerHTML = `<span>${displayText}</span>`;
+    }
+
+    if (modalProjectDetailTask) {
+        modalProjectDetailTask.innerHTML = `<span>${displayText}</span>`;
+    }
+
+    const tempElement = { value: newValue, displayText: displayText };
+    saveField(tempElement, field, id, isTask);
+}
+
 function saveField(element, field, id, isTask = false) {
-    const value = element.value || element.getAttribute('value'); 
+    const value = element.value || element.getAttribute('value');
+    const displayText = element.displayText || value || element.textContent; 
     const endpoint = isTask ? `/project/task/update/${id}/` : `/project/update/${id}/`;
     const csrftoken = getCookie('csrftoken');
 
@@ -595,110 +607,139 @@ function saveField(element, field, id, isTask = false) {
         body: JSON.stringify({ [field]: value })
     })
     .then(response => response.json())
-    .then(data => {
+    .then((updatedData) => {
+        const projectId = isTask ? (updatedData.project || document.querySelector(`[data-task-id="${id}"]`)?.dataset.projectId) : id;
+
+        // Determine the modal context (list or kanban) for both project and task modals
+        const projectModalContext = document.getElementById('projectDetailModalKanban') ? 'projectDetailModalKanban' : 'projectDetailModalList';
+        const taskModalContext = document.getElementById('taskDetailModalKanban') ? 'taskDetailModalKanban' : 'taskDetailModalList';
+        const modalContext = isTask ? taskModalContext : projectModalContext;
+        
+        // Dynamic modal element selection based on context
+        const modalElementId = `${modalContext}-${field}`;
+        const modalElement = document.getElementById(modalElementId);
+
+        const updateContent = (target) => {
+            if (field === 'due_date') {
+                const dateObj = new Date(value);
+                const formattedDate = dateObj.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+                target.innerHTML = `<span>${formattedDate}</span>`;
+            } else {
+                target.innerHTML = `<span>${displayText}</span>`;
+            }
+        };
+
+        // Check if we're in the Project Detail modal (task rows in a table) or Kanban board (task cards)
+        const taskRowElement = document.querySelector(`#task-${field}-${id}`); // Project Detail modal format
+        const kanbanTaskCard = document.querySelector(`.task-card[data-task-id="${id}"]`); // Kanban board format
+
+        if (taskRowElement) {
+            // Update in Project Detail modal
+            updateContent(taskRowElement);
+        } else if (kanbanTaskCard) {
+            // Update in Kanban board format
+            if (field === 'title') {
+                kanbanTaskCard.querySelector('p').textContent = displayText;
+            } else if (field === 'status') {
+                moveTaskCard(id, displayText);
+            }
+        }
+
+        // Update content in the modal itself
+        if (modalElement) {
+            updateContent(modalElement);
+        } else {
+            console.error(`Modal element with ID ${modalElementId} not found`);
+        }
+
+        // Update the project or task row if needed
         if (isTask) {
-            updatedTaskData[field] = value;  // Store updated field and value
-            console.log('Updated task data:', updatedTaskData);  // Debugging line
-            // If status is updated, move the task card
-            if (field === 'status') {
-                moveTaskCard(id, value); // Move task card immediately
+            const projectTaskFieldId = `${projectModalContext}-task-${field}-${id}`;
+            const projectTaskFieldElement = document.getElementById(projectTaskFieldId);
+
+            if (projectTaskFieldElement) {
+                projectTaskFieldElement.textContent = displayText;
             }
 
-            if (data.creative_name) {
-                updatedTaskData.assigned_to = data.creative_name;
+            // Update task display in Kanban board if applicable
+            const kanbanTaskCard = document.querySelector(`.task-card[data-task-id="${id}"]`);
+            if (kanbanTaskCard) {
+                if (field === 'title') {
+                    kanbanTaskCard.querySelector('p').textContent = displayText;
+                } else if (field === 'status') {
+                    moveTaskCard(id, displayText);  // Move card if status changes in Kanban view
+                }
             }
         } else {
-            updatedProjectData[field] = value;  // Store updated field and value
-            console.log('Updated project data:', updatedProjectData);  // Debugging line
-
-            // Update the pm and client name
-            if (data.pm_name) {
-                updatedProjectData.project_manager = data.pm_name;  // Use the name, not the ID
-            }
-            if (data.client_name) {
-                updatedProjectData.client = data.client_name;
-                updatedTaskData.client = data.client_name;
-            }
+            // For project fields, update the project data in the table if needed
+            const updatedProjectData = { [field]: displayText };
+            updateProjectTableRow(id, updatedProjectData);
         }
-
-        const parentElement = element.parentElement;
-        if (field === 'due_date') {
-            const dateObj = new Date(value);
-            const formattedDate = dateObj.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-            if (parentElement) parentElement.innerHTML = `<span>${formattedDate}</span>`;
-        } else if (element.tagName === 'SELECT') {
-            const selectedOption = element.querySelector(`option[value="${value}"]`);
-            const displayText = selectedOption ? selectedOption.textContent : value;
-            if (parentElement) parentElement.innerHTML = `<span>${displayText}</span>`;
-        } else {
-            if (parentElement) parentElement.innerHTML = `<span>${value}</span>`;
-        }
-
     })
     .catch(error => {
         console.error('Error updating field:', error);
-        if (element.parentElement) {
-            element.parentElement.innerHTML = `<span>${element.value}</span>`;
+        const targetElement = element.parentElement || element;
+        if (targetElement) {
+            targetElement.innerHTML = `<span>${element.value}</span>`;
+        }
+    });
+}
+
+// Function to update client fields in all task rows associated with a project
+function updateTaskClientFields(projectId, newClient) {
+    const taskRows = document.querySelectorAll(`[data-project-id="${projectId}"]`);
+    taskRows.forEach(row => {
+        const clientCell = row.querySelector('td:nth-child(4)'); // Assuming client is in the 4th cell
+        if (clientCell) {
+            clientCell.innerHTML = `<span>${newClient}</span>`;
         }
     });
 
+    // Update client field in the task detail modal if open
+    const taskModalClientElement = document.querySelector('#task-detail-client');
+    if (taskModalClientElement) {
+        taskModalClientElement.innerHTML = `<span>${newClient}</span>`;
+    }
 }
 
 function updateProjectTableRow(projectId, updatedData) {
-    console.log("Updating table row for project:", projectId, updatedData);  // Add this for debugging
-    const row = document.getElementById(`project-${projectId}`);  // Target the project row
-    
+    const row = document.getElementById(`project-${projectId}`);
     if (row) {
-        if (updatedData.name) {
-            row.querySelector('.project-name').textContent = updatedData.name;
-        }
-        if (updatedData.description) {
-            row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
-        }
-        if (updatedData.status) {
-            row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
-        }
+        if (updatedData.name) row.querySelector('.project-name').textContent = updatedData.name;
+        if (updatedData.description) row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
+        if (updatedData.status) row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
         if (updatedData.client) {
-            row.querySelector(`#client-${projectId} span`).textContent =  updatedData.client;
+            row.querySelector(`#client-${projectId} span`).textContent = updatedData.client;
+            updateTaskClientFields(projectId, updatedData.client);  // Update tasks with new client name
         }
-        if (updatedData.project_manager) {
-            row.querySelector(`#assignee-${projectId} span`).textContent = updatedData.project_manager;
-        }
+        if (updatedData.project_manager) row.querySelector(`#project_manager-${projectId} span`).textContent = updatedData.project_manager;
         if (updatedData.due_date) {
-            const formattedDate = new Date(updatedData.due_date).toLocaleString('default', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric' 
-            });
-            row.querySelector(`#due-date-${projectId} span`).textContent = formattedDate;
+            const formattedDate = new Date(updatedData.due_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+            row.querySelector(`#due_date-${projectId} span`).textContent = formattedDate;
         }
     }
 }
 
-function updateTaskTableRow(taskId, updatedData) {
-    console.log("Updating table row for task:", taskId, updatedData);  // Add this for debugging
-    const row = document.getElementById(`task-${taskId}`);  // Target the task row
-    
+function updateTaskTableRow(taskId, updatedData, field) {
+    const row = document.getElementById(`task-${taskId}`);
     if (row) {
-        if (updatedData.title) {
-            row.querySelector('.task-title').textContent = updatedData.title;
-        }
-        if (updatedData.description) {
-            row.querySelector(`#task-description-${taskId} span`).textContent = updatedData.description;
-        }
-        if (updatedData.status) {
-            row.querySelector(`#task-status-${taskId} span`).textContent = updatedData.status;
-        }
-        if (updatedData.assigned_to) {
-            row.querySelector(`#task-assignee-${taskId} span`).textContent = updatedData.assigned_to;
-        }
+        if (updatedData.title) row.querySelector('.task-title').textContent = updatedData.title;
+        if (updatedData.description) row.querySelector(`#task-description-${taskId} span`).textContent = updatedData.description;
+        if (updatedData.status) row.querySelector(`#task-status-${taskId} span`).textContent = updatedData.status;
+        if (updatedData.assigned_to) row.querySelector(`#task-assigned_to-${taskId} span`).textContent = updatedData.assigned_to;
         if (updatedData.due_date) {
-            const formattedDate = new Date(updatedData.due_date).toLocaleString('default', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric' 
-            });
-            row.querySelector(`#task-due-date-${taskId} span`).textContent = formattedDate;
+            const formattedDate = new Date(updatedData.due_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+            row.querySelector(`#task-due_date-${taskId} span`).textContent = formattedDate;
+        }
+    }
+
+    const taskDetailField = document.querySelector(`#task-detail-${field}`);
+    if (taskDetailField && updatedData[field]) {
+        if (field === 'due_date') {
+            const formattedDate = new Date(updatedData[field]).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
+            taskDetailField.innerHTML = `<span>${formattedDate}</span>`;
+        } else {
+            taskDetailField.innerHTML = `<span>${updatedData[field]}</span>`;
         }
     }
 }
@@ -709,7 +750,6 @@ const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmat
 
 // Function to show the delete confirmation modal
 function showDeleteConfirmation(taskId, rowElement) {
-    console.log("showDeleteConfirmation called with taskId:", taskId, "and rowElement:", rowElement);
     if (taskId && rowElement) {
         taskToDeleteId = taskId;
         taskRowElement = rowElement;
@@ -721,8 +761,6 @@ function showDeleteConfirmation(taskId, rowElement) {
 
 // Function to delete a task
 function deleteTask(taskId, rowElement) {
-    console.log("Attempting to delete task with ID:", taskId);
-
     const csrftoken = getCookie('csrftoken');
 
     fetch(`/project/task/delete/${taskId}/`, {
@@ -739,7 +777,6 @@ function deleteTask(taskId, rowElement) {
             
             // Check if there are any remaining tasks in this project
             const projectId = rowElement.getAttribute('data-project-id');
-            console.log("Project ID:", projectId);
             const taskRows = document.querySelectorAll(`[data-project-id="${projectId}"].task-row`);
 
             if (taskRows.length === 0) {
@@ -809,7 +846,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listener for confirm delete button in the delete confirmation modal
     document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-        console.log("Delete confirmation button clicked");
         if (taskToDeleteId && taskRowElement) {
             deleteTask(taskToDeleteId, taskRowElement);  // Call deleteTask if confirmation is accepted
         } else {
@@ -817,10 +853,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    const projectDetailModal = document.getElementById('projectDetailModal');
+    const projectDetailModal = document.getElementById(projectDetailModalId);
     if (projectDetailModal) {
         projectDetailModal.addEventListener('hidden.bs.modal', function () {
-            console.log('Modal closed');
             if (Object.keys(updatedProjectData).length > 0) {  
                 updateProjectTableRow(currentProjectId, updatedProjectData);
                 updatedProjectData = {};  
@@ -830,10 +865,9 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Modal with ID projectDetailModal not found');
     }
 
-    const taskDetailModal = document.getElementById('taskDetailModal');
+    const taskDetailModal = document.getElementById(taskDetailModalId);
     if (taskDetailModal) {
         taskDetailModal.addEventListener('hidden.bs.modal', function () {
-            console.log('Task Detail Modal closed');
             if (Object.keys(updatedTaskData).length > 0) {  
                 updateTaskTableRow(currentTaskId, updatedTaskData);
                 updatedTaskData = {};  
