@@ -172,9 +172,9 @@ def delete_task(request, task_id):
 def kanban_board(request):
     tasks = Task.objects.all()
     projects = Project.objects.all()
-    client_list = User.objects.filter(role='Client')
-    pm_list = User.objects.filter(role='Project Manager')
-    creative_list = User.objects.filter(role='Creative Team')
+    client_list = list(User.objects.filter(role='Client').values('id', 'username'))
+    pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
+    creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
     
     context = {
         'tasks': tasks,
