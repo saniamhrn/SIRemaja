@@ -51,7 +51,7 @@
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.email }}</td>
                                 <td>{{ user.role }}</td>
-                                <td>{{ user.last_login|date:"F j, Y \a\\t g:i A" }}</td>
+                                <td>{{ user.last_login|date:"F j, Y, g:i A" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -223,7 +223,7 @@
                 <tr>
                     <th>Task Title</th>
                     <th>Project</th>
-                    <th>Assigned To</th>
+                    <th>Assignee</th>
                     <th>Due Date</th>
                 </tr>
             </thead>
@@ -233,7 +233,7 @@
                     <td>{{ task.title }}</td>
                     <td>{{ task.project.name }}</td>
                     <td>{{ task.assigned_to.username }}</td>
-                    <td>{{ task.due_date|date:"F j, Y, g:i A" }}</td>
+                    <td>{{ task.due_date|date:"F j, Y" }}</td>
                 </tr>
                 {% empty %}
                 <tr >
