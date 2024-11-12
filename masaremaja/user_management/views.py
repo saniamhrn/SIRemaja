@@ -25,7 +25,7 @@ def user_create(request):
 # List users
 @user_passes_test(is_admin)
 def user_list(request):
-    users = get_user_model().objects.all()
+    users = get_user_model().objects.all().order_by('id')
     return render(request, 'user_management/user_list.html', {'users': users})
 
 # Update user details
