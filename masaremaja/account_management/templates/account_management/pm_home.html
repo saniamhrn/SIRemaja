@@ -6,47 +6,115 @@
 <div class="container mt-5">
     <h1 class="card-title text-center mb-4">Project Manager Home</h1>
     <p class="text-center">Welcome to the project manager homepage!</p>
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Task Completion Rate</h5>
-                    <p>{{ task_completion_rate|floatformat:2 }}%</p>
+    <div class="project-summary-section">
+        <h5>Project Summary</h5>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Project Completion Rate</h6>
+                    <div class="info-card-content">
+                        <h4>{{ project_completion_rate|floatformat:2 }}%</h4>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Average Task Duration</h5>
-                    {% if average_task_duration %}
-                        <p>{{ average_task_duration|date:"H:i:s" }}</p>
-                    {% else %}
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Task Completion Rate</h6>
+                    <div class="info-card-content">
+                        <h4>{{ task_completion_rate|floatformat:2 }}%</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Average Task Duration</h6>
+                    <div class="info-card-content">
+                        {% if average_task_duration %}
+                        <h4>{{ average_task_duration }}</h4>
+                        {% else %}
                         <p>No completed tasks.</p>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Projects Done</h6>
+                    <div class="info-card-content">
+                        {% if done_projects_count %}
+                        <h4>{{ done_projects_count }}</h4>
+                        {% else %}
+                        <p>No Done Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>On Going Projects</h6>
+                    <div class="info-card-content">
+                        {% if ongoing_projects_count %}
+                        <h4>{{ ongoing_projects_count }}</h4>
+                        {% else %}
+                        <p>No On Going Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Overdue Projects</h6>
+                    <div class="info-card-content">
+                        {% if overdue_projects_count %}
+                        <h4>{{ overdue_projects_count }}</h4>
+                        {% else %}
+                        <p>No Overdue Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
 
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Overdue Projects</h5>
-                    <p>{{ overdue_projects_count }}</p>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Tasks Done</h6>
+                    <div class="info-card-content">
+                        {% if done_tasks_count %}
+                        <h4>{{ done_tasks_count }}</h4>
+                        {% else %}
+                        <p>No Done Tasks.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>On Going Tasks</h6>
+                    <div class="info-card-content">
+                        {% if ongoing_tasks_count %}
+                        <h4>{{ ongoing_tasks_count }}</h4>
+                        {% else %}
+                        <p>No On Going Tasks.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Overdue Tasks</h6>
+                    <div class="info-card-content">
+                        {% if overdue_tasks_count %}
+                        <h4>{{ overdue_tasks_count }}</h4>
+                        {% else %}
+                        <p>No Overdue Tasks.</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5>Overdue Tasks</h5>
-                    <p>{{ overdue_tasks_count }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
     <a href="{% url 'projects:view_all_projects' %}" class="btn btn-primary">Manage Projects</a>
 </div>
 {% endblock %}

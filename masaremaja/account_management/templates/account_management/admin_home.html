@@ -89,9 +89,9 @@
                     <h6>Average Task Duration</h6>
                     <div class="info-card-content">
                         {% if average_task_duration %}
-                            <h4>{{ average_task_duration }}</h4>
+                        <h4>{{ average_task_duration }}</h4>
                         {% else %}
-                            <p>No completed tasks.</p>
+                        <p>No completed tasks.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -100,12 +100,63 @@
         <div class="row">
             <div class="col-md-4 col-lg-3 mb-4">
                 <div class="info-card bg-light-purple">
+                    <h6>Projects Done</h6>
+                    <div class="info-card-content">
+                        {% if done_projects_count %}
+                        <h4>{{ done_projects_count }}</h4>
+                        {% else %}
+                        <p>No Done Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>On Going Projects</h6>
+                    <div class="info-card-content">
+                        {% if ongoing_projects_count %}
+                        <h4>{{ ongoing_projects_count }}</h4>
+                        {% else %}
+                        <p>No On Going Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
                     <h6>Overdue Projects</h6>
                     <div class="info-card-content">
                         {% if overdue_projects_count %}
-                            <h4>{{ overdue_projects_count }}</h4>
+                        <h4>{{ overdue_projects_count }}</h4>
                         {% else %}
-                            <p>No Overdue Projects.</p>
+                        <p>No Overdue Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Tasks Done</h6>
+                    <div class="info-card-content">
+                        {% if done_tasks_count %}
+                        <h4>{{ done_tasks_count }}</h4>
+                        {% else %}
+                        <p>No Done Tasks.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>On Going Tasks</h6>
+                    <div class="info-card-content">
+                        {% if ongoing_tasks_count %}
+                        <h4>{{ ongoing_tasks_count }}</h4>
+                        {% else %}
+                        <p>No On Going Tasks.</p>
                         {% endif %}
                     </div>
                 </div>
@@ -115,13 +166,25 @@
                     <h6>Overdue Tasks</h6>
                     <div class="info-card-content">
                         {% if overdue_tasks_count %}
-                            <h4>{{ overdue_tasks_count }}</h4>
+                        <h4>{{ overdue_tasks_count }}</h4>
                         {% else %}
-                            <p>No Overdue Tasks.</p>
+                        <p>No Overdue Tasks.</p>
                         {% endif %}
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- Filter for projects -->
+        <h5>Filter by Status</h5>
+        <div>
+            <input type="checkbox" id="status-done" name="status" value="Done" checked>
+            <label for="status-done">Done</label>
+
+            <input type="checkbox" id="status-in-progress" name="status" value="In Progress" checked>
+            <label for="status-in-progress">In Progress</label>
+
+            <input type="checkbox" id="status-to-do" name="status" value="To Do" checked>
+            <label for="status-to-do">To Do</label>
         </div>
 
         <!-- Latest Projects Table -->

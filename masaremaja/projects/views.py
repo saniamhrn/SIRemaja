@@ -194,7 +194,6 @@ def dashboard_view(request):
     task_completion_rate = (completed_tasks / total_tasks) * 100 if total_tasks > 0 else 0
     project_completion_rate = (Project.objects.filter(status="Done").count() / Project.objects.count()) * 100 if Project.objects.count() > 0 else 0
 
-    # Calculate Average Task Duration (for completed tasks)
     average_task_duration = (
         Task.objects
         .filter(status="Done", start_date__isnull=False, completion_date__isnull=False)
@@ -212,16 +211,26 @@ def dashboard_view(request):
     else:
         average_task_duration_str = None
 
-    # Get overdue projects and tasks for display
+
+    # Get done,overdue projects and tasks for display
+    done_projects = Project.objects.filter(status="Done")
+    done_projects_count = done_projects.count()
     overdue_projects = Project.objects.filter(due_date__lt=timezone.now(), status__in=["To Do", "In Progress"])
     overdue_projects_count = overdue_projects.count()
+    ongoing_projects = Project.objects.filter(status="In Progress")
+    ongoing_projects_count = ongoing_projects.count()
+
+    done_tasks = Task.objects.filter(status="Done")
+    done_tasks_count = done_tasks.count()
+    ongoing_tasks = Task.objects.filter(status="In Progress")
+    ongoing_tasks_count = ongoing_tasks.count()
     overdue_tasks = Task.objects.filter(due_date__lt=timezone.now(), status__in=["To Do", "In Progress"])
     overdue_tasks_count = overdue_tasks.count()
 
     # Ongoing Projects with Progress Calculation
-    ongoing_projects = Project.objects.filter(status="In Progress")
+    all_projects = Project.objects.all()
     projects_with_progress = []
-    for project in ongoing_projects:
+    for project in all_projects:
         total_project_tasks = project.tasks.count()
         completed_project_tasks = project.tasks.filter(status="Done").count()
         progress = int((completed_project_tasks / total_project_tasks) * 100) if total_project_tasks > 0 else 0
@@ -247,16 +256,24 @@ def dashboard_view(request):
         "project_completion_rate": project_completion_rate,
         "task_completion_rate": task_completion_rate,
         "average_task_duration": average_task_duration_str,
+        "done_projects" : done_projects,
+        "done_projects_count": done_projects_count,
         "overdue_projects": overdue_projects,
         "overdue_projects_count": overdue_projects_count,
+        "done_tasks" : done_tasks,
+        "done_tasks_count": done_tasks_count,
+        "ongoing_tasks": ongoing_tasks,
+        "ongoing_tasks_count": ongoing_tasks_count,
         "overdue_tasks": overdue_tasks,
         "overdue_tasks_count": overdue_tasks_count,
         "projects_with_progress": projects_with_progress,
+        "ongoing_projects_count": ongoing_projects_count,
         "near_due_date_tasks": near_due_date_tasks,
         "member_names": member_names,
         "task_counts": task_counts   
         }
     return context
+
 
 def view(request):
     return render(request, 'modal.html')
