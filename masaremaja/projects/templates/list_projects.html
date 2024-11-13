@@ -13,10 +13,54 @@
         </button>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-            <thead>
+    <!-- Toggle for View Mode -->
+    <div class="my-3 d-flex justify-content-between align-items-center">
+        <!-- <div>
+            <input type="text" id="searchProject" class="form-control d-inline-block me-2" placeholder="Search by project name or client" style="width: 250px;">
+            <select id="sortbyNameProjects" class="form-select d-inline-block" style="width: 150px;">
+                <option value="name_asc">Sort by Name (A-Z)</option>
+                <option value="name_desc">Sort by Name (Z-A)</option>
+            </select>
+            <select id="sortByDueDate" class="form-select d-inline-block" style="width: 150px;">
+                <option value="due_date_asc">Sort by Due Date (Earliest)</option>
+                <option value="due_date_desc">Sort by Due Date (Latest)</option>
+            </select>
+        </div> -->
+
+         <!-- Toggle between Card and Table View -->
+        <div>
+            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
+        </div>
+    </div>
+
+     <!-- Card View -->
+     <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for project in projects %}
+        <!-- <div class="col user-card" data-username="{{ user.username }}" data-role="{{ user.role }}" data-name="{{ user.first_name }}"> -->
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ project.name }}</h5>
+                    <p class="card-text"><strong>Desctiption:</strong> {{ project.desctiption }}</p>
+                    <p class="card-text"><strong>Client:</strong> {{ project.client }}</p>
+                    <p class="card-text"><strong>Project Manager:</strong> {{ project.project_manager }}</p>
+                    <p class="card-text"><strong>Due Date:</strong> {{ project.due_date }}</p>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    {% comment %} <button class="btn btn-warning btn-sm" onclick="showUpdateModal({{ project.id }})">Update</button> {% endcomment %}
+                    <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button>
+                </div>
+            </div>
+        <!-- </div> -->
+        {% endfor %}
+    </div>
+
+     <!-- Table View -->
+    <div id="tableView" class="table-responsive-sm d-none">
+        <table id="projectTable" class="project-data-table table table-hover">
+            <thead class="thead-dark">
                 <tr>
+                    <th>#</th>
                     <th>Name</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -30,6 +74,7 @@
                 {% for project in projects %}
                 <!-- Project Row -->
                 <tr id="project-{{ project.id }}">
+                    <td>{{ forloop.counter }}</td>
                     <td>
                         <button class="toggle-task-btn" onclick="toggleTaskCollapse({{ project.id }})">›</button>
                         <span class="project-name" onclick="showProjectDetail({{ project.id }});" style="cursor: pointer; color: black;">
@@ -51,7 +96,8 @@
             
                 <!-- Task Rows - Align each task field with the project column structure -->
                 {% for task in project.tasks %}
-                <tr id="task-{{ task.id }}" class="task-row" style="display: none;" data-project-id="{{ project.id }}">
+                <tr id="task-{{ task.id }}" class="task-row no-sort" style="display: none;" data-project-id="{{ project.id }}">
+                    <td>{{ forloop.parentloop.counter }}.{{ forloop.counter }}</td>
                     <td style="padding-left: 50px;">
                         <span class="task-title" onclick="showTaskDetail({{ task.id }});" style="cursor: pointer; color: black;">
                             {{ task.title }}
@@ -68,12 +114,7 @@
                         <!-- <button class="btn btn-danger btn-sm delete-task-btn" onclick="showDeleteConfirmation({{ task.id }}, this.closest('tr'))">Delete</button> -->
                     </td>
                 </tr>
-                {% empty %}
-                <tr class="task-row no-tasks-message" style="display: none;" data-project-id="{{ project.id }}">
-                    <td colspan="7" class="text-muted" style="padding-left: 50px;">
-                        <span>No tasks available for this project.</span>
-                    </td>
-                </tr>
+                
                 {% endfor %}
                 {% endfor %}
             </tbody>                
@@ -407,6 +448,7 @@
 {% load static %}
 
 {% block scripts %}
+
 <script>
     const clientList = {{ client_list|safe }};
     const pmList = {{ pm_list|safe }};
