@@ -11,6 +11,7 @@ from user_management.models import CustomUser
 from projects.models import Project, Task
 from projects.views import dashboard_view
 from django.utils import timezone
+from projects.views import projects_details_dashboard
 
 User = get_user_model()
 
@@ -156,3 +157,16 @@ def creative_home(request):
     }
     
     return render(request, 'account_management/creative_home.html', context)  
+
+@user_passes_test(is_pm)
+@login_required
+def pm_home(request):
+    project_metrics = dashboard_view(request)
+    project_details = projects_details_dashboard(request)
+
+    context = {
+        **project_metrics,  # Unpack project metrics
+        **project_details,  # Unpack project details
+    }
+
+    return render(request, 'account_management/pm_home.html', context)  # Project Manager-specific homepage

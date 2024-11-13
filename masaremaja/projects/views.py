@@ -353,3 +353,57 @@ def client_project_detail(request, project_id):
     }
 
     return render(request, 'client_project_detail.html', context)
+
+# For project dashboard (new)
+@user_passes_test(is_pm_or_admin)
+@login_required
+def projects_details_dashboard(request):
+    # Get all projects with related client and project manager data
+    projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
+
+    project_pm_client = []
+    for project in projects:
+        # debug
+        print(list(project.tasks.all()))
+        
+        # Calculate Task Completion Rate For Each Project
+        total_project_tasks = project.tasks.count()
+        completed_project_tasks = project.tasks.filter(status="Done").count()
+        progress = int((completed_project_tasks / total_project_tasks) * 100) if total_project_tasks > 0 else 0
+        
+        project_pm_client.append({
+            'id': project.id,
+            'name': project.name,
+            'description': project.description,
+            'status': project.status,
+            'due_date': project.due_date.strftime('%B %d, %Y') if project.due_date else None,
+            'client_username': project.client.username if project.client else 'N/A',
+            'pm_username': project.project_manager.username if project.project_manager else 'N/A',
+            'created_at': project.created_at.strftime('%B %d, %Y') if project.created_at else None,
+            'updated_at': project.updated_at.strftime('%B %d, %Y') if project.updated_at else None,
+            'progress': progress,
+            'tasks': [
+                {
+                    'id': task.id,
+                    'title': task.title,
+                    'description': task.description,
+                    'status': task.status,
+                    'due_date': task.due_date.strftime('%B %d, %Y') if task.due_date else None,
+                    'assigned_to': task.assigned_to.username if task.assigned_to else 'N/A',
+                    'created_at': task.created_at.strftime('%B %d, %Y') if task.created_at else None,
+                    'updated_at': task.updated_at.strftime('%B %d, %Y') if task.updated_at else None,
+                } for task in project.tasks.all().order_by('id')
+            ]
+        })
+
+    # Fetch clients and project managers for the dropdowns in the form
+    client_list = list(User.objects.filter(role='Client').values('id', 'username'))
+    pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
+    creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
+
+    return {
+        'client_list': client_list,
+        'pm_list': pm_list,
+        'projects': project_pm_client,
+        'creative_list': creative_list
+    }
