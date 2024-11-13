@@ -120,7 +120,169 @@
             </tbody>                
         </table>
     </div>
+    <h1 class="text-center mb-4 card-title">Timeline</h1>
+<div id="calendar">
+    <div class="calendar-header">
+        <button class="prev-month">&lt;</button>
+        <span id="calendar-month-year"></span>
+        <button class="next-month">&gt;</button>
+    </div>
+    <div class="calendar-grid">
+        <!-- Calendar days will be inserted dynamically -->
+    </div>
 </div>
+</div>
+
+<script>
+    const projects = [
+        {% for project in projects %}
+        {
+            name: '{{ project.name }}',
+            project_manager: '{{ project.pm_username }}',
+            due_date: '{{ project.due_date }}'  // Should be in YYYY-MM-DD format for accurate date handling
+        },
+        {% endfor %}
+    ];
+
+    const daysInMonth = (year, month) => {
+        const date = new Date(year, month, 0);
+        return date.getDate();
+    };
+
+    const renderCalendar = (month, year) => {
+        const calendarGrid = document.querySelector('.calendar-grid');
+        const calendarMonthYear = document.querySelector('#calendar-month-year');
+        const totalDays = daysInMonth(year, month);
+
+        // Clear previous grid
+        calendarGrid.innerHTML = '';
+
+        // Set the month and year display
+        calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
+        // Create the grid with days of the month
+        for (let day = 1; day <= totalDays; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.classList.add('calendar-day');
+            dayCell.innerHTML = `<span>${day}</span>`;
+            
+            // Add project events for the day
+            const dayProjects = projects.filter(project => new Date(project.due_date).getDate() === day && new Date(project.due_date).getMonth() === month && new Date(project.due_date).getFullYear() === year);
+            if (dayProjects.length > 0) {
+                const projectList = document.createElement('ul');
+                dayProjects.forEach(project => {
+                    const projectItem = document.createElement('li');
+                    projectItem.innerHTML = `<strong>${project.name}</strong><br>PM: ${project.project_manager}`;
+                    projectList.appendChild(projectItem);
+                });
+                dayCell.appendChild(projectList);
+            }
+
+            calendarGrid.appendChild(dayCell);
+        }
+    };
+
+    // Initialize calendar to the current month
+    const currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+
+    document.querySelector('.prev-month').addEventListener('click', () => {
+        currentMonth -= 1;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear -= 1;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+
+    document.querySelector('.next-month').addEventListener('click', () => {
+        currentMonth += 1;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear += 1;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+
+    // Render the current month initially
+    renderCalendar(currentMonth, currentYear);
+</script>
+
+<style>
+    #calendar {
+        font-family: Arial, sans-serif;
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        background-color: #f1f1f1;
+        border-radius: 5px;
+    }
+
+    .calendar-header button {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+
+    .calendar-header button:hover {
+        background-color: #f7f7f7;
+    }
+
+    #calendar-month-year {
+        font-size: 1.5em;
+        font-weight: bold;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        grid-gap: 10px;
+        margin-top: 20px;
+    }
+
+    .calendar-day {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: top;
+        padding: 10px;
+        background-color: #fff;
+        border-radius: 5px;
+        border: 1px solid #f1f1f1;
+        position: relative;
+        min-height: 100px;
+    }
+
+    .calendar-day span {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .calendar-day ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        font-size: 12px;
+        color: #333;
+    }
+
+    .calendar-day li {
+        margin-bottom: 5px;
+    }
+
+    .calendar-day li strong {
+        font-weight: bold;
+    }
+</style>
 
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
