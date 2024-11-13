@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
+
 app_name = 'projects'
 
 urlpatterns = [
@@ -15,7 +16,10 @@ urlpatterns = [
     path('task/<int:task_id>/', views.get_task_detail, name='get_task_detail'),
     path('task/delete/<int:task_id>/', views.delete_task, name='delete_task'),
     path('kanban/', views.kanban_board, name='kanban_board'),
-
+    path('upload-file-task/<int:task_id>/', views.upload_file_task, name='upload_file_task'),   
+    path('delete_file/<int:file_id>/', views.delete_project_file, name='delete_project_file'),
+    path('download_file/<int:file_id>/', views.download_file, name='download_file'),
+    path('client-project/<int:project_id>/', views.client_project_detail, name='client_project_detail'),
     # example
     path('modal/', views.view, name='modal'),
-]
+] 

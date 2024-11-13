@@ -256,6 +256,23 @@
 
 {% block scripts %}
 <script>
+    document.querySelectorAll('input[name="status"]').forEach((checkbox) => {
+        checkbox.addEventListener('change', function() {
+            // Get selected statuses
+            let selectedStatuses = Array.from(document.querySelectorAll('input[name="status"]:checked')).map(cb => cb.value);
+            
+            // Loop through each row in the table body
+            document.querySelectorAll('.table tbody tr').forEach((row) => {
+                // Get the status of the current row
+                let status = row.querySelector('td:nth-child(2)').textContent.trim();
+                
+                // Show or hide the row based on whether its status is selected
+                row.style.display = selectedStatuses.includes(status) ? '' : 'none';
+            });
+        });
+    });
+</script>
+<script>
     // Get member names and task counts from the Django context
     const memberNames = {{ member_names|safe }};
     const taskCounts = {{ task_counts|safe }};

@@ -17,6 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf.urls import handler400, handler403, handler404, handler500
+from django.conf import settings
+from django.conf.urls.static import static
 
 handler400 = 'authentication.views.custom_400'
 handler403 = 'authentication.views.custom_403'
@@ -29,4 +31,8 @@ urlpatterns = [
     path('auth/', include('authentication.urls')), 
     path('account/', include('account_management.urls')),
     path('project/', include('projects.urls'))
-]
+] 
+
+# Serve media files during development
+if settings.DEBUG:  # Ensure this is only in development (DEBUG=True)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

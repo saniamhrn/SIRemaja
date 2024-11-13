@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+
+<h2>Task Details</h2>
+<p><strong>Title:</strong> {{ task.title }}</p>
+<p><strong>Description:</strong> {{ task.description }}</p>
+<p><strong>Status:</strong> {{ task.status }}</p>
+<p><strong>Due Date:</strong> {{ task.due_date|date:"D d M Y H:i" }}</p>
+
+<h2>Project Details</h2>
+<p><strong>Project Name:</strong> {{ project.name }}</p>
+<p><strong>Project Description:</strong> {{ project.description }}</p>
+
+<h3>Project Files</h3>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>File</th>
+            <th>Upload Date</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for file in project_files %}
+        <tr>
+            <td><a href="{{ file.file.url }}" target="_blank">{{ file.file.name }}</a></td>
+            <!-- <td>{{ file.project.assigned_to.name  }}</td> -->
+            <td>{{ file.uploaded_at|date:"D d M Y H:i" }}</td>
+            <!-- Form to submit delete request -->
+            <td>
+                <form action="{% url 'projects:delete_project_file' file.id %}" method="POST" style="display: inline-block;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+                <a href="{% url 'projects:download_file' file.id %}" class="btn btn-primary" download>
+                    Download
+                </a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="3">No files uploaded yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h3>Upload New File</h3>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ file_form.as_p }}
+    <button type="submit" class="btn btn-primary">Add File</button>
+</form>
+</div>
+
+{% endblock %}

@@ -1,15 +1,16 @@
 import json
 from django.shortcuts import redirect, render, get_object_or_404
+from projects.forms import ProjectFileForm
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Project, Task
+from .models import Project, ProjectFile, Task
 from user_management.models import CustomUser as User
 from .serializers import ProjectSerializer, TaskSerializer
 from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
-from authentication.views import is_pm_or_admin
+from authentication.views import is_client, is_creative, is_pm_or_admin
 # from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404, FileResponse
 from django.template.loader import render_to_string
 from django.db.models import Avg, Count, Q, F, ExpressionWrapper, DurationField
 from django.utils import timezone
@@ -277,3 +278,78 @@ def dashboard_view(request):
 
 def view(request):
     return render(request, 'modal.html')
+
+
+
+@user_passes_test(is_creative)
+@login_required
+def upload_file_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    project = task.project
+    project_files = ProjectFile.objects.filter(project=project)
+
+    if not project_files.exists():
+        project_files = None 
+
+    if request.method == 'POST':
+        file_form = ProjectFileForm(request.POST, request.FILES)
+        if file_form.is_valid():
+            new_file = file_form.save(commit=False)
+            new_file.project = project
+            new_file.save()
+            print("file masuk")
+            return redirect('projects:upload_file_task', task_id=task.id)
+    else:
+        file_form = ProjectFileForm()
+
+    context = {
+        'task': task,
+        'project': project,
+        'project_files': project_files,
+        'file_form': file_form,
+    }
+    return render(request, 'update_task.html', context)
+
+
+def delete_project_file(request, file_id):
+    file = get_object_or_404(ProjectFile, id=file_id)
+    
+    file.delete()
+
+    return redirect('projects:upload_file_task', task_id=file.project.id)  # Replace 'project_files_view' with the actual view name
+
+def download_file(request, file_id):
+    # Get the file object by ID or return 404 if not found
+    file = get_object_or_404(ProjectFile, id=file_id)
+
+    # Open the file and return it as a downloadable response
+    try:
+        file_path = file.file.path  # Assuming you store files on the disk
+        file_name = file.file.name  # The name that the file will be saved as in the browser
+    except Exception as e:
+        raise Http404("File not found.")
+
+    # Return the file as a downloadable response
+    response = FileResponse(open(file_path, 'rb'), as_attachment=True, filename=file_name)
+    return response
+
+@user_passes_test(is_client)
+@login_required
+def client_project_detail(request, project_id):
+    project = get_object_or_404(Project, id=project_id, client=request.user)
+    
+    tasks = Task.objects.filter(project=project).order_by('due_date')
+
+    project_files = ProjectFile.objects.filter(project=project)
+    progress =  int(
+                (project.tasks.filter(status="Done").count() / project.tasks.count()) * 100
+            ) if project.tasks.count() > 0 else 0
+    
+    context = {
+        'project': project,
+        'tasks': tasks,
+        'project_files': project_files,
+        'progress' : progress,
+    }
+
+    return render(request, 'client_project_detail.html', context)

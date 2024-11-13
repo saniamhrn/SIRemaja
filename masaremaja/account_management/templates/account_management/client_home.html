@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Client Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="card-title text-center mb-4">Client Home</h1>
+    <p class="text-center">Welcome to the Client homepage!</p>
+    <!-- Project Summary Section -->
+    <div class="project-summary-section">
+        <h5>Project Summary</h5>
+        <div class="row">
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Projects Done</h6>
+                    <div class="info-card-content">
+                        {% if done_projects_count %}
+                        <h4>{{ done_projects_count }}</h4>
+                        {% else %}
+                        <p>No Done Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>On Going Projects</h6>
+                    <div class="info-card-content">
+                        {% if ongoing_projects_count %}
+                        <h4>{{ ongoing_projects_count }}</h4>
+                        {% else %}
+                        <p>No On Going Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-lg-3 mb-4">
+                <div class="info-card bg-light-purple">
+                    <h6>Overdue Projects</h6>
+                    <div class="info-card-content">
+                        {% if overdue_projects_count %}
+                        <h4>{{ overdue_projects_count }}</h4>
+                        {% else %}
+                        <p>No Overdue Projects.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Project Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                    <th>Due Date</th>
+                    <th>Start Date</th>
+                    <th>Completion Date</th>
+                    <th>Progress Bar</th>
+                    <th>Action</th> 
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects_with_progress %}
+                <tr>
+                    <td>{{ project.name }}</td> 
+                    <td>{{ project.description }}</td> 
+                    <td>{{ project.status }}</td> 
+                    <td>{{ project.created_at|date:"D d M Y" }}</td> 
+                    <td>{{ project.due_date|date:"D d M Y" }}</td> 
+                    <td>
+                        {% if project.start_date %}
+                        {{ project.start_date|date:"D d M Y" }}
+                        {% else %}
+                        Project hasn't started yet
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if project.completion_date %}
+                        {{ project.completion_date|date:"D d M Y" }}
+                        {% else %}
+                        Project hasn't completed yet
+                        {% endif %}
+                    </td>
+                    
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ project.progress }}%;" aria-valuenow="{{ project.progress }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ project.progress }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <!-- Add link to view project details -->
+                        <a href="{% url 'projects:client_project_detail' project.id %}" class="btn btn-info btn-sm">Detail</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5">No projects available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

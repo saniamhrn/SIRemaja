@@ -65,3 +65,10 @@ class Task(models.Model):
             self.completion_date = None
         super().save(*args, **kwargs)
     
+class ProjectFile(models.Model):
+    project = models.ForeignKey(Project, related_name='files', on_delete=models.CASCADE)
+    file = models.FileField(upload_to='project_files/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"File for {self.project.name}"
