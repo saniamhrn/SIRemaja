@@ -39,12 +39,12 @@
 
                     </td>
                     <td id="description-{{ project.id }}" onclick="editField(this, 'description', {{ project.id }})"><span>{{ project.description }}</span></td>
-                    <td id="status-{{ project.id }}" ondblclick="editStatus(this, 'status', {{ project.id }})"><span>{{ project.status }}</span></td>
-                    <td id="client-{{ project.id }}" ondblclick="editDropdown(this, 'client', {{ project.id }}, clientList)"><span>{{ project.client_username }}</span></td>
-                    <td id="assignee-{{ project.id }}" ondblclick="editDropdown(this, 'project_manager', {{ project.id }}, pmList)"><span>{{ project.pm_username }}</span></td>
-                    <td id="due-date-{{ project.id }}" onclick="editDate(this, 'due_date', {{ project.id }})"><span>{{ project.due_date }}</span></td>
+                    <td id="status-{{ project.id }}" onclick="editStatus(this, 'status', {{ project.id }})"><span>{{ project.status }}</span></td>
+                    <td id="client-{{ project.id }}" onclick="editDropdown(this, 'client', {{ project.id }}, clientList)"><span>{{ project.client_username }}</span></td>
+                    <td id="project_manager-{{ project.id }}" onclick="editDropdown(this, 'project_manager', {{ project.id }}, pmList)"><span>{{ project.pm_username }}</span></td>
+                    <td id="due_date-{{ project.id }}" onclick="editDate(this, 'due_date', {{ project.id }})"><span>{{ project.due_date }}</span></td>
                     <td>
-                        <button class="btn btn-warning btn-sm" onclick="showUpdateModal({{ project.id }})">Update</button>
+                        {% comment %} <button class="btn btn-warning btn-sm" onclick="showUpdateModal({{ project.id }})">Update</button> {% endcomment %}
                         <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button>
                     </td>
                 </tr>
@@ -58,12 +58,12 @@
                         </span>
                     </td>
                     <td id="task-description-{{ task.id }}" onclick="editField(this, 'description', {{ task.id }}, true)"><span>{{ task.description }}</span></td>
-                    <td id="task-status-{{ task.id }}" ondblclick="editStatus(this, 'status', {{ task.id }}, true)"><span>{{ task.status }}</span></td>
-                    <td><span>{{ project.client_username }}</span></td>
-                    <td id="task-assignee-{{ task.id }}" ondblclick="editDropdown(this, 'assigned_to', {{ task.id }}, creativeList, true)"><span>{{ task.assigned_to }}</span></td>
-                    <td id="task-due-date-{{ task.id }}" onclick="editDate(this, 'due_date', {{ task.id }}, true)"><span>{{ task.due_date }}</span></td>
+                    <td id="task-status-{{ task.id }}" onclick="editStatus(this, 'status', {{ task.id }}, true)"><span>{{ task.status }}</span></td>
+                    <td id="task-client-{{ task.id }}"><span>{{ project.client_username }}</span></td>
+                    <td id="task-assigned_to-{{ task.id }}" onclick="editDropdown(this, 'assigned_to', {{ task.id }}, creativeList, true)"><span>{{ task.assigned_to }}</span></td>
+                    <td id="task-due_date-{{ task.id }}" onclick="editDate(this, 'due_date', {{ task.id }}, true)"><span>{{ task.due_date }}</span></td>
                     <td>
-                        <button class="btn btn-warning btn-sm" onclick="showEditTaskModal({{ task.id }})">Update</button>
+                        {% comment %} <button class="btn btn-warning btn-sm" onclick="showEditTaskModal({{ task.id }})">Update</button> {% endcomment %}
                         <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
                         <!-- <button class="btn btn-danger btn-sm delete-task-btn" onclick="showDeleteConfirmation({{ task.id }}, this.closest('tr'))">Delete</button> -->
                     </td>
@@ -204,11 +204,11 @@
 </div> 
 
 <!-- Project Detail Modal -->
-<div class="modal fade" id="projectDetailModal" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
+<div class="modal fade" id="projectDetailModalList" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="project-detail-name" ondblclick="editField(this, 'name', currentProjectId)"></h5>
+                <h5 class="modal-title" id="projectDetailModalList-name" onclick="editField(this, 'name', currentProjectId)"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -216,31 +216,31 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <h6><strong>Description</strong></h6>
-                            <p id="project-detail-description" ondblclick="editField(this, 'description', currentProjectId)"></p>
+                            <p id="projectDetailModalList-description" onclick="editField(this, 'description', currentProjectId)"></p>
                         </div>
                         <div class="mb-3">
                             <h6><strong>Project Details</strong></h6>
                             <div class="detail-item">
                                 <span class="detail-label">Project Manager</span>
-                                <span id="project-detail-manager" ondblclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
+                                <span id="projectDetailModalList-project_manager" onclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Client</span>
-                                <span id="project-detail-client" ondblclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
+                                <span id="projectDetailModalList-client" onclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Status</span>
-                                <span id="project-detail-status"></span>
+                                <span id="projectDetailModalList-status" onclick="editStatus(this, 'status', currentProjectId)"></span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Due Date</span>
-                                <span id="project-detail-due-date"></span>
+                                <span id="projectDetailModalList-due_date" onclick="editDate(this, 'due_date', currentProjectId)"></span>
                             </div>
                         </div>
 
                         <div style="font-size: 0.7rem">
-                            <p><strong>Created At</strong> <span id="project-detail-created-at"></span></p>
-                            <p><strong>Last Updated</strong> <span id="project-detail-updated-at"></span></p>
+                            <p><strong>Created At</strong> <span id="projectDetailModalList-created_at"></span></p>
+                            <p><strong>Last Updated</strong> <span id="projectDetailModalList-updated_at"></span></p>
                         </div>
                         
                     </div>
@@ -250,17 +250,23 @@
                             <h6 class="mb-0"><strong>Tasks</strong></h6>
                             <div>
                                 <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId)">+</button>
-                                <button class="add-task-btn" style="visibility: visible;">
-                                    <i class="fa fa-link"></i>
-                                </button>
                             </div>
                         </div>
                         <!-- Progress Bar -->
                         <div class="progress mb-2">
-                            <div id="task-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0% Done</div>
+                            <div id="projectDetailModalList-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0% Done</div>
                         </div>
 
-                        <div id="project-task-list"></div>
+                        <div id="projectDetailModalList-task-list"></div>
+
+                        <div class="d-flex justify-content-between align-items-center my-3">
+                            <h6 class="mb-0"><strong>Files</strong></h6>
+                            <div>
+                                <button class="add-task-btn" style="visibility: visible;">
+                                    <i class="fa fa-link"></i>
+                                </button>                                
+                            </div>
+                        </div>
 
                         <div id="project-file-list"></div>
                     </div>
@@ -275,17 +281,17 @@
 </div>
 
 <!-- Task Detail Modal-->
-<div class="modal fade" id="taskDetailModal" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
+<div class="modal fade" id="taskDetailModalList" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="task-detail-title"></h5>
+                <h5 class="modal-title" id="taskDetailModalList-title"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
                     <h6><strong>Description</strong></h6>
-                    <p id="task-detail-description" ondblclick="editField(this, 'description', currentTaskId, true)"></p>
+                    <p id="taskDetailModalList-description" onclick="editField(this, 'description', currentTaskId, true)"></p>
                 </div>
                 
                 <input type="hidden" id="current-task-id">
@@ -294,29 +300,29 @@
                     <h6><strong>Task Details</strong></h6>
                     <div class="detail-item">
                         <span class="detail-label">Creative Team</span>
-                        <span id="task-detail-assignee" ondblclick="editDropdown(this, 'assigned_to', currentTaskId, creativeList, true)"></span>
+                        <span id="taskDetailModalList-assigned_to" onclick="editDropdown(this, 'assigned_to', currentTaskId, creativeList, true)"></span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Status</span>
-                        <span id="task-detail-status" ondblclick="editStatus(this, 'status', currentTaskId, true)"></span>
+                        <span id="taskDetailModalList-status" onclick="editStatus(this, 'status', currentTaskId, true)"></span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Due Date</span>
-                        <span id="task-detail-due-date" ondblclick="editDate(this, 'due_date', currentTaskId, true)"></span>
+                        <span id="taskDetailModalList-due_date" onclick="editDate(this, 'due_date', currentTaskId, true)"></span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Start Date</span>
-                        <span id="task-detail-start-date"></span>
+                        <span id="taskDetailModalList-start_date"></span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Completion Date</span>
-                        <span id="task-detail-completion-date"></span>
+                        <span id="taskDetailModalList-completion_date"></span>
                     </div>
                 </div>
 
                 <div style="font-size: 0.7rem">
-                    <p><strong>Created At</strong> <span id="task-detail-created-at"></span></p>
-                    <p><strong>Last Updated</strong> <span id="task-detail-updated-at"></span></p>
+                    <p><strong>Created At</strong> <span id="taskDetailModalList-created_at"></span></p>
+                    <p><strong>Last Updated</strong> <span id="taskDetailModalList-updated_at"></span></p>
                 </div>
             </div>
             <div class="modal-footer">

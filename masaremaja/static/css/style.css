@@ -226,9 +226,9 @@ td input:focus, td select:focus {
     outline: none;
 }
 
-td[ondblclick]:hover {
+td[onclick]:hover {
     background-color: #f9f9f9;
-    cursor: pointer;
+    cursor:pointer;
 }
 
 .custom-dropdown {
@@ -242,12 +242,25 @@ td[ondblclick]:hover {
     overflow-y: auto;
 }
 
-.custom-dropdown-item {
-    padding: 8px;
+.dropdown-item {
+    padding: 8px 12px;
     cursor: pointer;
+    font-size: 14px;
+    color: #333;
 }
 
-.custom-dropdown-item:hover, .custom-dropdown-item.selected {
+.dropdown-options {
+    display: none;
+    position: absolute;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin-top: 5px;
+    border-radius: 4px;
+    z-index: 1;
+    width: 100%;
+}
+
+.dropdown-item:hover, .dropdown-item.selected {
     background-color: #f0f0f0;
 }
 
@@ -378,18 +391,14 @@ td[ondblclick]:hover {
     display: flex;
     align-items: center;
     gap: 10px;
+    cursor: pointer;
 }
 
 .task-status {
     font-size: 0.8rem;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #fff;
-    background-color: #d0d7de;
     text-align: center;
     width: 100px; 
     display: inline-block;
-    box-sizing: border-box;
     flex: 1;
 }
 
@@ -399,7 +408,7 @@ td[ondblclick]:hover {
     max-width: 80px; /* Same width as the display */
 }
 
-.task-assignee {
+.task-assigned_to {
     font-size: 0.9rem;
     color: #586069;
     text-align: right;
