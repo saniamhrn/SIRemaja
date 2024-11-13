@@ -6,6 +6,11 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4 card-title">Progress Board</h1>
 
+    <div class="mb-3">
+        <a href="/project/kanban/" class="btn btn-outline-secondary">Board View</a>
+        <a href="/project/view-all" class="btn btn-outline-secondary">Table View</a>
+    </div>
+
     <div id="kanban-board" class="d-flex justify-content-between">
         <!-- To Do Column -->
         <div id="to-do" class="kanban-column">
@@ -339,7 +344,9 @@
 <script>
     const clientList = {{ client_list|safe }};
     const pmList = {{ pm_list|safe }};
-    const creativeList = {{ creative_list|safe }};        
+    const creativeList = {{ creative_list|safe }}; 
+    const projectList = {{ projects|safe }};
+    console.log('project list:', projectList);       
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeSortableKanban();
