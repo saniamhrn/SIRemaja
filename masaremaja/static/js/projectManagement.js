@@ -494,16 +494,16 @@ function submitTaskForm(projectId, taskId = null, status = null) {
             <td id="task-description-${data.id}" onclick="editField(this, 'description', ${data.id}, true)">
                 <span>${data.description}</span>
             </td>
-            <td id="task-status-${data.id}" ondblclick="editStatus(this, 'status', ${data.id}, true)">
+            <td id="task-status-${data.id}" onclick="editStatus(this, 'status', ${data.id}, true)">
                 <span>${data.status}</span>
             </td>
             <td><span>${clientName}</span></td>
-            <td id="task-assigned_to-${data.id}"><span>${assigneeName}</span></td>
+            <td id="task-assigned_to-${data.id}" onclick="editDropdown(this, 'assigned_to', ${data.id}, creativeList, true)"><span>${assigneeName}</span></td>
             <td id="task-due_date-${data.id}" onclick="editDate(this, 'due_date', ${data.id}, true)">
                 <span>${formattedDueDate}</span>
             </td>
             <td>
-                <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
+                <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="${data.id}">Delete</button>
             </td>
         `;
 

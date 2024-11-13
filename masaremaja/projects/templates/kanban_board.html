@@ -24,7 +24,8 @@
                 {% for task in tasks %}
                     {% if task.status == "To Do" %}
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
-                            <p>{{ task.title }}</p>
+                            <p><strong>{{ task.title }}</strong></p>
+                            <p>{{ task.project.name }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -43,7 +44,8 @@
                 {% for task in tasks %}
                     {% if task.status == "In Progress" %}
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
-                            <p>{{ task.title }}</p>
+                            <p><strong>{{ task.title }}</strong></p>
+                            <p>{{ task.project.name }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -62,7 +64,8 @@
                 {% for task in tasks %}
                     {% if task.status == "Done" %}
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
-                            <p>{{ task.title }}</p>
+                            <p><strong>{{ task.title }}</strong></p>
+                            <p>{{ task.project.name }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
