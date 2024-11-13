@@ -3,6 +3,106 @@ let currentTaskId;
 let updatedProjectData = {};
 let updatedTaskData = {};
 
+$(document).ready(function() {
+    $('.project-data-table').each(function() {
+        const tableId = $(this).attr('id');
+        
+        if (tableId === 'projectTable') {
+            // Destroy any previous initialization to prevent duplicates
+            if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+                $(`#${tableId}`).DataTable().destroy();
+            }
+            
+            // Initialize DataTable with proper settings
+            $(`#${tableId}`).DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "lengthChange": true,
+                "pageLength": 10,
+                "autoWidth": false
+            });
+        }
+    });
+});
+
+// === Table View Filtering and Sorting Functions === //
+
+// Search function for table view (via DataTables)
+function searchTableView() {
+    let searchInput = $('#searchProject').val().toLowerCase();
+    table.search(searchInput).draw();  // Apply search in DataTable
+}
+
+// Role filtering function for table view
+function filterTableByRole() {
+    let selectedRole = $('#roleFilter').val();
+    table.column(5).search(selectedRole).draw();  // Column 5 is the role column
+}
+
+// === Event Listeners for Search, Role Filtering, and Sorting === //
+
+// Search input event listener
+$('#searchProject').on('input', function() {
+    searchCardView();  // Apply search to the card view
+    searchTableView();  // Apply search to the table view
+});
+
+// Role filter change event listener
+$('#sortbyNameProjects').on('change', function() {
+    filterCardByRole();  // Apply role filter to the card view
+    filterTableByRole();  // Apply role filter to the table view
+});
+
+// Sort by name change event listener
+$('#sortByDueDate').on('change', function() {
+    sortCardView();  // Apply sorting to the card view only
+});
+
+// Save the user's view preference to local storage
+function saveViewPreference(view) {
+    localStorage.setItem('viewPreference', view);
+}
+
+// Load the user's view preference from local storage
+function loadViewPreference() {
+    return localStorage.getItem('viewPreference') || 'card'; // Default to 'card' view if none is set
+}
+
+// Apply the saved view preference on page load
+let savedView = loadViewPreference();
+
+if (savedView === 'table') {
+    $('#tableView').removeClass('d-none');
+    $('#cardView').addClass('d-none');
+} else {
+    $('#cardView').removeClass('d-none');
+    $('#tableView').addClass('d-none');
+}
+
+// Toggle between card view and table view
+$('#cardViewButton').on('click', function() {
+    $('#cardView').removeClass('d-none');
+    $('#tableView').addClass('d-none');
+    saveViewPreference('card');
+});
+
+$('#tableViewButton').on('click', function() {
+    $('#tableView').removeClass('d-none');
+    $('#cardView').addClass('d-none');
+    saveViewPreference('table');
+});
+
+
+
+
+
+
+
+
+
+
 // Define the Modal IDs dynamically based on the page
 const projectDetailModalId = document.getElementById('projectDetailModalKanban') 
     ? 'projectDetailModalKanban' 

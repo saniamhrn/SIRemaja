@@ -189,7 +189,7 @@
 
         <!-- Latest Projects Table -->
         <h5>Ongoing Projects</h5>
-        <table class="table table-hover mb-4">
+        <table id="table-filter-project" class="table table-hover mb-4">
             <thead>
                 <tr>
                     <th>Project Name</th>
@@ -262,7 +262,7 @@
             let selectedStatuses = Array.from(document.querySelectorAll('input[name="status"]:checked')).map(cb => cb.value);
             
             // Loop through each row in the table body
-            document.querySelectorAll('.table tbody tr').forEach((row) => {
+            document.querySelectorAll('#table-filter-project tbody tr').forEach((row) => {
                 // Get the status of the current row
                 let status = row.querySelector('td:nth-child(2)').textContent.trim();
                 
