@@ -66,11 +66,11 @@
 
     <!-- Table View -->
     <div id="tableView" class="table-responsive-sm d-none">
-        <table id="userTable" class="table table-hover">
+        <table id="userTable" class="dataTableClass table table-hover">
             <thead class="thead-dark">
                 <tr>
                     <th>#</th>
-                    <th>Is Active</th>
+                    <th>Account Status</th>
                     <th>Username</th>
                     <th>Name</th>
                     <th>Email</th>
@@ -82,7 +82,7 @@
                 {% for user in users %}
                 <tr class="user-card" data-username="{{ user.username }}" data-role="{{ user.role }}" data-name="{{ user.first_name }}">
                     <td>{{ forloop.counter }}</td>
-                    <td>{% if user.is_active %}Yes{% else %}No{% endif %}</td>
+                    <td>{% if user.is_active %}Active{% else %}Inactive{% endif %}</td>
                     <td>{{ user.username }}</td>
                     <td>{{ user.first_name }}</td>
                     <td>{{ user.email }}</td>

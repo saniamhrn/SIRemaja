@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Creative Team Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="card-title text-center mb-4">Creative Team Home</h1>
+    <p class="text-center">Welcome to the Creative Team homepage!</p>
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Task Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Project</th>
+                    <th>Assignee</th>
+                    <th>Due Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tasks-table-body">
+                {% for task in tasks %}
+                <!-- Task Row -->
+                <tr id="task-{{ task.id }}" class="task-row">
+                    <td style="padding-left: 50px;">
+                        <span class="task-title" onclick="showTaskDetail({{ task.id }});" style="cursor: pointer; color: black;">
+                            {{ task.title }}
+                        </span>
+                    </td>
+                    <td id="task-description-{{ task.id }}" onclick="editField(this, 'description', {{ task.id }}, true)">
+                        <span>{{ task.description }}</span>
+                    </td>
+                    <td id="task-status-{{ task.id }}" ondblclick="editStatus(this, 'status', {{ task.id }}, true)">
+                        <span>{{ task.status }}</span>
+                    </td>
+                    <td>
+                        <span>{{ task.project.name }}</span>
+                    </td>
+                    <td id="task-assignee-{{ task.id }}" ondblclick="editDropdown(this, 'assigned_to', {{ task.id }}, creativeList, true)">
+                        <span>{{ task.assigned_to.username }}</span>
+                    </td>
+                    <td id="task-due-date-{{ task.id }}" onclick="editDate(this, 'due_date', {{ task.id }}, true)">
+                        <span>{{ task.due_date|date:"D d M Y" }}</span>
+                    </td>
+                    <td>
+                        <a href="{% url 'projects:upload_file_task' task.id %}" class="btn btn-warning btn-sm">Update</a>
+                        <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr class="task-row no-tasks-message">
+                    <td colspan="7" class="text-muted text-center">
+                        <span>No tasks assigned to you.</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <a href="{% url 'projects:view_all_projects' %}" class="btn btn-primary">Manage Projects</a>
+</div>
+{% endblock %}

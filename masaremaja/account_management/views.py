@@ -8,6 +8,10 @@ from .forms import EmailUpdateForm, UsernameUpdateForm
 from django.core.exceptions import PermissionDenied
 from authentication.views import is_admin, is_pm, is_client, is_creative
 from user_management.models import CustomUser
+from projects.models import Project, Task
+from projects.views import dashboard_view
+from django.utils import timezone
+from projects.views import projects_details_dashboard
 
 User = get_user_model()
 
@@ -80,11 +84,15 @@ def admin_home(request):
     active_users = CustomUser.objects.filter(is_active=True).count()
     latest_users = CustomUser.objects.filter(last_login__isnull=False).order_by('-last_login')[:5]
 
+    project_metrics = dashboard_view(request)
+
     context = {
         'total_users': total_users,
         'active_users': active_users,
         'users': users,
         'latest_users': latest_users,
+
+        **project_metrics,
     }
 
     return render(request, 'account_management/admin_home.html', context)  # Admin-specific homepage
@@ -92,14 +100,73 @@ def admin_home(request):
 @user_passes_test(is_pm)
 @login_required
 def pm_home(request):
-    return render(request, 'account_management/pm_home.html')  # Project Manager-specific homepage
+    project_metrics = dashboard_view(request)
+
+    context = {
+        **project_metrics,  # Unpack project metrics
+    }
+
+    return render(request, 'account_management/pm_home.html', context)  # Project Manager-specific homepage
 
 @user_passes_test(is_client)
 @login_required
 def client_home(request):
-    return render(request, 'account_management/client_home.html')  # Client-specific homepage
+    # Fetch all the projects related to the client
+    project_list = Project.objects.filter(client=request.user).order_by('-due_date')
+
+    # Calculate project counts directly in the query to avoid extra database hits
+    done_projects_count = project_list.filter(status="Done").count()
+    overdue_projects_count = project_list.filter(due_date__lt=timezone.now(), status__in=["To Do", "In Progress"]).count()
+    ongoing_projects_count = project_list.filter(status="In Progress").count()
+
+    # Ongoing Projects with Progress Calculation
+    projects_with_progress = [
+        {
+            'id' : project.id,
+            'name': project.name,
+            'status': project.status,
+            'description' : project.description,
+            'created_at' : project.created_at,
+            'due_date' : project.due_date,
+            'start_date' : project.start_date,
+            'completion_date' : project.completion_date,
+            'progress': int(
+                (project.tasks.filter(status="Done").count() / project.tasks.count()) * 100
+            ) if project.tasks.count() > 0 else 0,
+        }
+        for project in project_list
+    ]
+
+    # Create context data
+    context = {
+        "done_projects_count": done_projects_count,
+        "overdue_projects_count": overdue_projects_count,
+        "ongoing_projects_count": ongoing_projects_count,
+        "projects_with_progress": projects_with_progress,
+    }
+
+    return render(request, 'account_management/client_home.html', context)  # Client-specific homepage
 
 @user_passes_test(is_creative) 
 @login_required
 def creative_home(request):
-    return render(request, 'account_management/creative_home.html')  # Creative Team-specific homepage
+    user_tasks = Task.objects.filter(assigned_to=request.user).order_by('-due_date')
+    
+    context = {
+        'tasks': user_tasks,
+    }
+    
+    return render(request, 'account_management/creative_home.html', context)  
+
+@user_passes_test(is_pm)
+@login_required
+def pm_home(request):
+    project_metrics = dashboard_view(request)
+    project_details = projects_details_dashboard(request)
+
+    context = {
+        **project_metrics,  # Unpack project metrics
+        **project_details,  # Unpack project details
+    }
+
+    return render(request, 'account_management/pm_home.html', context)  # Project Manager-specific homepage

@@ -16,18 +16,35 @@ $(document).ready(function() {
     const alertElement = $('.alert');
     if (alertElement.length) {
         setTimeout(() => {
-            alertElement.alert('close'); // Bootstrap method to close alert
-        }, 3000); // The alert will fade away after 3 seconds
+            alertElement.alert('close'); 
+        }, 3000); 
     }
 
-    // Initialize DataTables
-    var table = $('#userTable').DataTable({
-        "paging": true,
-        "searching": true,
-        "ordering": true,
-        "info": true,
-        "lengthChange": true,
-        "pageLength": 10
+    $('.dataTableClass').each(function() {
+        // Check if the table has a specific ID or attribute to distinguish it
+        const table = $(this).attr('id');
+        
+        if (table === 'userTable') {
+            // User Management Table with page length 10
+            $(this).DataTable({
+                "paging": true,
+                "searching": true,
+                "ordering": true,
+                "info": true,
+                "lengthChange": true,
+                "pageLength": 10
+            });
+        } else if (table === 'recentLoginsTable') {
+            // Recent Logins Table with page length 5
+            $(this).DataTable({
+                "paging": false,
+                "searching": true,
+                "ordering": true,
+                "info": false,
+                "lengthChange": true,
+                "pageLength": 5
+            });
+        }
     });
 
     // === Card View Filtering, Searching, and Sorting Functions === //
