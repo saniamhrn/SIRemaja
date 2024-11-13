@@ -3,106 +3,6 @@ let currentTaskId;
 let updatedProjectData = {};
 let updatedTaskData = {};
 
-$(document).ready(function() {
-    $('.project-data-table').each(function() {
-        const tableId = $(this).attr('id');
-        
-        if (tableId === 'projectTable') {
-            // Destroy any previous initialization to prevent duplicates
-            if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
-                $(`#${tableId}`).DataTable().destroy();
-            }
-            
-            // Initialize DataTable with proper settings
-            $(`#${tableId}`).DataTable({
-                "paging": true,
-                "searching": true,
-                "ordering": true,
-                "info": true,
-                "lengthChange": true,
-                "pageLength": 10,
-                "autoWidth": false
-            });
-        }
-    });
-});
-
-// === Table View Filtering and Sorting Functions === //
-
-// Search function for table view (via DataTables)
-function searchTableView() {
-    let searchInput = $('#searchProject').val().toLowerCase();
-    table.search(searchInput).draw();  // Apply search in DataTable
-}
-
-// Role filtering function for table view
-function filterTableByRole() {
-    let selectedRole = $('#roleFilter').val();
-    table.column(5).search(selectedRole).draw();  // Column 5 is the role column
-}
-
-// === Event Listeners for Search, Role Filtering, and Sorting === //
-
-// Search input event listener
-$('#searchProject').on('input', function() {
-    searchCardView();  // Apply search to the card view
-    searchTableView();  // Apply search to the table view
-});
-
-// Role filter change event listener
-$('#sortbyNameProjects').on('change', function() {
-    filterCardByRole();  // Apply role filter to the card view
-    filterTableByRole();  // Apply role filter to the table view
-});
-
-// Sort by name change event listener
-$('#sortByDueDate').on('change', function() {
-    sortCardView();  // Apply sorting to the card view only
-});
-
-// Save the user's view preference to local storage
-function saveViewPreference(view) {
-    localStorage.setItem('viewPreference', view);
-}
-
-// Load the user's view preference from local storage
-function loadViewPreference() {
-    return localStorage.getItem('viewPreference') || 'card'; // Default to 'card' view if none is set
-}
-
-// Apply the saved view preference on page load
-let savedView = loadViewPreference();
-
-if (savedView === 'table') {
-    $('#tableView').removeClass('d-none');
-    $('#cardView').addClass('d-none');
-} else {
-    $('#cardView').removeClass('d-none');
-    $('#tableView').addClass('d-none');
-}
-
-// Toggle between card view and table view
-$('#cardViewButton').on('click', function() {
-    $('#cardView').removeClass('d-none');
-    $('#tableView').addClass('d-none');
-    saveViewPreference('card');
-});
-
-$('#tableViewButton').on('click', function() {
-    $('#tableView').removeClass('d-none');
-    $('#cardView').addClass('d-none');
-    saveViewPreference('table');
-});
-
-
-
-
-
-
-
-
-
-
 // Define the Modal IDs dynamically based on the page
 const projectDetailModalId = document.getElementById('projectDetailModalKanban') 
     ? 'projectDetailModalKanban' 
@@ -126,6 +26,50 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// function initializeDataTable() {
+//     const tableId = 'projectTable';
+    
+//     // Destroy existing instance to prevent multiple initializations
+//     if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+//         $(`#${tableId}`).DataTable().destroy();
+//     }
+
+//     // Initialize DataTable
+//     $(`#${tableId}`).DataTable({
+//         paging: true,
+//         searching: true,
+//         ordering: true,
+//         info: true,
+//         lengthChange: true,
+//         pageLength: 10,
+//         autoWidth: false,
+//         order: [],  // Disable default sorting
+//     });
+// }
+
+// // Search function for table view
+// function searchTableView() {
+//     const table = $('#projectTable').DataTable();
+//     let searchInput = document.getElementById('searchProject').value.toLowerCase();
+//     table.search(searchInput).draw();
+// }
+
+// // Role filtering function for table view
+// function filterTableByRole() {
+//     const table = $('#projectTable').DataTable();
+//     let selectedRole = document.getElementById('roleFilter').value;
+//     table.column(5).search(selectedRole).draw();
+// }
+
+// // Utility functions for view preference
+// function saveViewPreference(view) {
+//     localStorage.setItem('viewPreference', view);
+// }
+
+// function loadViewPreference() {
+//     return localStorage.getItem('viewPreference') || 'card';
+// }
 
 function submitProjectForm() {
     const name = document.getElementById('project-name').value;
@@ -962,6 +906,40 @@ function moveTaskCard(taskId, newStatus) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
+    // initializeDataTable();
+    // // Initialize DataTable if Table View is active
+    // let savedView = loadViewPreference();  // Load saved view preference
+    // if (savedView === 'table') {
+    //     document.getElementById('tableView').classList.remove('d-none');
+    //     document.getElementById('cardView').classList.add('d-none');
+    //     initializeDataTable();
+    // }
+
+    // // Event listeners for toggling between Card View and Table View
+    // document.getElementById('cardViewButton').addEventListener('click', function () {
+    //     document.getElementById('cardView').classList.remove('d-none');
+    //     document.getElementById('tableView').classList.add('d-none');
+    //     saveViewPreference('card');
+    //     if ($.fn.DataTable.isDataTable('#projectTable')) {
+    //         $('#projectTable').DataTable().destroy();
+    //     }
+    // });
+
+    // document.getElementById('tableViewButton').addEventListener('click', function () {
+    //     document.getElementById('tableView').classList.remove('d-none');
+    //     document.getElementById('cardView').classList.add('d-none');
+    //     saveViewPreference('table');
+    //     initializeDataTable();
+    // });
+
+    // // Optional: Additional search and filter functions for DataTables
+    // document.getElementById('searchProject').addEventListener('input', function () {
+    //     searchTableView();
+    // });
+
+    // document.getElementById('sortbyNameProjects').addEventListener('change', function () {
+    //     filterTableByRole();
+    // });
 
     // Add event listener to delete buttons
     document.querySelectorAll('.delete-task-btn').forEach(button => {
