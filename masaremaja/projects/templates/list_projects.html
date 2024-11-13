@@ -10,38 +10,18 @@
     <div class="my-3 d-flex justify-content-between align-items-center">
         <div>
             <a href="/project/kanban/" class="btn btn-outline-secondary">Board View</a>
-            <a href="/project/view-all" class="btn btn-outline-secondary">Table View</a>
+            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
+            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
             + Add Project
         </button>
     </div>
 
-    <!-- Toggle for View Mode -->
-    <div class="my-3 d-flex justify-content-between align-items-center">
-        <!-- <div>
-            <input type="text" id="searchProject" class="form-control d-inline-block me-2" placeholder="Search by project name or client" style="width: 250px;">
-            <select id="sortbyNameProjects" class="form-select d-inline-block" style="width: 150px;">
-                <option value="name_asc">Sort by Name (A-Z)</option>
-                <option value="name_desc">Sort by Name (Z-A)</option>
-            </select>
-            <select id="sortByDueDate" class="form-select d-inline-block" style="width: 150px;">
-                <option value="due_date_asc">Sort by Due Date (Earliest)</option>
-                <option value="due_date_desc">Sort by Due Date (Latest)</option>
-            </select>
-        </div> -->
 
-         <!-- Toggle between Card and Table View -->
-        <div>
-            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
-            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
-        </div>
-    </div>
-
-     <!-- Card View -->
-     <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <!-- Card View -->
+    <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for project in projects %}
-        <!-- <div class="col user-card" data-username="{{ user.username }}" data-role="{{ user.role }}" data-name="{{ user.first_name }}"> -->
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ project.name }}</h5>
@@ -55,16 +35,14 @@
                     <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button>
                 </div>
             </div>
-        <!-- </div> -->
         {% endfor %}
     </div>
 
-     <!-- Table View -->
+    <!-- Table View -->
     <div id="tableView" class="table-responsive-sm d-none">
         <table id="projectTable" class="project-data-table table table-hover">
             <thead class="thead-dark">
                 <tr>
-                    <th>#</th>
                     <th>Name</th>
                     <th>Description</th>
                     <th>Status</th>
@@ -77,8 +55,7 @@
             <tbody id="projects-table-body">
                 {% for project in projects %}
                 <!-- Project Row -->
-                <tr id="project-{{ project.id }}">
-                    <td>{{ forloop.counter }}</td>
+                <tr id="project-{{ project.id }}" class="project-row">
                     <td>
                         <button class="toggle-task-btn" onclick="toggleTaskCollapse({{ project.id }})">›</button>
                         <span class="project-name" onclick="showProjectDetail({{ project.id }});" style="cursor: pointer; color: black;">
@@ -101,7 +78,6 @@
                 <!-- Task Rows - Align each task field with the project column structure -->
                 {% for task in project.tasks %}
                 <tr id="task-{{ task.id }}" class="task-row no-sort" style="display: none;" data-project-id="{{ project.id }}">
-                    <td>{{ forloop.parentloop.counter }}.{{ forloop.counter }}</td>
                     <td style="padding-left: 50px;">
                         <span class="task-title" onclick="showTaskDetail({{ task.id }});" style="cursor: pointer; color: black;">
                             {{ task.title }}
@@ -118,175 +94,30 @@
                         <!-- <button class="btn btn-danger btn-sm delete-task-btn" onclick="showDeleteConfirmation({{ task.id }}, this.closest('tr'))">Delete</button> -->
                     </td>
                 </tr>
-                
+                {% empty %}
+                <tr class="task-row no-tasks-message" style="display: none;" data-project-id="{{ project.id }}">
+                    <td colspan="7" class="text-muted" style="padding-left: 50px;">
+                        <span>No tasks available for this project.</span>
+                    </td>
+                </tr>
                 {% endfor %}
                 {% endfor %}
             </tbody>                
         </table>
     </div>
+    
     <h1 class="text-center mb-4 card-title">Timeline</h1>
-<div id="calendar">
-    <div class="calendar-header">
-        <button class="prev-month">&lt;</button>
-        <span id="calendar-month-year"></span>
-        <button class="next-month">&gt;</button>
-    </div>
-    <div class="calendar-grid">
-        <!-- Calendar days will be inserted dynamically -->
+    <div id="calendar">
+        <div class="calendar-header">
+            <button class="prev-month">&lt;</button>
+            <span id="calendar-month-year"></span>
+            <button class="next-month">&gt;</button>
+        </div>
+        <div class="calendar-grid">
+            <!-- Calendar days will be inserted dynamically -->
+        </div>
     </div>
 </div>
-</div>
-
-<script>
-    const projects = [
-        {% for project in projects %}
-        {
-            name: '{{ project.name }}',
-            project_manager: '{{ project.pm_username }}',
-            due_date: '{{ project.due_date }}'  // Should be in YYYY-MM-DD format for accurate date handling
-        },
-        {% endfor %}
-    ];
-
-    const daysInMonth = (year, month) => {
-        const date = new Date(year, month, 0);
-        return date.getDate();
-    };
-
-    const renderCalendar = (month, year) => {
-        const calendarGrid = document.querySelector('.calendar-grid');
-        const calendarMonthYear = document.querySelector('#calendar-month-year');
-        const totalDays = daysInMonth(year, month);
-
-        // Clear previous grid
-        calendarGrid.innerHTML = '';
-
-        // Set the month and year display
-        calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
-
-        // Create the grid with days of the month
-        for (let day = 1; day <= totalDays; day++) {
-            const dayCell = document.createElement('div');
-            dayCell.classList.add('calendar-day');
-            dayCell.innerHTML = `<span>${day}</span>`;
-            
-            // Add project events for the day
-            const dayProjects = projects.filter(project => new Date(project.due_date).getDate() === day && new Date(project.due_date).getMonth() === month && new Date(project.due_date).getFullYear() === year);
-            if (dayProjects.length > 0) {
-                const projectList = document.createElement('ul');
-                dayProjects.forEach(project => {
-                    const projectItem = document.createElement('li');
-                    projectItem.innerHTML = `<strong>${project.name}</strong><br>PM: ${project.project_manager}`;
-                    projectList.appendChild(projectItem);
-                });
-                dayCell.appendChild(projectList);
-            }
-
-            calendarGrid.appendChild(dayCell);
-        }
-    };
-
-    // Initialize calendar to the current month
-    const currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
-
-    document.querySelector('.prev-month').addEventListener('click', () => {
-        currentMonth -= 1;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear -= 1;
-        }
-        renderCalendar(currentMonth, currentYear);
-    });
-
-    document.querySelector('.next-month').addEventListener('click', () => {
-        currentMonth += 1;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear += 1;
-        }
-        renderCalendar(currentMonth, currentYear);
-    });
-
-    // Render the current month initially
-    renderCalendar(currentMonth, currentYear);
-</script>
-
-<style>
-    #calendar {
-        font-family: Arial, sans-serif;
-        width: 100%;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .calendar-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 20px;
-        background-color: #f1f1f1;
-        border-radius: 5px;
-    }
-
-    .calendar-header button {
-        background-color: #fff;
-        border: 1px solid #ccc;
-        padding: 5px 10px;
-        cursor: pointer;
-    }
-
-    .calendar-header button:hover {
-        background-color: #f7f7f7;
-    }
-
-    #calendar-month-year {
-        font-size: 1.5em;
-        font-weight: bold;
-    }
-
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        grid-gap: 10px;
-        margin-top: 20px;
-    }
-
-    .calendar-day {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: top;
-        padding: 10px;
-        background-color: #fff;
-        border-radius: 5px;
-        border: 1px solid #f1f1f1;
-        position: relative;
-        min-height: 100px;
-    }
-
-    .calendar-day span {
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    .calendar-day ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-        font-size: 12px;
-        color: #333;
-    }
-
-    .calendar-day li {
-        margin-bottom: 5px;
-    }
-
-    .calendar-day li strong {
-        font-weight: bold;
-    }
-</style>
 
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -614,12 +445,85 @@
 {% load static %}
 
 {% block scripts %}
-
 <script>
     const clientList = {{ client_list|safe }};
     const pmList = {{ pm_list|safe }};
     const projectList = {{ projects|safe }};
     const creativeList = {{ creative_list|safe }};
+
+    const projects = [
+        {% for project in projects %}
+        {
+            name: '{{ project.name }}',
+            project_manager: '{{ project.pm_username }}',
+            due_date: '{{ project.due_date }}'  // Should be in YYYY-MM-DD format for accurate date handling
+        },
+        {% endfor %}
+    ];
+
+    const daysInMonth = (year, month) => {
+        const date = new Date(year, month, 0);
+        return date.getDate();
+    };
+
+    const renderCalendar = (month, year) => {
+        const calendarGrid = document.querySelector('.calendar-grid');
+        const calendarMonthYear = document.querySelector('#calendar-month-year');
+        const totalDays = daysInMonth(year, month);
+
+        // Clear previous grid
+        calendarGrid.innerHTML = '';
+
+        // Set the month and year display
+        calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
+        // Create the grid with days of the month
+        for (let day = 1; day <= totalDays; day++) {
+            const dayCell = document.createElement('div');
+            dayCell.classList.add('calendar-day');
+            dayCell.innerHTML = `<span>${day}</span>`;
+            
+            // Add project events for the day
+            const dayProjects = projects.filter(project => new Date(project.due_date).getDate() === day && new Date(project.due_date).getMonth() === month && new Date(project.due_date).getFullYear() === year);
+            if (dayProjects.length > 0) {
+                const projectList = document.createElement('ul');
+                dayProjects.forEach(project => {
+                    const projectItem = document.createElement('li');
+                    projectItem.innerHTML = `<strong>${project.name}</strong><br>PM: ${project.project_manager}`;
+                    projectList.appendChild(projectItem);
+                });
+                dayCell.appendChild(projectList);
+            }
+
+            calendarGrid.appendChild(dayCell);
+        }
+    };
+
+    // Initialize calendar to the current month
+    const currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+
+    document.querySelector('.prev-month').addEventListener('click', () => {
+        currentMonth -= 1;
+        if (currentMonth < 0) {
+            currentMonth = 11;
+            currentYear -= 1;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+
+    document.querySelector('.next-month').addEventListener('click', () => {
+        currentMonth += 1;
+        if (currentMonth > 11) {
+            currentMonth = 0;
+            currentYear += 1;
+        }
+        renderCalendar(currentMonth, currentYear);
+    });
+
+    // Render the current month initially
+    renderCalendar(currentMonth, currentYear);
 </script>
 <script src="{% static 'js/projectManagement.js' %}"></script>
 {% endblock scripts %}
