@@ -415,6 +415,34 @@ function showTaskDetail(taskId) {
                 document.getElementById(`${taskDetailModalId}-completion_date`).textContent = 'Not Completed';
             }
 
+            // Format Created At
+            if (data.created_at) {
+                const createdAt = new Date(data.created_at);
+                const formattedCreatedAt = createdAt.toLocaleString('default', {
+                    month: 'long', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true  // AM/PM format
+                });
+                document.getElementById(`${taskDetailModalId}-created_at`).textContent = formattedCreatedAt;
+            }
+
+            // Format Updated At
+            if (data.updated_at) {
+                const updatedAt = new Date(data.updated_at);
+                const formattedUpdatedAt = updatedAt.toLocaleString('default', { 
+                    month: 'long', 
+                    day: 'numeric', 
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true  // AM/PM format
+                });
+                document.getElementById(`${taskDetailModalId}-updated_at`).textContent = formattedUpdatedAt;
+            }
+
             // Show the modal
             const taskDetailModal = new bootstrap.Modal(document.getElementById(taskDetailModalId));
             taskDetailModal.show();
