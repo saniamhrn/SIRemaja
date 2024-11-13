@@ -16,9 +16,9 @@
         <div id="to-do" class="kanban-column">
             <div class="d-flex justify-content-between align-items-center my-3">
                 <h6 class="mb-0"><strong>To Do</strong></h6>
-                <div>
+                {% comment %} <div>
                     <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModalWithStatus('To Do')">+</button>                                
-                </div>
+                </div> {% endcomment %}
             </div>
             <div class="task-list">
                 {% for task in tasks %}
@@ -35,9 +35,9 @@
         <div id="in-progress" class="kanban-column">
             <div class="d-flex justify-content-between align-items-center my-3">
                 <h6 class="mb-0"><strong>In Progress</strong></h6>
-                <div>
+                {% comment %} <div>
                     <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModalWithStatus('In Progress')">+</button>                                
-                </div>
+                </div> {% endcomment %}
             </div>
             <div class="task-list">
                 {% for task in tasks %}
@@ -54,9 +54,9 @@
         <div id="done" class="kanban-column">
             <div class="d-flex justify-content-between align-items-center my-3">
                 <h6 class="mb-0"><strong>Done</strong></h6>
-                <div>
+                {% comment %} <div>
                     <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModalWithStatus('Done')">+</button>                                
-                </div>
+                </div> {% endcomment %}
             </div>
             <div class="task-list">
                 {% for task in tasks %}
