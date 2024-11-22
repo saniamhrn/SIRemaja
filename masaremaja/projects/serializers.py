@@ -10,6 +10,10 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = ['id', 'title', 'description', 'status', 'due_date', 'project', 'project_name' ,'assigned_to', 'creative_name', 'created_at', 'updated_at', 'start_date', 'completion_date']  
 
+    def get_creative_name(self, obj):
+        # Handle unassigned case
+        return obj.assigned_to.first_name if obj.assigned_to else "Unassigned"
+
 class ProjectSerializer(serializers.ModelSerializer):
     pm_name = serializers.CharField(source='project_manager.username', read_only=True)
     client_name = serializers.CharField(source='client.username', read_only=True)
@@ -21,3 +25,11 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ['id', 'name', 'description', 'status', 'client', 'client_name', 'project_manager', 'pm_name', 'due_date', 'tasks', 'created_at', 'updated_at']
+
+    def get_pm_name(self, obj):
+        # Handle unassigned project manager case
+        return obj.project_manager.username if obj.project_manager else "Unassigned"
+
+    def get_client_name(self, obj):
+        # Handle unassigned client case
+        return obj.client.username if obj.client else "Unassigned"
