@@ -3,6 +3,11 @@ let currentTaskId;
 let updatedProjectData = {};
 let updatedTaskData = {};
 
+let itemToDeleteId = null;
+let itemTypeToDelete = null;
+let itemRowElement = null;
+const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
+
 // Define the Modal IDs dynamically based on the page
 const projectDetailModalId = document.getElementById('projectDetailModalKanban') 
     ? 'projectDetailModalKanban' 
@@ -122,25 +127,29 @@ function submitProjectForm() {
     .catch(error => console.error('Error adding project:', error));
 }
 
-function deleteProject(projectId, row) {
+function deleteProject(projectId, rowElement) {
     const csrftoken = getCookie('csrftoken');
-    if (confirm('Are you sure you want to delete this project?')) {
-        fetch(`/project/delete/${projectId}`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': csrftoken
-            }
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log('Project deleted');
-                row.remove();
-            } else {
-                console.error('Error deleting project');
-            }
-        })
-        .catch(error => console.error('Error deleting project:', error));
-    }
+    // if (confirm('Are you sure you want to delete this project?')) {
+    fetch(`/project/delete/${projectId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            console.log('Project deleted');
+            rowElement.remove();
+            deleteModal.hide();
+            setTimeout(() => {
+                showSuccessMessage("Project deleted successfully.");
+            }, 300);
+        } else {
+            console.error("Failed to delete project");
+        }
+    })
+    .catch(error => console.error('Error deleting project:', error));
+    // }
 }
 
 function showProjectDetail(projectId) {
@@ -155,11 +164,38 @@ function showProjectDetail(projectId) {
             }
 
             // Update fields in the project detail modal with dynamic IDs
-            document.getElementById(`${projectDetailModalId}-name`).innerHTML = project.name;
-            document.getElementById(`${projectDetailModalId}-description`).innerHTML = `<span>${project.description}</span>`;
-            document.getElementById(`${projectDetailModalId}-status`).textContent = project.status || 'No Status';
-            document.getElementById(`${projectDetailModalId}-client`).textContent = project.client_name || 'N/A';
-            document.getElementById(`${projectDetailModalId}-project_manager`).textContent = project.pm_name || 'N/A';
+            const nameElement = document.getElementById('projectDetailModalList-name');
+            nameElement.innerHTML = `
+                <span onclick="editField(this.parentElement, 'name', ${project.id})">${project.name}</span>
+                <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'name', ${project.id})"></i>
+            `;
+            const descriptionElement = document.getElementById('projectDetailModalList-description');
+            descriptionElement.innerHTML = `
+                <span onclick="editField(this.parentElement, 'description', ${project.id})">${project.description}</span>
+                <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'description', ${project.id})"></i>
+            `;
+
+            const fieldsToUpdate = [
+                { field: 'status', value: project.status, defaultText: 'No Status' },
+                { field: 'client', value: project.client_name, defaultText: 'N/A' },
+                { field: 'project_manager', value: project.pm_name, defaultText: 'N/A' },
+            ];
+
+            fieldsToUpdate.forEach(({ field, value, defaultText }) => {
+                const fieldElement = document.getElementById(`${projectDetailModalId}-${field}`);
+                const dropdownButton = fieldElement ? fieldElement.querySelector('.dropdown-toggle span') : null;
+                
+                if (dropdownButton && value) {
+                    dropdownButton.textContent = value;
+                } else if (dropdownButton) {
+                    dropdownButton.textContent = defaultText;
+                }
+
+                // Update text content for the field if it's not a dropdown
+                if (fieldElement && !dropdownButton) {
+                    fieldElement.textContent = value || defaultText;
+                }
+            });
 
             // Format Due Date
             if (project.due_date) {
@@ -212,43 +248,73 @@ function loadProjectTasks(tasks) {
     const taskList = document.getElementById(`${projectDetailModalId}-task-list`);
     taskList.innerHTML = '';  // Clear previous tasks
 
-    let completedTasks = 0;
-
     tasks.forEach(task => {
-        // Count completed tasks for progress calculation
-        if (task.status === 'Done') completedTasks++;
-
         // Create each task item as a list item
         const taskItem = document.createElement('div');
         taskItem.classList.add('task-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'p-2');
 
         taskItem.innerHTML = `
-            <div>
+             <div>
                 <span class="task-title" onclick="showTaskDetail(${task.id})" style="font-weight: bold;">${task.title}</span>
             </div>
             <div class="task-actions">
-                <span id="${projectDetailModalId}-task-assigned_to-${task.id}" class="task-assigned_to" onclick="editDropdown(this, 'assigned_to', ${task.id}, creativeList, true)">
-                    ${task.creative_name || 'Unassigned'}
-                </span>
-                <span id="${projectDetailModalId}-task-status-${task.id}" class="task-status" onclick="editStatus(this, 'status', ${task.id}, true)" style="font-size: 0.8rem;">
-                    ${task.status}
-                </span>
+                <!-- Assignee Dropdown with unique ID for modal -->
+                <div id="modal-task-assigned_to-${task.id}" class="dropdown-menu-container">
+                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                        <span>${task.creative_name || 'Unassigned'}</span>
+                    </button>
+                    <ul class="dropdown-menu assigned_to-dropdown-menu">
+                        ${creativeList.map(creative => `
+                            <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', ${task.id}, '${creative.id}', '${creative.username}', true, 'modal'); event.preventDefault();">${creative.username}</a></li>
+                        `).join('')}
+                    </ul>
+                </div>
+
+                <!-- Status Dropdown with unique ID for modal -->
+                <div id="modal-task-status-${task.id}" class="dropdown-menu-container">
+                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                        <span>${task.status}</span>
+                    </button>
+                    <ul class="dropdown-menu status-dropdown-menu">
+                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', ${task.id}, 'To Do', 'To Do', true, 'modal'); event.preventDefault();">To Do</a></li>
+                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', ${task.id}, 'In Progress', 'In Progress', true, 'modal'); event.preventDefault();">In Progress</a></li>
+                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', ${task.id}, 'Done', 'Done', true, 'modal'); event.preventDefault();">Done</a></li>
+                    </ul>
+                </div>
             </div>
         `;
         taskList.appendChild(taskItem);
     });
 
-    // Calculate and update progress bar
-    const progressPercent = tasks.length ? (completedTasks / tasks.length) * 100 : 0;
-    const progressBar = document.getElementById(`${projectDetailModalId}-progress-bar`);
-    progressBar.style.width = `${progressPercent}%`;
-    progressBar.setAttribute('aria-valuenow', progressPercent);
-    progressBar.textContent = `${Math.round(progressPercent)}% Done`;
+    updateProgressBar(taskList.querySelectorAll('.task-item'));
 }
 
-function showCreateTaskModal(projectId = null, status = null) {
+function updateProgressBar(taskItems) {
+    const tasks = Array.from(taskItems); // Convert NodeList to array
+
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(task => {
+        const statusElement = task.querySelector('.task-actions .dropdown-menu-container:nth-of-type(2) .dropdown-toggle span');
+        return statusElement && statusElement.textContent.trim() === 'Done';
+    }).length;
+
+    const progressPercent = totalTasks ? (completedTasks / totalTasks) * 100 : 0;
+    const progressBar = document.getElementById('projectDetailModalList-progress-bar');
+
+    if (progressBar) {
+        progressBar.style.width = `${progressPercent}%`;
+        progressBar.setAttribute('aria-valuenow', progressPercent);
+        progressBar.textContent = `${Math.round(progressPercent)}% Done`;
+    } else {
+        console.error("Progress bar element not found!");
+    }
+}
+
+function showCreateTaskModal(projectId, status = null, pageContext = 'list') {
+    console.log("showCreateTaskModal", projectId, status, pageContext)
     const statusText = document.getElementById('task-status-text');
     const statusSelect = document.getElementById('task-status-select');
+    const projectSelect = document.getElementById('task-project-id');
 
     if (status) {
         // Display status as text and hide dropdown for Kanban board
@@ -261,17 +327,47 @@ function showCreateTaskModal(projectId = null, status = null) {
         statusSelect.style.display = 'block';
     }
 
-    // Close projectDetailModal if it is open
-    const detailModalInstance = bootstrap.Modal.getInstance(document.getElementById(projectDetailModalId));
+    // Handle locking or unlocking the "Select Project" dropdown
+    if (projectSelect) {
+        if (projectId) {
+            // Find the project name from the projectList
+            const projectData = projectList.find(project => project.id === parseInt(projectId));
+            const projectName = projectData ? projectData.name : 'Unknown Project';
+
+            // Update dropdown to display the project name
+            projectSelect.innerHTML = `
+                <option value="${projectId}" selected>${projectName}</option>
+            `;
+
+            projectSelect.disabled = true; 
+        } else {
+            // projectSelect.value = ''; 
+            projectSelect.innerHTML = `
+                <option value="" disabled selected>Select Project</option>
+                ${projectList.map(project => `
+                    <option value="${project.id}">${project.name}</option>
+                `).join('')}
+            `;
+            projectSelect.disabled = false; 
+        }
+    }
+
+    const detailModalId = pageContext === 'kanban' ? 'projectDetailModalKanban' : 'projectDetailModalList';
+    const detailModalInstance = bootstrap.Modal.getInstance(document.getElementById(detailModalId));
     if (detailModalInstance) {
         detailModalInstance.hide();
     }
 
-    document.getElementById('task-project-id').value = projectId || '';
+    // document.getElementById('task-project-id').value = projectId || '';
     document.getElementById('addTaskModalLabel').textContent = 'Add New Task';
     document.getElementById('submit-task-btn').textContent = 'Add Task';
-    document.getElementById('submit-task-btn').onclick = function() {
-        submitTaskForm(projectId, null, status || statusSelect.value); // Pass projectId to submitTaskForm
+    document.getElementById('submit-task-btn').onclick = function () {
+        submitTaskForm(
+            projectId,
+            null,
+            status || statusSelect.value,
+            pageContext
+        );
     };
 
     clearTaskForm();  // Clear form before opening for a new task
@@ -322,15 +418,39 @@ function showTaskDetail(taskId) {
         .then(data => {
             const projectName = data.project_name || 'Unknown Project';
             const projectId = data.project;
-
-            // Populate modal fields with task data
-            document.getElementById(`${taskDetailModalId}-title`).innerHTML = `
+            const taskTitleElement = document.getElementById(`${taskDetailModalId}-title`);
+            taskTitleElement.innerHTML = `
                 <a href="javascript:void(0);" onclick="showProjectDetail(${projectId})" class="project-name-link">${projectName}</a> / 
-                <span ondblclick="editField(this, 'title', ${taskId}, true)">${data.title}</span>
+                <span ondblclick="editField(this.parentElement, 'title', ${taskId}, true)">${data.title}</span>
+                <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'title', ${taskId}, true)"></i>
             `;
-            document.getElementById(`${taskDetailModalId}-description`).innerHTML = `<span>${data.description}</span>`;
-            document.getElementById(`${taskDetailModalId}-status`).textContent = data.status || 'No Status';
-            document.getElementById(`${taskDetailModalId}-assigned_to`).textContent = data.creative_name || 'Unassigned';
+
+            document.getElementById(`${taskDetailModalId}-description`).innerHTML = `
+                <span onclick="editField(this.parentElement, 'description', ${taskId}, true)">${data.description}</span>
+                <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'description', ${taskId}, true)"></i>
+            `;
+
+            // Dynamically update fields like status, client, assignee (creative, pm), etc.
+            const fieldsToUpdate = [
+                { field: 'status', value: data.status, defaultText: 'No Status' },
+                { field: 'assigned_to', value: data.creative_name, defaultText: 'Unassigned' }
+            ];
+
+            fieldsToUpdate.forEach(({ field, value, defaultText }) => {
+                const fieldElement = document.getElementById(`${taskDetailModalId}-${field}`);
+                const dropdownButton = fieldElement ? fieldElement.querySelector('.dropdown-toggle span') : null;
+                
+                if (dropdownButton && value) {
+                    dropdownButton.textContent = value;
+                } else if (dropdownButton) {
+                    dropdownButton.textContent = defaultText;
+                }
+
+                // Update text content for the field if it's not a dropdown
+                if (fieldElement && !dropdownButton) {
+                    fieldElement.textContent = value || defaultText;
+                }
+            });
 
             // Format Due Date
             if (data.due_date) {
@@ -339,24 +459,6 @@ function showTaskDetail(taskId) {
                 document.getElementById(`${taskDetailModalId}-due_date`).textContent = formattedDueDate;
             } else {
                 document.getElementById(`${taskDetailModalId}-due_date`).textContent = 'No Due Date';
-            }
-
-            // Display Start Date if available
-            if (data.start_date) {
-                const startDate = new Date(data.start_date);
-                const formattedStartDate = startDate.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById(`${taskDetailModalId}-start_date`).textContent = formattedStartDate;
-            } else {
-                document.getElementById(`${taskDetailModalId}-start_date`).textContent = 'Not Started';
-            }
-
-            // Display Completion Date if available
-            if (data.completion_date) {
-                const completionDate = new Date(data.completion_date);
-                const formattedCompletionDate = completionDate.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                document.getElementById(`${taskDetailModalId}-completion_date`).textContent = formattedCompletionDate;
-            } else {
-                document.getElementById(`${taskDetailModalId}-completion_date`).textContent = 'Not Completed';
             }
 
             // Format Created At
@@ -387,6 +489,32 @@ function showTaskDetail(taskId) {
                 document.getElementById(`${taskDetailModalId}-updated_at`).textContent = formattedUpdatedAt;
             }
 
+            // Format Start Date
+            if (data.start_date) {
+                const startDate = new Date(data.start_date);
+                const formattedStartDate = startDate.toLocaleString('default', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                document.getElementById(`${taskDetailModalId}-start_date`).textContent = formattedStartDate;
+            } else {
+                document.getElementById(`${taskDetailModalId}-start_date`).textContent = 'Not Started Yet';
+            }
+
+            // Format Completion Date
+            if (data.completion_date) {
+                const completionDate = new Date(data.completion_date);
+                const formattedCompletionDate = completionDate.toLocaleString('default', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                document.getElementById(`${taskDetailModalId}-completion_date`).textContent = formattedCompletionDate;
+            } else {
+                document.getElementById(`${taskDetailModalId}-completion_date`).textContent = 'Not Completed Yet';
+            }
+
             // Show the modal
             const taskDetailModal = new bootstrap.Modal(document.getElementById(taskDetailModalId));
             taskDetailModal.show();
@@ -394,8 +522,13 @@ function showTaskDetail(taskId) {
         .catch(error => console.error('Error fetching task data:', error));
 }
 
-function submitTaskForm(projectId, taskId = null, status = null) {
+function submitTaskForm(projectId, taskId = null, status = null, pageContext = 'list') {
     // const projectId = document.getElementById('task-project-id').value;
+    if (!projectId) {
+        projectId = document.getElementById('task-project-id').value;
+    }
+    projectId = Number(projectId); // Convert to number for comparison
+
     const title = document.getElementById('task-title').value;
     const description = document.getElementById('task-description').value;
     const selectedStatus = status || document.getElementById('task-status-select').value;
@@ -405,6 +538,11 @@ function submitTaskForm(projectId, taskId = null, status = null) {
     const csrftoken = getCookie('csrftoken');
 
     const today = new Date().toISOString().split('T')[0];
+
+    if (!projectId) {
+        alert('Please select a project for the task.');
+        return;
+    }
 
     if (!title || !description || !selectedStatus || !creative || !dueDate) {
         alert('All fields must be filled out');
@@ -443,9 +581,9 @@ function submitTaskForm(projectId, taskId = null, status = null) {
         // Retrieve the assignee's username from the creative_list using the ID
         const assigneeName = document.querySelector(`#task-creative-id option[value="${creative}"]`).textContent;
         
-        // Look up the client name using projectList
         const projectData = projectList.find(project => project.id === projectId);
         const clientName = projectData ? projectData.client_username : 'Unknown Client';
+        const projectName = projectData ? projectData.name : 'Unknown Project';
 
         // Format the due date to "Month Day, Year" format
         const formattedDueDate = new Date(data.due_date).toLocaleDateString('en-US', {
@@ -454,73 +592,102 @@ function submitTaskForm(projectId, taskId = null, status = null) {
             year: 'numeric'
         });
 
-        // const taskListContainer = document.querySelector(`[data-project-id="${projectId}"]`);
-        const projectRow = document.getElementById(`project-${projectId}`);
-
-        // Remove the "No tasks available" message if it exists
-        const noTasksMessage = document.querySelector(`[data-project-id="${projectId}"].no-tasks-message`);
-        if (noTasksMessage) {
-            noTasksMessage.remove();
-        }
-
-        // If the task row doesn't exist (new task), create a new row and add it to the DOM
-        if (!taskRow) {
-            taskRow = document.createElement('tr');
-            taskRow.id = taskRowId;
-            taskRow.classList.add('task-row');
-            taskRow.dataset.projectId = projectId;
-            // projectRow.insertAdjacentElement('afterend', taskRow);  // Insert the new row after the project row
-            // Find the last task row related to this project
-            const projectTaskRows = Array.from(document.querySelectorAll(`tr.task-row[data-project-id="${projectId}"]`));
-            const lastTaskRow = projectTaskRows[projectTaskRows.length - 1];
-
-            if (lastTaskRow) {
-                // Insert after the last task row of the project
-                lastTaskRow.insertAdjacentElement('afterend', taskRow);
-            } else {
-                // If there are no task rows yet, insert it directly after the project row
-                const projectRow = document.getElementById(`project-${projectId}`);
-                projectRow.insertAdjacentElement('afterend', taskRow);
+        if (pageContext === 'list') {
+            const noTasksMessage = document.querySelector(`[data-project-id="${projectId}"].no-tasks-message`);
+            if (noTasksMessage) {
+                noTasksMessage.remove();
             }
-        }
 
-        // Populate the task row with updated task data
-        taskRow.innerHTML = `
-            <td style="padding-left: 50px;">
-                <span onclick="showEditTaskModal(${data.id});" style="cursor: pointer; color: black;">
-                    ${data.title}
-                </span>
-            </td>
-            <td id="task-description-${data.id}" onclick="editField(this, 'description', ${data.id}, true)">
-                <span>${data.description}</span>
-            </td>
-            <td id="task-status-${data.id}" onclick="editStatus(this, 'status', ${data.id}, true)">
-                <span>${data.status}</span>
-            </td>
-            <td><span>${clientName}</span></td>
-            <td id="task-assigned_to-${data.id}" onclick="editDropdown(this, 'assigned_to', ${data.id}, creativeList, true)"><span>${assigneeName}</span></td>
-            <td id="task-due_date-${data.id}" onclick="editDate(this, 'due_date', ${data.id}, true)">
-                <span>${formattedDueDate}</span>
-            </td>
-            <td>
-                <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="${data.id}">Delete</button>
-            </td>
-        `;
+            if (!taskRow) {
+                taskRow = document.createElement('tr');
+                taskRow.id = taskRowId;
+                taskRow.classList.add('task-row');
+                taskRow.dataset.projectId = projectId;
 
-        const deleteButton = taskRow.querySelector('.delete-task-btn');
-        deleteButton.addEventListener('click', function() {
-            showDeleteConfirmation(data.id, taskRow);
-        });
+                const projectTaskRows = Array.from(document.querySelectorAll(`tr.task-row[data-project-id="${projectId}"]`));
+                const lastTaskRow = projectTaskRows[projectTaskRows.length - 1];
 
-        if (status) {
-            moveTaskCard(data.id, status);
-        }
+                if (lastTaskRow) {
+                    lastTaskRow.insertAdjacentElement('afterend', taskRow);
+                } else {
+                    const projectRow = document.getElementById(`project-${projectId}`);
+                    projectRow.insertAdjacentElement('afterend', taskRow);
+                }
+            }
 
-        // Automatically expand task rows if they are hidden
-        const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
-        const anyTaskVisible = Array.from(taskRows).some(taskRow => taskRow.style.display === "table-row");
-        if (!anyTaskVisible) {
-            toggleTaskCollapse(projectId);
+            taskRow.innerHTML = `
+                <td style="padding-left: 50px;">
+                    <span onclick="showEditTaskModal(${data.id});" style="cursor: pointer; color: black;">
+                        ${data.title}
+                    </span>
+                </td>
+                <td id="task-description-${data.id}" onclick="editField(this, 'description', ${data.id}, true)">
+                    <span>${data.description}</span>
+                </td>
+                <td id="task-status-${data.id}">
+                    <div class="dropdown-menu-container">
+                        <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                            <span>${data.status}</span>
+                        </button>
+                        <ul class="dropdown-menu status-dropdown-menu">
+                            <li><a href="#" class="dropdown-item" onclick="selectOption('status', ${data.id}, 'To Do', 'To Do', true); event.preventDefault();">To Do</a></li>
+                            <li><a href="#" class="dropdown-item" onclick="selectOption('status', ${data.id}, 'In Progress', 'In Progress', true); event.preventDefault();">In Progress</a></li>
+                            <li><a href="#" class="dropdown-item" onclick="selectOption('status', ${data.id}, 'Done', 'Done', true); event.preventDefault();">Done</a></li>
+                        </ul>
+                    </div>
+                </td>
+                <td><span>${clientName}</span></td>
+                <td id="task-assigned_to-${data.id}">
+                    <div class="dropdown-menu-container">
+                        <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                            <span>${assigneeName}</span>
+                        </button>
+                        <ul class="dropdown-menu assigned_to-dropdown-menu">
+                            ${creativeList.map(creative => `
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', ${data.id}, '${creative.id}', '${creative.username}', true); event.preventDefault();">${creative.username}</a></li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </td>
+                <td id="task-due_date-${data.id}">
+                    <div class="editable-field">
+                        <span>${formattedDueDate}</span>
+                        <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', ${data.id}, true)"></i>
+                    </div>
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="${data.id}">Delete</button>
+                </td>
+            `;
+
+            // const deleteButton = taskRow.querySelector('.delete-task-btn');
+            // deleteButton.addEventListener('click', function() {
+            //     showDeleteConfirmation(data.id, taskRow);
+            // });
+
+            const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
+            const anyTaskVisible = Array.from(taskRows).some(taskRow => taskRow.style.display === "table-row");
+            if (!anyTaskVisible) {
+                toggleTaskCollapse(projectId);
+            }
+        } else if (pageContext === 'kanban') {
+            const kanbanColumn = document.querySelector(`[data-status="${selectedStatus}"] .task-list`);
+            if (!kanbanColumn) {
+                console.error(`Kanban column for status "${selectedStatus}" not found. Ensure the column's data-status matches.`);
+                return;
+            }
+
+            const taskCard = document.createElement('div');
+            taskCard.classList.add('task-card');
+            taskCard.dataset.taskId = data.id;
+            taskCard.setAttribute('onclick', `showTaskDetail(${data.id})`);
+            taskCard.innerHTML = `
+                <p><strong>${data.title}</strong></p>
+                <p>${projectName}</p>
+            `;
+            kanbanColumn.appendChild(taskCard);
+
+            moveTaskCard(data.id, selectedStatus);
         }
 
         // Close the modal after updating
@@ -539,7 +706,12 @@ function submitTaskForm(projectId, taskId = null, status = null) {
 // Function to clear the form fields
 function clearTaskForm() {
     document.getElementById('task-id').value = '';
-    document.getElementById('task-project-id').value = '';
+    // document.getElementById('task-project-id').value = '';
+    const projectSelect = document.getElementById('task-project-id');
+    if (!projectSelect.disabled) {
+        // Only reset if the project dropdown is not disabled
+        projectSelect.value = '';
+    }
     document.getElementById('task-title').value = '';
     document.getElementById('task-description').value = '';
     document.getElementById('task-status-select').value = 'To Do';
@@ -567,155 +739,315 @@ function toggleTaskCollapse(projectId) {
     toggleButton.textContent = anyTaskVisible ? "⌄" : "›";
 }
 
-function editDate(element, field, id, isTask = false) {
-    const currentText = element.querySelector('span') ? element.querySelector('span').innerText : element.innerText;
-    const dateValue = new Date(currentText).toISOString().split('T')[0];
-    element.innerHTML = `<input type="date" value="${dateValue}" 
-                            onblur="saveField(this, '${field}', ${id}, ${isTask}, '${field}')">`;
+async function editDate(element, field, id, isTask = false) {
+    // Prevent creating another input if it already exists
+    if (element.querySelector('input')) return;
 
-    const dateInput = element.querySelector('input');
-    dateInput.focus();
+    // Locate the span and icon
+    const span = element.querySelector('span');
+    const icon = element.querySelector('i');
 
-    // Save when the date input loses focus
-    dateInput.addEventListener('blur', function() {
-        saveField(this, field, id, isTask);
+    // Ensure the label is not included in the date value
+    const currentText = span ? span.innerText.trim() : '';
+    const dateValue = currentText && !currentText.includes('No Due Date')
+        ? (() => {
+              const parsedDate = new Date(currentText);
+              return isNaN(parsedDate) ? '' : parsedDate.toISOString().split('T')[0];
+          })()
+        : '';
+
+    // Create the date input
+    const dateInput = document.createElement('input');
+    dateInput.type = 'date';
+    dateInput.value = dateValue;
+    dateInput.classList.add('inline-date-input');
+
+    // Add blur event to save the date
+    dateInput.addEventListener('blur', async function () {
+        const selectedDate = dateInput.value ? new Date(dateInput.value) : null;
+
+        // Format the selected date
+        const formattedDate = selectedDate
+            ? selectedDate.toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric',
+              })
+            : 'No Due Date';
+
+        // Update the span's text and restore the icon
+        if (span) {
+            span.textContent = formattedDate;
+            span.style.display = ''; // Ensure span is visible again
+        }
+        if (icon) {
+            icon.style.display = ''; // Ensure icon is visible again
+        }
+
+        // Remove the date input
+        dateInput.remove();
+
+        // Save the date via saveField
+        try {
+            await saveField(dateInput, field, id, isTask, 'date');
+        } catch (error) {
+            console.error('Error saving date:', error);
+        }
     });
+
+    // Replace content: hide span and icon while showing input
+    if (span) span.style.display = 'none';
+    if (icon) icon.style.display = 'none';
+
+    element.appendChild(dateInput);
+    dateInput.focus();
 }
+
 
 // Function to edit text fields (name, description)
-function editField(element, field, id, isTask = false) {
-    const currentText = element.querySelector('span') ? element.querySelector('span').innerText : element.innerText;
-    element.innerHTML = `<input type="text" value="${currentText}" onblur="saveField(this, '${field}', ${id}, ${isTask})">`;
-    const input = element.querySelector('input');
-    input.focus();
-    input.setSelectionRange(currentText.length, currentText.length);
+async function editField(element, field, id, isTask = false) {
+    // Prevent re-creating the input if it already exists
+    if (element.querySelector('input')) return;
+
+    const span = element.querySelector('span');
+    const icon = element.querySelector('i');
+    const currentText = span ? span.innerText : element.innerText;
+
+    // Hide the icon during editing
+    if (icon) icon.style.display = 'none';
+
+    // For modal title with project link (specific case for task title)
+    if (isTask && field === 'title') {
+        const projectLinkElement = element.querySelector('a');
+        const projectLinkHTML = projectLinkElement ? projectLinkElement.outerHTML : '';
+
+        // Create input for editing
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.classList.add('inline-input');
+
+        // Prevent blur issues inside modal
+        input.addEventListener('click', (e) => e.stopPropagation());
+
+        // Update the element to preserve the project link and add input
+        element.innerHTML = `${projectLinkHTML} / `;
+        element.appendChild(input);
+
+        input.focus();
+        input.setSelectionRange(currentText.length, currentText.length);
+
+        // Handle blur event for saving data
+        input.addEventListener('blur', async () => {
+            const updatedText = input.value.trim() || currentText; // Prevent empty values
+
+            try {
+                await saveField(input, field, id, isTask); // Save the field
+                span.innerText = updatedText; // Update UI with new value
+            } catch (error) {
+                console.error('Error saving field:', error);
+                span.innerText = currentText; // Revert to original value on error
+            } finally {
+                span.style.display = ''; // Restore span visibility
+                if (icon) icon.style.display = ''; // Restore icon visibility
+                input.remove(); // Remove input element
+            }
+        });
+    } else {
+        // For other fields
+        span.style.display = 'none';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.value = currentText;
+        input.classList.add('inline-input');
+
+        // Prevent blur issues inside modal
+        input.addEventListener('click', (e) => e.stopPropagation());
+
+        // Insert input and keep the icon hidden during editing
+        element.insertBefore(input, span.nextSibling);
+
+        input.focus();
+        input.setSelectionRange(currentText.length, currentText.length);
+
+        // Handle blur event for saving data
+        input.addEventListener('blur', async () => {
+            const updatedText = input.value.trim() || currentText; // Prevent empty values
+
+            try {
+                await saveField(input, field, id, isTask); // Save the field
+                span.innerText = updatedText; // Update UI with new value
+            } catch (error) {
+                console.error('Error saving field:', error);
+                span.innerText = currentText; // Revert to original value on error
+            } finally {
+                span.style.display = ''; // Restore span visibility
+                if (icon) icon.style.display = ''; // Restore icon visibility
+                input.remove(); // Remove input element
+            }
+        });
+    }
 }
 
-function editStatus(element, field, id, isTask = false) {
-    const currentStatus = element.innerText.trim();
-
-    element.innerHTML = `
-        <div class="dropdown-menu-container">
-            <button type="button" class="btn btn-light btn-sm dropdown-toggle">${currentStatus}</button>
-            <ul class="dropdown-menu show">
-                <li><a href="#" class="dropdown-item ${currentStatus === 'To Do' ? 'active' : ''}" onclick="selectOption('${field}', ${id}, 'To Do', 'To Do', ${isTask}); event.preventDefault();">To Do</a></li>
-                <li><a href="#" class="dropdown-item ${currentStatus === 'In Progress' ? 'active' : ''}" onclick="selectOption('${field}', ${id}, 'In Progress', 'In Progress', ${isTask}); event.preventDefault();">In Progress</a></li>
-                <li><a href="#" class="dropdown-item ${currentStatus === 'Done' ? 'active' : ''}" onclick="selectOption('${field}', ${id}, 'Done', 'Done', ${isTask}); event.preventDefault();">Done</a></li>
-            </ul>
-        </div>
-    `;
-
-    document.addEventListener('click', function closeDropdown(event) {
-        if (!element.contains(event.target)) {
-            element.innerHTML = `<span>${currentStatus}</span>`;  // Reset to initial view
-            document.removeEventListener('click', closeDropdown);
-        }
-    });
+// Toggle dropdown menu visibility
+function toggleDropdownMenu(button) {
+    const dropdownMenu = button.nextElementSibling;
+    dropdownMenu.classList.toggle('show');
 }
 
-function editDropdown(element, field, id, list, isTask = false) {
-    const currentText = element.querySelector('span') ? element.querySelector('span').innerText : element.innerText;
-
-    const label = field === 'client' ? 'Client' :
-                  field === 'project_manager' ? 'Project Manager' :
-                  field === 'assigned_to' ? 'Creative' : 'Option';
-
-    let options = '';
-    list.forEach(item => {
-        const isActive = currentText === item.username ? 'active' : '';
-        options += `<li><a href="#" class="dropdown-item ${isActive}" onclick="selectOption('${field}', ${id}, '${item.id}', '${item.username}', ${isTask}); event.preventDefault();">${item.username}</a></li>`;
-    });
-
-    element.innerHTML = `
-        <div class="dropdown-menu-container">
-            <button type="button" class="btn btn-light btn-sm dropdown-toggle">${currentText || `Select ${label}`}</button>
-            <ul class="dropdown-menu show">${options}</ul>
-        </div>
-    `;
-
-    // Close the dropdown when clicking outside of it
-    document.addEventListener('click', function closeDropdown(event) {
-        if (!element.contains(event.target)) {
-            element.innerHTML = `<span>${currentText}</span>`;  // Reset to initial view
-            document.removeEventListener('click', closeDropdown);
-        }
-    });
-}
-
-function selectOption(field, id, newValue, displayText, isTask) {
+async function selectOption(field, id, newValue, displayText, isTask) {
     const element = document.querySelector(`#${isTask ? 'task-' : ''}${field}-${id}`);
-    const modalElement = document.querySelector(`#${isTask ? 'task' : 'project'}-detail-${field}`);
-    const modalProjectDetailTask = document.querySelector(`#modal-task-${field}-${id}`);
 
+    // Determine the project modal context (Kanban or List view)
+    const projectModalContext = document.getElementById('projectDetailModalKanban') ? 'projectDetailModalKanban' : 'projectDetailModalList';
+    const projectmodalElement = document.querySelector(`#${projectModalContext}-${field}`);
+    const projectTaskList = document.querySelector(`#${projectModalContext}-task-list`);
 
+    // Determine the task modal context (Kanban or List view)
+    const taskModalContext = document.getElementById('taskDetailModalKanban') ? 'taskDetailModalKanban' : 'taskDetailModalList';
+    const taskmodalElement = document.querySelector(`#${taskModalContext}-${field}`);
+
+    // Update the display text in the table row
     if (element) {
-        element.innerHTML = `<span>${displayText}</span>`;
+        const spanElement = element.querySelector('.dropdown-toggle span');
+        if (spanElement) {
+            spanElement.textContent = displayText;
+        }
+
+        // Close dropdown in task context
+        const dropdownMenu = element.querySelector('.dropdown-menu');
+        if (dropdownMenu) {
+            closeDropdown(dropdownMenu);
+        }
     }
 
-    if (modalElement) {
-        modalElement.innerHTML = `<span>${displayText}</span>`;
+    // Update the display text in the project modal
+    if (!isTask && projectmodalElement) {
+        const spanElement = projectmodalElement.closest('.dropdown-menu-container').querySelector('.dropdown-toggle span');
+
+        if (spanElement) {
+            spanElement.textContent = displayText;
+        }
+
+        // Close dropdown in project modal context
+        const dropdownMenu = projectmodalElement.closest('.dropdown-menu-container').querySelector(`.${field}-dropdown-menu`);
+        if (dropdownMenu) {
+            closeDropdown(dropdownMenu);
+        }
     }
 
-    if (modalProjectDetailTask) {
-        modalProjectDetailTask.innerHTML = `<span>${displayText}</span>`;
+    // Update the display text in the project task list
+    if (isTask && projectTaskList) {
+        // Locate the specific task row in the project task list
+        const taskRow = projectTaskList.querySelector(`#modal-task-${field}-${id}`);
+        if (taskRow) {
+            const spanElement = taskRow.querySelector('.dropdown-toggle span');
+            if (spanElement) {
+                spanElement.textContent = displayText;
+            }
+
+            // Close the dropdown menu within the specific task row
+            const dropdownMenu = taskRow.querySelector(`.${field}-dropdown-menu`);
+            if (dropdownMenu) {
+                closeDropdown(dropdownMenu);
+            }
+        }
     }
 
+    if (isTask && taskmodalElement) {
+        const spanElement = taskmodalElement.closest('.dropdown-menu-container').querySelector('.dropdown-toggle span');
+        if (spanElement) {
+            spanElement.textContent = displayText;
+        }
+
+        // Close dropdown in task modal context
+        const dropdownMenu = taskmodalElement.closest('.dropdown-menu-container').querySelector(`.${field}-dropdown-menu`);
+        if (dropdownMenu) {
+            closeDropdown(dropdownMenu);
+        }
+    }
+
+    // Save field value after selection
     const tempElement = { value: newValue, displayText: displayText };
-    saveField(tempElement, field, id, isTask);
+    try {
+        await saveField(tempElement, field, id, isTask);
+
+        // Update progress bar if the field is "status"
+        if (field === 'status' && isTask) {
+            const taskList = document.querySelectorAll(`#${projectDetailModalId}-task-list .task-item`);
+            updateProgressBar(taskList);
+        }
+    } catch (error) {
+        console.error('Error updating field:', error);
+    }
 }
 
-function saveField(element, field, id, isTask = false) {
-    const value = element.value || element.getAttribute('value');
-    const displayText = element.displayText || value || element.textContent; 
+// Close the dropdown menu
+function closeDropdown(dropdownMenu) {
+    if (dropdownMenu) {
+        const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownMenu.closest('.dropdown-menu-container .dropdown-toggle'));
+        if (dropdownInstance) {
+            dropdownInstance.hide(); // Use Bootstrap's hide method
+        } else {
+            dropdownMenu.classList.remove('show'); // Fallback in case Bootstrap instance is missing
+        }
+    }
+}
+
+async function saveField(element, field, id, isTask = false) {
+    const value = element.value || element.getAttribute('value') || element.textContent;  // Handle both input and text content
+    const displayText = element.displayText || value || element.textContent;  // Text to display in the UI
+    
     const endpoint = isTask ? `/project/task/update/${id}/` : `/project/update/${id}/`;
     const csrftoken = getCookie('csrftoken');
 
-    fetch(endpoint, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify({ [field]: value })
-    })
-    .then(response => response.json())
-    .then((updatedData) => {
-        const projectId = isTask ? (updatedData.project || document.querySelector(`[data-task-id="${id}"]`)?.dataset.projectId) : id;
-
-        // Determine the modal context (list or kanban) for both project and task modals
+    try {
+        const response = await fetch(endpoint, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({ [field]: value })
+        });
+        const updatedData = await response.json();
+        // Dynamic modal context based on whether it's a task or project
         const projectModalContext = document.getElementById('projectDetailModalKanban') ? 'projectDetailModalKanban' : 'projectDetailModalList';
         const taskModalContext = document.getElementById('taskDetailModalKanban') ? 'taskDetailModalKanban' : 'taskDetailModalList';
         const modalContext = isTask ? taskModalContext : projectModalContext;
-        
+
         // Dynamic modal element selection based on context
         const modalElementId = `${modalContext}-${field}`;
         const modalElement = document.getElementById(modalElementId);
 
-        const updateContent = (target) => {
+        const updateContent = (target_1) => {
             if (field === 'due_date') {
-                const dateObj = new Date(value);
-                const formattedDate = dateObj.toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-                target.innerHTML = `<span>${formattedDate}</span>`;
+                const dateObj = value ? new Date(value) : null;
+                const formattedDate = dateObj
+                    ? dateObj.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                    : 'No Due Date';
+
+                const span = target_1.querySelector('span');
+                const icon = target_1.querySelector('i');
+
+                if (span) {
+                    span.textContent = formattedDate;
+                }
+                if (icon) {
+                    icon.style.display = ''; // Ensure the icon remains visible
+                }
             } else {
-                target.innerHTML = `<span>${displayText}</span>`;
+                const span_1 = target_1.querySelector('span');
+                const icon_1 = target_1.querySelector('i');
+
+                if (span_1) {
+                    span_1.textContent = displayText;
+                }
+                if (icon_1) {
+                    icon_1.style.display = ''; // Ensure the icon remains visible
+                }
             }
         };
-
-        // Check if we're in the Project Detail modal (task rows in a table) or Kanban board (task cards)
-        const taskRowElement = document.querySelector(`#task-${field}-${id}`); // Project Detail modal format
-        const kanbanTaskCard = document.querySelector(`.task-card[data-task-id="${id}"]`); // Kanban board format
-
-        if (taskRowElement) {
-            // Update in Project Detail modal
-            updateContent(taskRowElement);
-        } else if (kanbanTaskCard) {
-            // Update in Kanban board format
-            if (field === 'title') {
-                kanbanTaskCard.querySelector('p').textContent = displayText;
-            } else if (field === 'status') {
-                moveTaskCard(id, displayText);
-            }
-        }
 
         // Update content in the modal itself
         if (modalElement) {
@@ -724,37 +1056,64 @@ function saveField(element, field, id, isTask = false) {
             console.error(`Modal element with ID ${modalElementId} not found`);
         }
 
-        // Update the project or task row if needed
-        if (isTask) {
-            const projectTaskFieldId = `${projectModalContext}-task-${field}-${id}`;
-            const projectTaskFieldElement = document.getElementById(projectTaskFieldId);
+        // If it's a dropdown field (e.g., status, client, assignee), update the dropdown text
+        const dropdownButton = document.querySelector(`#${projectModalContext}-${field}-${id} .dropdown-toggle span`);
+        if (dropdownButton) {
+            dropdownButton.textContent = displayText;
+        }
 
-            if (projectTaskFieldElement) {
-                projectTaskFieldElement.textContent = displayText;
+        // Update content in the project row or task card if needed
+        if (isTask) {
+            const taskRowElement = document.querySelector(`#task-${field}-${id}`);
+            const taskCard = document.querySelector(`.task-card[data-task-id="${id}"]`);
+
+            if (taskRowElement) {
+                const spanElement = taskRowElement.querySelector('span');
+                if (spanElement) spanElement.textContent = displayText;
+
+                const statusSpan = taskRowElement.querySelector('.dropdown-toggle span');
+                if (statusSpan) statusSpan.textContent = displayText;
             }
 
-            // Update task display in Kanban board if applicable
-            const kanbanTaskCard = document.querySelector(`.task-card[data-task-id="${id}"]`);
-            if (kanbanTaskCard) {
+            if (taskCard) {
                 if (field === 'title') {
-                    kanbanTaskCard.querySelector('p').textContent = displayText;
+                    // Update title in the Kanban task card
+                    taskCard.querySelector('p strong').textContent = displayText;
                 } else if (field === 'status') {
-                    moveTaskCard(id, displayText);  // Move card if status changes in Kanban view
+                    moveTaskCard(id, displayText); // Move card if status changes in Kanban view
                 }
             }
+
+            if (field === 'title') {
+                const titleElement = document.getElementById(`${taskModalContext}-title`);
+                if (titleElement) {
+                    // Retrieve the existing project link from the modal
+                    const projectLinkElement = titleElement.querySelector('a');
+                    const projectLinkHTML = projectLinkElement
+                        ? projectLinkElement.outerHTML // Preserve the current project link
+                        : `<a href="javascript:void(0);" onclick="showProjectDetail(${updatedData.project})" class="project-name-link">${updatedData.project_name || 'Unknown Project'}</a>`;
+
+                    // Update the title while ensuring the project link is not duplicated
+                    titleElement.innerHTML = `
+                        ${projectLinkHTML} / 
+                        <span ondblclick="editField(this, '${field}', ${id}, true)">${displayText}</span>
+                        <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'description', ${id}, true)" title="Edit"></i>
+                    `;
+                }
+            }
+            updateTaskTableRow(id, updatedData, field);
         } else {
             // For project fields, update the project data in the table if needed
             const updatedProjectData = { [field]: displayText };
             updateProjectTableRow(id, updatedProjectData);
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error updating field:', error);
         const targetElement = element.parentElement || element;
         if (targetElement) {
             targetElement.innerHTML = `<span>${element.value}</span>`;
         }
-    });
+    }
 }
 
 // Function to update client fields in all task rows associated with a project
@@ -778,14 +1137,20 @@ function updateProjectTableRow(projectId, updatedData) {
     const row = document.getElementById(`project-${projectId}`);
     if (row) {
         if (updatedData.name) row.querySelector('.project-name').textContent = updatedData.name;
-        if (updatedData.description) row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
-        if (updatedData.status) row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
+        // if (updatedData.description) row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
+        if (updatedData.description && row.querySelector(`#description-${projectId} span`)) {
+            row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
+        }
+        // if (updatedData.status) row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
+        if (updatedData.status && row.querySelector(`#status-${projectId} span`)) {
+            row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
+        }
         if (updatedData.client) {
             row.querySelector(`#client-${projectId} span`).textContent = updatedData.client;
             updateTaskClientFields(projectId, updatedData.client);  // Update tasks with new client name
         }
         if (updatedData.project_manager) row.querySelector(`#project_manager-${projectId} span`).textContent = updatedData.project_manager;
-        if (updatedData.due_date) {
+        if (updatedData.due_date && row.querySelector(`#due_date-${projectId} span`)) {
             const formattedDate = new Date(updatedData.due_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
             row.querySelector(`#due_date-${projectId} span`).textContent = formattedDate;
         }
@@ -794,40 +1159,65 @@ function updateProjectTableRow(projectId, updatedData) {
 
 function updateTaskTableRow(taskId, updatedData, field) {
     const row = document.getElementById(`task-${taskId}`);
+
+    // Helper function for date formatting
+    const formatDate = (date) =>
+        new Date(date).toLocaleString('default', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric',
+        });
+
+    // Update the row in the table if it exists
     if (row) {
-        if (updatedData.title) row.querySelector('.task-title').textContent = updatedData.title;
-        if (updatedData.description) row.querySelector(`#task-description-${taskId} span`).textContent = updatedData.description;
-        if (updatedData.status) row.querySelector(`#task-status-${taskId} span`).textContent = updatedData.status;
-        if (updatedData.assigned_to) row.querySelector(`#task-assigned_to-${taskId} span`).textContent = updatedData.assigned_to;
-        if (updatedData.due_date) {
-            const formattedDate = new Date(updatedData.due_date).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-            row.querySelector(`#task-due_date-${taskId} span`).textContent = formattedDate;
+        const elementsToUpdate = {
+            title: row.querySelector('.task-title'),
+            description: row.querySelector(`#task-description-${taskId} span`),
+            status: row.querySelector(`#task-status-${taskId} span`),
+            assigned_to: row.querySelector(`#task-assigned_to-${taskId} span`),
+            due_date: row.querySelector(`#task-due_date-${taskId} span`),
+        };
+
+        Object.keys(elementsToUpdate).forEach((key) => {
+            if (field === key && updatedData[key] && elementsToUpdate[key]) {
+                elementsToUpdate[key].textContent =
+                    key === 'due_date' ? formatDate(updatedData[key]) : updatedData[key];
+            }
+        });
+
+        // Handle creative_name specifically if available
+        if (field === 'assigned_to' && updatedData.creative_name && elementsToUpdate.assigned_to) {
+            elementsToUpdate.assigned_to.textContent = updatedData.creative_name;
         }
     }
 
-    const taskDetailField = document.querySelector(`#task-detail-${field}`);
-    if (taskDetailField && updatedData[field]) {
-        if (field === 'due_date') {
-            const formattedDate = new Date(updatedData[field]).toLocaleString('default', { month: 'long', day: 'numeric', year: 'numeric' });
-            taskDetailField.innerHTML = `<span>${formattedDate}</span>`;
-        } else {
-            taskDetailField.innerHTML = `<span>${updatedData[field]}</span>`;
-        }
+    // Update the field in the task modal if it exists
+    const taskDetailField = document.querySelector(`#${field}-detail`);
+    if (taskDetailField) {
+        taskDetailField.innerHTML =
+            field === 'due_date'
+                ? `<span>${formatDate(updatedData[field])}</span>`
+                : `<span>${updatedData[field]}</span>`;
     }
 }
 
-let taskToDeleteId = null;
-let taskRowElement = null;
-const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmationModal'));
-
 // Function to show the delete confirmation modal
-function showDeleteConfirmation(taskId, rowElement) {
-    if (taskId && rowElement) {
-        taskToDeleteId = taskId;
-        taskRowElement = rowElement;
-        deleteModal.show(); // Show the confirmation modal
+function showDeleteConfirmation(itemId, itemType, rowElement) {
+    if (itemId && itemType && rowElement) {
+        itemToDeleteId = itemId;
+        itemTypeToDelete = itemType;
+        itemRowElement = rowElement;
+
+        // Dynamic message based on type
+        const message =
+            itemType === 'task'
+                ? 'Are you sure you want to delete this task? This action cannot be undone.'
+                : 'Are you sure you want to delete this project? This action cannot be undone.';
+
+        document.getElementById('deleteConfirmationMessage').textContent = message;
+        deleteModal.show(); // Show the modal
     } else {
-        console.error("Invalid taskId or rowElement passed to showDeleteConfirmation");
+        console.error("Invalid itemId, itemType, or rowElement passed to showDeleteConfirmation");
     }
 }
 
@@ -868,14 +1258,35 @@ function deleteTask(taskId, rowElement) {
             }, 300);
         } else {
             console.error("Failed to delete task");
-            alert("Could not delete task. Please try again.");
         }
     })
     .catch(error => {
         console.error("Error deleting task:", error);
-        alert("An error occurred while trying to delete the task.");
     });
 }
+
+document.addEventListener('click', function (event) {
+    if (event.target.classList.contains('delete-task-btn') || event.target.classList.contains('delete-project-btn')) {
+        const itemId = event.target.getAttribute('data-id');
+        const itemType = event.target.getAttribute('data-type');
+        const rowElement = event.target.closest('tr');
+        showDeleteConfirmation(itemId, itemType, rowElement);
+    }
+});
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (itemToDeleteId && itemTypeToDelete && itemRowElement) {
+        if (itemTypeToDelete === 'task') {
+            deleteTask(itemToDeleteId, itemRowElement);
+        } else if (itemTypeToDelete === 'project') {
+            deleteProject(itemToDeleteId, itemRowElement);
+        } else {
+            console.error("Unknown item type for deletion:", itemTypeToDelete);
+        }
+    } else {
+        console.error("No item ID, type, or row element found for deletion");
+    }
+});
 
 // Function to display success message
 function showSuccessMessage(message) {
@@ -942,22 +1353,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // });
 
     // Add event listener to delete buttons
-    document.querySelectorAll('.delete-task-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const taskId = this.getAttribute('data-task-id');
-            const rowElement = this.closest('tr');
-            showDeleteConfirmation(taskId, rowElement);
-        });
-    });
+    // document.querySelectorAll('.delete-task-btn').forEach(button => {
+    //     button.addEventListener('click', function() {
+    //         const taskId = this.getAttribute('data-task-id');
+    //         const rowElement = this.closest('tr');
+    //         showDeleteConfirmation(taskId, rowElement);
+    //     });
+    // });
 
     // Event listener for confirm delete button in the delete confirmation modal
-    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-        if (taskToDeleteId && taskRowElement) {
-            deleteTask(taskToDeleteId, taskRowElement);  // Call deleteTask if confirmation is accepted
-        } else {
-            console.error("No task ID or row element found for deletion");
-        }
-    });
+    // document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    //     if (taskToDeleteId && taskRowElement) {
+    //         deleteTask(taskToDeleteId, taskRowElement);  // Call deleteTask if confirmation is accepted
+    //     } else {
+    //         console.error("No task ID or row element found for deletion");
+    //     }
+    // });
 
     const projectDetailModal = document.getElementById(projectDetailModalId);
     if (projectDetailModal) {
