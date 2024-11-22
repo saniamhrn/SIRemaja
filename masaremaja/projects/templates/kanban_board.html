@@ -6,6 +6,8 @@
 <div class="container mt-5">
     <h1 class="text-center mb-4 card-title">Progress Board</h1>
 
+    <div id="successMessage" style="display: none;"></div>
+
     <div class="mb-3">
         <a href="/project/kanban/" class="btn btn-outline-secondary">Board View</a>
         <a href="/project/view-all" class="btn btn-outline-secondary">Table View</a>
@@ -13,12 +15,12 @@
 
     <div id="kanban-board" class="d-flex justify-content-between">
         <!-- To Do Column -->
-        <div id="to-do" class="kanban-column">
+        <div id="to-do" class="kanban-column" data-status="To Do">
             <div class="d-flex justify-content-between align-items-center my-3">
                 <h6 class="mb-0"><strong>To Do</strong></h6>
-                {% comment %} <div>
+                <div>
                     <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModalWithStatus('To Do')">+</button>                                
-                </div> {% endcomment %}
+                </div>
             </div>
             <div class="task-list">
                 {% for task in tasks %}
@@ -33,12 +35,12 @@
         </div>
 
         <!-- In Progress Column -->
-        <div id="in-progress" class="kanban-column">
+        <div id="in-progress" class="kanban-column" data-status="In Progress">
             <div class="d-flex justify-content-between align-items-center my-3">
                 <h6 class="mb-0"><strong>In Progress</strong></h6>
-                {% comment %} <div>
+                <div>
                     <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModalWithStatus('In Progress')">+</button>                                
-                </div> {% endcomment %}
+                </div>
             </div>
             <div class="task-list">
                 {% for task in tasks %}
@@ -53,12 +55,12 @@
         </div>
 
         <!-- Done Column -->
-        <div id="done" class="kanban-column">
+        <div id="done" class="kanban-column" data-status="Done">
             <div class="d-flex justify-content-between align-items-center my-3">
                 <h6 class="mb-0"><strong>Done</strong></h6>
-                {% comment %} <div>
+                <div>
                     <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModalWithStatus('Done')">+</button>                                
-                </div> {% endcomment %}
+                </div>
             </div>
             <div class="task-list">
                 {% for task in tasks %}
@@ -69,77 +71,6 @@
                         </div>
                     {% endif %}
                 {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Project Detail Modal -->
-<div class="modal fade" id="projectDetailModal" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="project-detail-name" ondblclick="editField(this, 'name', currentProjectId)"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <button type="button" class="btn btn-light" id="add-task-button">Add Task</button>
-                            <button type="button" class="btn btn-light" id="add-file-button">Add File</button>
-                        </div>
-                        <h6><strong>Description</strong></h6>
-                        <p id="project-detail-description" ondblclick="editField(this, 'description', currentProjectId)"></p>
-                        
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0"><strong>Tasks</strong></h6>
-                            <button class="btn btn-light btn-sm p-1" onclick="showCreateTaskModal(currentProjectId)">
-                                <i class="fa-regular fa-plus"></i>
-                            </button>
-                        </div>
-                        <!-- Progress Bar -->
-                        <div class="progress mb-2">
-                            <div id="task-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0% Done</div>
-                        </div>
-
-                        <!-- Task List Table -->
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Task</th>
-                                    <th>Assignee</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="project-task-list">
-                                <!-- Tasks will be loaded here dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="col-md-4">
-                        <h6><strong>Project Details</strong></h6>
-                        <p><strong>Project Manager:</strong> 
-                            <span id="project-detail-manager" ondblclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
-                        </p>
-                        <p><strong>Client:</strong> 
-                            <span id="project-detail-client" ondblclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
-                        </p>
-                        <p><strong>Status:</strong> 
-                            <span id="project-detail-status"></span>
-                        </p>
-                        <div>
-                            <p><strong>Due Date:</strong> <span id="project-detail-due-date"></span></p>
-                            <p><strong>Created At:</strong> <span id="project-detail-created-at"></span></p>
-                            <p><strong>Last Updated:</strong> <span id="project-detail-updated-at"></span></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -162,17 +93,60 @@
                         </div>
                         <div class="mb-3">
                             <h6><strong>Project Details</strong></h6>
-                            <div class="detail-item">
+                            {% comment %} <div class="detail-item">
                                 <span class="detail-label">Project Manager</span>
                                 <span id="projectDetailModalKanban-project_manager" onclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
-                            </div>
+                            </div> {% endcomment %}
                             <div class="detail-item">
+                                <span class="detail-label">Project Manager</span>
+                                <div class="dropdown-menu-container">
+                                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                        <span id="projectDetailModalKanban-project_manager"></span> 
+                                    </button>
+                                    <ul class="dropdown-menu project_manager-dropdown-menu">
+                                        {% for pm in pm_list %}
+                                            <li><a href="#" class="dropdown-item" onclick="selectOption('project_manager', currentProjectId, '{{ pm.id }}', '{{ pm.username }}', false); event.preventDefault();">{{ pm.username }}</a></li>
+                                        {% empty %}
+                                            <li><a href="#" class="dropdown-item">No Project Manager Available</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% comment %} <div class="detail-item">
                                 <span class="detail-label">Client</span>
                                 <span id="projectDetailModalKanban-client" onclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
-                            </div>
+                            </div> {% endcomment %}
                             <div class="detail-item">
+                                <span class="detail-label">Client</span>
+                                <div class="dropdown-menu-container">
+                                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                        <span id="projectDetailModalKanban-client"></span> 
+                                    </button>
+                                    <ul class="dropdown-menu client-dropdown-menu">
+                                        {% for client in client_list %}
+                                            <li><a href="#" class="dropdown-item" onclick="selectOption('client', currentProjectId, '{{ client.id }}', '{{ client.username }}', false); event.preventDefault();">{{ client.username }}</a></li>
+                                        {% empty %}
+                                            <li><a href="#" class="dropdown-item">No Clients Available</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                            {% comment %} <div class="detail-item">
                                 <span class="detail-label">Status</span>
                                 <span id="projectDetailModalKanban-status" onclick="editStatus(this, 'status', currentProjectId)"></span>
+                            </div> {% endcomment %}
+                            <div class="detail-item">
+                                <span class="detail-label">Status</span>
+                                <div class="dropdown-menu-container">
+                                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                        <span id="projectDetailModalKanban-status"></span> 
+                                    </button>
+                                    <ul class="dropdown-menu status-dropdown-menu">
+                                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentProjectId, 'To Do', 'To Do', false); event.preventDefault();">To Do</a></li>
+                                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentProjectId, 'In Progress', 'In Progress', false); event.preventDefault();">In Progress</a></li>
+                                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentProjectId, 'Done', 'Done', false); event.preventDefault();">Done</a></li>
+                                    </ul>
+                                </div>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Due Date</span>
@@ -191,7 +165,8 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0"><strong>Tasks</strong></h6>
                             <div>
-                                <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId)">+</button>
+                                {% comment %} <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId)">+</button> {% endcomment %}
+                                <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId, null, 'kanban')">+</button>
                                 
                             </div>
                         </div>
@@ -241,13 +216,41 @@
 
                 <div class="mb-3">
                     <h6><strong>Task Details</strong></h6>
-                    <div class="detail-item">
+                    {% comment %} <div class="detail-item">
                         <span class="detail-label">Creative Team</span>
                         <span id="taskDetailModalKanban-assigned_to" onclick="editDropdown(this, 'assigned_to', currentTaskId, creativeList, true)"></span>
-                    </div>
+                    </div> {% endcomment %}
                     <div class="detail-item">
+                        <span class="detail-label">Creative Team</span>
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span id="taskDetailModalKanban-assigned_to"></span> 
+                            </button>
+                            <ul class="dropdown-menu assigned_to-dropdown-menu">
+                                {% for creative in creative_list %}
+                                    <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', currentTaskId, '{{ creative.id }}', '{{ creative.username }}', true); event.preventDefault();">{{ creative.username }}</a></li>
+                                {% empty %}
+                                    <li><a href="#" class="dropdown-item">No Creative Teams Available</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% comment %} <div class="detail-item">
                         <span class="detail-label">Status</span>
                         <span id="taskDetailModalKanban-status" onclick="editStatus(this, 'status', currentTaskId, true)"></span>
+                    </div> {% endcomment %}
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span id="taskDetailModalKanban-status"></span> 
+                            </button>
+                            <ul class="dropdown-menu status-dropdown-menu">
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentTaskId, 'To Do', 'To Do', true); event.preventDefault();">To Do</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentTaskId, 'In Progress', 'In Progress', true); event.preventDefault();">In Progress</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentTaskId, 'Done', 'Done', true); event.preventDefault();">Done</a></li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Due Date</span>
@@ -285,7 +288,7 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="task-id">
-                <input type="hidden" id="task-project-id">
+                {% comment %} <input type="hidden" id="task-project-id"> {% endcomment %}
 
                 <div class="mb-3">
                     <label for="task-project-id" class="form-label">Project</label>
@@ -358,7 +361,7 @@
     // Function to open the modal with the status preset based on the column
     function showCreateTaskModalWithStatus(defaultStatus) {
         // Here we call the main showCreateTaskModal function from projectManagement.js
-        showCreateTaskModal(null, defaultStatus); // null for projectId if not using specific project in Kanban
+        showCreateTaskModal(null, defaultStatus, 'kanban'); // null for projectId if not using specific project in Kanban
     }
     
     function initializeSortableKanban() {

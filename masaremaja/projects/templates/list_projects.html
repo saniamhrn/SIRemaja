@@ -18,21 +18,21 @@
         </button>
     </div>
 
-
     <!-- Card View -->
     <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for project in projects %}
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ project.name }}</h5>
-                    <p class="card-text"><strong>Desctiption:</strong> {{ project.desctiption }}</p>
-                    <p class="card-text"><strong>Client:</strong> {{ project.client }}</p>
-                    <p class="card-text"><strong>Project Manager:</strong> {{ project.project_manager }}</p>
+                    <p class="card-text"><strong>Desctiption:</strong> {{ project.description }}</p>
+                    <p class="card-text"><strong>Client:</strong> {{ project.client_username }}</p>
+                    <p class="card-text"><strong>Project Manager:</strong> {{ project.pm_username }}</p>
                     <p class="card-text"><strong>Due Date:</strong> {{ project.due_date }}</p>
                 </div>
                 <div class="card-footer d-flex justify-content-between">
-                    {% comment %} <button class="btn btn-warning btn-sm" onclick="showUpdateModal({{ project.id }})">Update</button> {% endcomment %}
-                    <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button>
+                    <button class="btn btn-primary btn-sm" onclick="showProjectDetail({{ project.id }})">Detail</button>
+                    {% comment %} <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button> {% endcomment %}
+                    <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                 </div>
             </div>
         {% endfor %}
@@ -61,37 +61,113 @@
                         <span class="project-name" onclick="showProjectDetail({{ project.id }});" style="cursor: pointer; color: black;">
                             {{ project.name }}
                         </span>
-                        <button class="add-task-btn" onclick="showCreateTaskModal({{ project.id }})">+</button>
-
+                        <button class="add-task-btn" onclick="showCreateTaskModal({{ project.id }}, null, 'list')">+</button>
                     </td>
-                    <td id="description-{{ project.id }}" onclick="editField(this, 'description', {{ project.id }})"><span>{{ project.description }}</span></td>
-                    <td id="status-{{ project.id }}" onclick="editStatus(this, 'status', {{ project.id }})"><span>{{ project.status }}</span></td>
-                    <td id="client-{{ project.id }}" onclick="editDropdown(this, 'client', {{ project.id }}, clientList)"><span>{{ project.client_username }}</span></td>
-                    <td id="project_manager-{{ project.id }}" onclick="editDropdown(this, 'project_manager', {{ project.id }}, pmList)"><span>{{ project.pm_username }}</span></td>
-                    <td id="due_date-{{ project.id }}" onclick="editDate(this, 'due_date', {{ project.id }})"><span>{{ project.due_date }}</span></td>
+                    <td id="description-{{ project.id }}">
+                        <div class="editable-field">
+                            <span>{{ project.description }}</span>
+                            <i class="fa fa-edit edit-icon" onclick="editField(this.parentElement, 'description', {{ project.id }}, false)" title="Edit"></i>
+                        </div>
+                    </td>
+                    <td id="status-{{ project.id }}">
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span>{{ project.status }}</span> 
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ project.id }}, 'To Do', 'To Do', false); event.preventDefault();">To Do</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ project.id }}, 'In Progress', 'In Progress', false); event.preventDefault();">In Progress</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ project.id }}, 'Done', 'Done', false); event.preventDefault();">Done</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                    <td id="client-{{ project.id }}">
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span>{{ project.client_username }}</span> 
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% for client in client_list %}
+                                    <li><a href="#" class="dropdown-item" onclick="selectOption('client', {{ project.id }}, '{{ client.id }}', '{{ client.username }}', false); event.preventDefault();">{{ client.username }}</a></li>
+                                {% empty %}
+                                    <li><a href="#" class="dropdown-item">No Clients Available</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </td>
+                    <td id="project_manager-{{ project.id }}">
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span>{{ project.pm_username }}</span> 
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% for pm in pm_list %}
+                                    <li><a href="#" class="dropdown-item" onclick="selectOption('project_manager', {{ project.id }}, '{{ pm.id }}', '{{ pm.username }}', false); event.preventDefault();">{{ pm.username }}</a></li>
+                                {% empty %}
+                                    <li><a href="#" class="dropdown-item">No Project Manager Available</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </td>
+                    <td id="due_date-{{ project.id }}">
+                        <div class="editable-field">
+                            <span>{{ project.due_date }}</span>
+                            <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', {{ project.id }})"></i>
+                        </div>
+                    </td>
                     <td>
-                        {% comment %} <button class="btn btn-warning btn-sm" onclick="showUpdateModal({{ project.id }})">Update</button> {% endcomment %}
-                        <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button>
+                        {% comment %} <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button> {% endcomment %}
+                        <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                     </td>
                 </tr>
             
                 <!-- Task Rows - Align each task field with the project column structure -->
                 {% for task in project.tasks %}
                 <tr id="task-{{ task.id }}" class="task-row no-sort" style="display: none;" data-project-id="{{ project.id }}">
-                    <td style="padding-left: 50px;">
+                    <td id="task-title-{{ task.id }}" style="padding-left: 50px;">
                         <span class="task-title" onclick="showTaskDetail({{ task.id }});" style="cursor: pointer; color: black;">
                             {{ task.title }}
                         </span>
                     </td>
-                    <td id="task-description-{{ task.id }}" onclick="editField(this, 'description', {{ task.id }}, true)"><span>{{ task.description }}</span></td>
-                    <td id="task-status-{{ task.id }}" onclick="editStatus(this, 'status', {{ task.id }}, true)"><span>{{ task.status }}</span></td>
+                    <td id="task-description-{{ task.id }}">
+                        <div class="editable-field">
+                            <span>{{ task.description }}</span>
+                            <i class="fa fa-edit edit-icon" onclick="editField(this.parentElement, 'description', {{ task.id }}, true)" title="Edit"></i>
+                        </div>
+                    </td>
+                    <td id="task-status-{{ task.id }}">
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span>{{ task.status }}</span> 
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ task.id }}, 'To Do', 'To Do', true); event.preventDefault();">To Do</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ task.id }}, 'In Progress', 'In Progress', true); event.preventDefault();">In Progress</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ task.id }}, 'Done', 'Done', true); event.preventDefault();">Done</a></li>
+                            </ul>
+                        </div>
+                    </td>                    
                     <td id="task-client-{{ task.id }}"><span>{{ project.client_username }}</span></td>
-                    <td id="task-assigned_to-{{ task.id }}" onclick="editDropdown(this, 'assigned_to', {{ task.id }}, creativeList, true)"><span>{{ task.assigned_to }}</span></td>
-                    <td id="task-due_date-{{ task.id }}" onclick="editDate(this, 'due_date', {{ task.id }}, true)"><span>{{ task.due_date }}</span></td>
+                    <td id="task-assigned_to-{{ task.id }}">
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span>{{ task.assigned_to }}</span> 
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% for creative in creative_list %}
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', {{ task.id }}, '{{ creative.id }}', '{{ creative.username }}', true); event.preventDefault();">{{ creative.username }}</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </td>
+                    <td id="task-due_date-{{ task.id }}">
+                        <div class="editable-field">
+                            <span>{{ task.due_date }}</span>
+                            <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', {{ task.id }}, true)"></i>
+                        </div>
+                    </td>
                     <td>
-                        {% comment %} <button class="btn btn-warning btn-sm" onclick="showEditTaskModal({{ task.id }})">Update</button> {% endcomment %}
-                        <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
-                        <!-- <button class="btn btn-danger btn-sm delete-task-btn" onclick="showDeleteConfirmation({{ task.id }}, this.closest('tr'))">Delete</button> -->
+                        <button class="btn btn-danger btn-sm delete-task-btn" data-id="{{ task.id }}" data-type="task">Delete</button>
                     </td>
                 </tr>
                 {% empty %}
@@ -180,73 +256,12 @@
     </div>
 </div>
 
-<div class="modal fade" id="updateProjectModal" tabindex="-1" aria-labelledby="updateProjectModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="updateProjectModalLabel">Update Project</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="updateProjectForm">
-                    <!-- {% csrf_token %} -->
-                    <input type="hidden" id="update-project-id">
-                    <div class="mb-3">
-                        <label for="update-project-name" class="form-label">Project Name</label>
-                        <input type="text" class="form-control" id="update-project-name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="update-project-description" class="form-label">Description</label>
-                        <textarea class="form-control" id="update-project-description" required></textarea>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="update-project-status" class="form-label">Status</label>
-                        <select class="form-select" id="update-project-status" required>
-                            <option value="To Do">To Do</option>
-                            <option value="In Progress">In Progress</option>
-                            <option value="Done">Done</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="update-project-client-id" class="form-label">Client</label>
-                        <select name="update-project-client-id" id="update-project-client-id" class="form-select" required>
-                            <option value="" disabled>Select a Client</option>
-                            {% for client in client_list %}
-                                <option value="{{ client.id }}">{{ client.username }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="update-project-manager-id" class="form-label">Project Manager</label>
-                        <select name="update-project-manager-id" id="update-project-manager-id" class="form-select" required>
-                            <option value="" disabled>Select a Project Manager</option>
-                            {% for pm in pm_list %}
-                                <option value="{{ pm.id }}">{{ pm.username }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="update-project-due-date" class="form-label">Due Date</label>
-                        <input type="date" class="form-control" id="update-project-due-date" required>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="updateProject()">Update Project</button>
-            </div>
-        </div>
-    </div>
-</div> 
-
 <!-- Project Detail Modal -->
 <div class="modal fade" id="projectDetailModalList" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="projectDetailModalList-name" onclick="editField(this, 'name', currentProjectId)"></h5>
+                <h5 class="modal-title" id="projectDetailModalList-name"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -254,26 +269,61 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <h6><strong>Description</strong></h6>
-                            <p id="projectDetailModalList-description" onclick="editField(this, 'description', currentProjectId)"></p>
+                            <p id="projectDetailModalList-description"></p>
                         </div>
+                        
                         <div class="mb-3">
                             <h6><strong>Project Details</strong></h6>
                             <div class="detail-item">
                                 <span class="detail-label">Project Manager</span>
-                                <span id="projectDetailModalList-project_manager" onclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
+                                <div class="dropdown-menu-container">
+                                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                        <span id="projectDetailModalList-project_manager"></span> 
+                                    </button>
+                                    <ul class="dropdown-menu project_manager-dropdown-menu">
+                                        {% for pm in pm_list %}
+                                            <li><a href="#" class="dropdown-item" onclick="selectOption('project_manager', currentProjectId, '{{ pm.id }}', '{{ pm.username }}', false); event.preventDefault();">{{ pm.username }}</a></li>
+                                        {% empty %}
+                                            <li><a href="#" class="dropdown-item">No Project Manager Available</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Client</span>
-                                <span id="projectDetailModalList-client" onclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
+                                <div class="dropdown-menu-container">
+                                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                        <span id="projectDetailModalList-client"></span> 
+                                    </button>
+                                    <ul class="dropdown-menu client-dropdown-menu">
+                                        {% for client in client_list %}
+                                            <li><a href="#" class="dropdown-item" onclick="selectOption('client', currentProjectId, '{{ client.id }}', '{{ client.username }}', false); event.preventDefault();">{{ client.username }}</a></li>
+                                        {% empty %}
+                                            <li><a href="#" class="dropdown-item">No Clients Available</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Status</span>
-                                <span id="projectDetailModalList-status" onclick="editStatus(this, 'status', currentProjectId)"></span>
+                                <div class="dropdown-menu-container">
+                                    <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                        <span id="projectDetailModalList-status"></span> 
+                                    </button>
+                                    <ul class="dropdown-menu status-dropdown-menu">
+                                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentProjectId, 'To Do', 'To Do', false); event.preventDefault();">To Do</a></li>
+                                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentProjectId, 'In Progress', 'In Progress', false); event.preventDefault();">In Progress</a></li>
+                                        <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentProjectId, 'Done', 'Done', false); event.preventDefault();">Done</a></li>
+                                    </ul>
+                                </div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Due Date</span>
-                                <span id="projectDetailModalList-due_date" onclick="editDate(this, 'due_date', currentProjectId)"></span>
-                            </div>
+                            <div class="detail-item editable-field">
+                                <span class="detail-label">Due Date:</span>
+                                <div class="editable-content">
+                                    <span id="projectDetailModalList-due_date"></span>
+                                    <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', currentProjectId)"></i>
+                                </div>
+                            </div>                         
                         </div>
 
                         <div style="font-size: 0.7rem">
@@ -287,7 +337,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0"><strong>Tasks</strong></h6>
                             <div>
-                                <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId)">+</button>
+                                <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId, null, 'list')">+</button>
                             </div>
                         </div>
                         <!-- Progress Bar -->
@@ -329,7 +379,7 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <h6><strong>Description</strong></h6>
-                    <p id="taskDetailModalList-description" onclick="editField(this, 'description', currentTaskId, true)"></p>
+                    <p id="taskDetailModalList-description"></p>
                 </div>
                 
                 <input type="hidden" id="current-task-id">
@@ -338,16 +388,39 @@
                     <h6><strong>Task Details</strong></h6>
                     <div class="detail-item">
                         <span class="detail-label">Creative Team</span>
-                        <span id="taskDetailModalList-assigned_to" onclick="editDropdown(this, 'assigned_to', currentTaskId, creativeList, true)"></span>
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span id="taskDetailModalList-assigned_to"></span> 
+                            </button>
+                            <ul class="dropdown-menu assigned_to-dropdown-menu">
+                                {% for creative in creative_list %}
+                                    <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', currentTaskId, '{{ creative.id }}', '{{ creative.username }}', true); event.preventDefault();">{{ creative.username }}</a></li>
+                                {% empty %}
+                                    <li><a href="#" class="dropdown-item">No Creative Teams Available</a></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Status</span>
-                        <span id="taskDetailModalList-status" onclick="editStatus(this, 'status', currentTaskId, true)"></span>
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span id="taskDetailModalList-status"></span> 
+                            </button>
+                            <ul class="dropdown-menu status-dropdown-menu">
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentTaskId, 'To Do', 'To Do', true); event.preventDefault();">To Do</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentTaskId, 'In Progress', 'In Progress', true); event.preventDefault();">In Progress</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', currentTaskId, 'Done', 'Done', true); event.preventDefault();">Done</a></li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Due Date</span>
-                        <span id="taskDetailModalList-due_date" onclick="editDate(this, 'due_date', currentTaskId, true)"></span>
-                    </div>
+                    <div class="detail-item editable-field">
+                        <span class="detail-label">Due Date:</span>
+                        <div class="editable-content">
+                            <span id="taskDetailModalList-due_date"></span>
+                            <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', currentTaskId, true)"></i>
+                        </div>
+                    </div>                    
                     <div class="detail-item">
                         <span class="detail-label">Start Date</span>
                         <span id="taskDetailModalList-start_date"></span>
@@ -429,8 +502,9 @@
                 <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                Are you sure you want to delete this task? This action cannot be undone.
+            <div class="modal-body" id="deleteConfirmationMessage">
+                <!-- Message will be dynamically set -->
+                {% comment %} Are you sure you want to delete this item? This action cannot be undone. {% endcomment %}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
