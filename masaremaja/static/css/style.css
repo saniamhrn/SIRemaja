@@ -231,15 +231,30 @@ td[onclick]:hover {
     cursor:pointer;
 }
 
-.custom-dropdown {
+.dropdown-toggle {
+    width: 110px;
+    text-align: left;
+}
+
+.dropdown-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    display: none; /* Hidden by default */
     position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    width: 150px; /* Adjust as needed */
-    z-index: 100;
-    max-height: 200px;
-    overflow-y: auto;
+    left: 0;
+    z-index: 1000;
+    padding: 0.5rem 0;
+    min-width: 10rem;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+}
+
+.dropdown-menu.show {
+    display: block; 
 }
 
 .dropdown-item {
@@ -247,17 +262,6 @@ td[onclick]:hover {
     cursor: pointer;
     font-size: 14px;
     color: #333;
-}
-
-.dropdown-options {
-    display: none;
-    position: absolute;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    margin-top: 5px;
-    border-radius: 4px;
-    z-index: 1;
-    width: 100%;
 }
 
 .dropdown-item:hover, .dropdown-item.selected {
@@ -526,6 +530,71 @@ td[onclick]:hover {
 
 .calendar-day li strong {
     font-weight: bold;
+}
+
+#task-project-id[disabled] {
+    color: #000; /* Ensure text is visible */
+    background-color: #e9ecef; /* Match Bootstrap disabled look */
+    opacity: 1; /* Override default dimming */
+}
+
+/* Flex container for text and icon */
+.editable-field {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Spacing between text and icon */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Editable span */
+.editable-field span {
+    flex: 1; /* Use available space */
+    overflow: hidden; /* Ensure no overflow */
+    text-overflow: ellipsis; /* Add ellipsis for long text */
+}
+
+/* Text input styling */
+.inline-input {
+    border: none;
+    outline: none;
+    font-size: inherit;
+    font-family: inherit;
+    background: none;
+    flex: 1; /* Same behavior as text */
+    padding: 0;
+    margin: 0;
+    min-width: 0;
+}
+
+.inline-input:focus {
+    border-bottom: 1px solid #ccc;
+}
+
+/* Date input */
+.inline-date-input {
+    border: none;
+    outline: none;
+    font-size: inherit;
+    font-family: inherit;
+    background: none;
+    padding: 0;
+    width: auto;
+    margin: 0;
+}
+
+.inline-date-input:focus {
+    border-bottom: 1px solid #ccc;
+}
+
+/* Icon styling */
+.edit-icon {
+    font-size: 1rem;
+    color: #888;
+    cursor: pointer;
+}
+
+.edit-icon:hover {
+    color: #000;
 }
 
 /* Responsive adjustments */
