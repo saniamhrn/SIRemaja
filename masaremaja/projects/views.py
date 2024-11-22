@@ -66,7 +66,10 @@ def update_project(request, project_id):
         project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    
+     
+    # Log the incoming request data for debugging
+    print("Request data:", request.data)
+
     serializer = ProjectSerializer(project, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
@@ -75,8 +78,10 @@ def update_project(request, project_id):
         updated_data['pm_name'] = project.project_manager.username if project.project_manager else 'N/A'
         updated_data['client_name'] = project.client.username if project.client else 'N/A'
 
-        return Response(serializer.data)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # return Response(serializer.data)
+        return Response(updated_data)  # Use updated_data instead of serializer.data to include additional fields
+    print("Serializer errors:", serializer.errors)
+    return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 @login_required
 def view_all_projects(request):
@@ -91,8 +96,8 @@ def view_all_projects(request):
             'description': project.description,
             'status': project.status,
             'due_date': project.due_date.strftime('%B %d, %Y') if project.due_date else None,
-            'client_username': project.client.username if project.client else 'N/A',
-            'pm_username': project.project_manager.username if project.project_manager else 'N/A',
+            'client_username': project.client.username if project.client else 'Unassigned',
+            'pm_username': project.project_manager.username if project.project_manager else 'Unassigned',
             'created_at': project.created_at.strftime('%B %d, %Y') if project.created_at else None,
             'updated_at': project.updated_at.strftime('%B %d, %Y') if project.updated_at else None,
             'tasks': [
@@ -102,7 +107,7 @@ def view_all_projects(request):
                     'description': task.description,
                     'status': task.status,
                     'due_date': task.due_date.strftime('%B %d, %Y') if task.due_date else None,
-                    'assigned_to': task.assigned_to.username if task.assigned_to else 'N/A',
+                    'assigned_to': task.assigned_to.username if task.assigned_to else 'Unassigned',
                     'created_at': task.created_at.strftime('%B %d, %Y') if task.created_at else None,
                     'updated_at': task.updated_at.strftime('%B %d, %Y') if task.updated_at else None,
                 } for task in project.tasks.all().order_by('id')
@@ -181,8 +186,8 @@ def kanban_board(request):
             'description': project.description,
             'status': project.status,
             'due_date': project.due_date.strftime('%B %d, %Y') if project.due_date else None,
-            'client_username': project.client.username if project.client else 'N/A',
-            'pm_username': project.project_manager.username if project.project_manager else 'N/A',
+            'client_username': project.client.username if project.client else 'Unassigned',
+            'pm_username': project.project_manager.username if project.project_manager else 'Unassigned',
             'created_at': project.created_at.strftime('%B %d, %Y') if project.created_at else None,
             'updated_at': project.updated_at.strftime('%B %d, %Y') if project.updated_at else None,
             'tasks': [
@@ -192,7 +197,7 @@ def kanban_board(request):
                     'description': task.description,
                     'status': task.status,
                     'due_date': task.due_date.strftime('%B %d, %Y') if task.due_date else None,
-                    'assigned_to': task.assigned_to.username if task.assigned_to else 'N/A',
+                    'assigned_to': task.assigned_to.username if task.assigned_to else 'Unassigned',
                     'created_at': task.created_at.strftime('%B %d, %Y') if task.created_at else None,
                     'updated_at': task.updated_at.strftime('%B %d, %Y') if task.updated_at else None,
                 } for task in project.tasks.all().order_by('id')
