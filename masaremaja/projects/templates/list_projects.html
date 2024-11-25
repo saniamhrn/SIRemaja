@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Project List{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'projects/css/projects.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -31,7 +37,6 @@
                 </div>
                 <div class="card-footer d-flex justify-content-between">
                     <button class="btn btn-primary btn-sm" onclick="showProjectDetail({{ project.id }})">Detail</button>
-                    {% comment %} <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button> {% endcomment %}
                     <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                 </div>
             </div>
@@ -116,7 +121,6 @@
                         </div>
                     </td>
                     <td>
-                        {% comment %} <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button> {% endcomment %}
                         <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                     </td>
                 </tr>
@@ -516,8 +520,6 @@
 
 {% endblock content %}
 
-{% load static %}
-
 {% block scripts %}
 <script>
     const clientList = {{ client_list|safe }};
@@ -530,7 +532,7 @@
         {
             name: '{{ project.name }}',
             project_manager: '{{ project.pm_username }}',
-            due_date: '{{ project.due_date }}'  // Should be in YYYY-MM-DD format for accurate date handling
+            due_date: '{{ project.due_date }}'  
         },
         {% endfor %}
     ];
@@ -599,5 +601,5 @@
     // Render the current month initially
     renderCalendar(currentMonth, currentYear);
 </script>
-<script src="{% static 'js/projectManagement.js' %}"></script>
+<script src="{% static 'projects/js/projects.js' %}"></script>
 {% endblock scripts %}

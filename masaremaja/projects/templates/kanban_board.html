@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Progress Board{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'projects/css/projects.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -93,10 +98,6 @@
                         </div>
                         <div class="mb-3">
                             <h6><strong>Project Details</strong></h6>
-                            {% comment %} <div class="detail-item">
-                                <span class="detail-label">Project Manager</span>
-                                <span id="projectDetailModalKanban-project_manager" onclick="editDropdown(this, 'project_manager', currentProjectId, pmList)"></span>
-                            </div> {% endcomment %}
                             <div class="detail-item">
                                 <span class="detail-label">Project Manager</span>
                                 <div class="dropdown-menu-container">
@@ -112,10 +113,6 @@
                                     </ul>
                                 </div>
                             </div>
-                            {% comment %} <div class="detail-item">
-                                <span class="detail-label">Client</span>
-                                <span id="projectDetailModalKanban-client" onclick="editDropdown(this, 'client', currentProjectId, clientList)"></span>
-                            </div> {% endcomment %}
                             <div class="detail-item">
                                 <span class="detail-label">Client</span>
                                 <div class="dropdown-menu-container">
@@ -165,9 +162,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0"><strong>Tasks</strong></h6>
                             <div>
-                                {% comment %} <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId)">+</button> {% endcomment %}
                                 <button class="add-task-btn" style="visibility: visible;" onclick="showCreateTaskModal(currentProjectId, null, 'kanban')">+</button>
-                                
                             </div>
                         </div>
                         <!-- Progress Bar -->
@@ -216,10 +211,6 @@
 
                 <div class="mb-3">
                     <h6><strong>Task Details</strong></h6>
-                    {% comment %} <div class="detail-item">
-                        <span class="detail-label">Creative Team</span>
-                        <span id="taskDetailModalKanban-assigned_to" onclick="editDropdown(this, 'assigned_to', currentTaskId, creativeList, true)"></span>
-                    </div> {% endcomment %}
                     <div class="detail-item">
                         <span class="detail-label">Creative Team</span>
                         <div class="dropdown-menu-container">
@@ -235,10 +226,6 @@
                             </ul>
                         </div>
                     </div>
-                    {% comment %} <div class="detail-item">
-                        <span class="detail-label">Status</span>
-                        <span id="taskDetailModalKanban-status" onclick="editStatus(this, 'status', currentTaskId, true)"></span>
-                    </div> {% endcomment %}
                     <div class="detail-item">
                         <span class="detail-label">Status</span>
                         <div class="dropdown-menu-container">
@@ -344,8 +331,6 @@
 
 {% endblock %}
 
-{% load static %}
-
 {% block scripts %}
 <script>
     const clientList = {{ client_list|safe }};
@@ -434,6 +419,6 @@
 
 
 </script>
-<script src="{% static 'js/projectManagement.js' %}"></script>
+<script src="{% static 'projects/js/projects.js' %}"></script>
 
 {% endblock %}
