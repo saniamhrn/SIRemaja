@@ -7,15 +7,27 @@
     <title>{% block title %}Masa Remaja{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro&family=Literata">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    {% block css %}
+    <!-- Placeholder for additional CSS from app-level templates -->
+    {% endblock %}
 </head>
 <body>
     <header>
         <!-- Navbar with dynamic elements based on user status -->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-lg">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{% url 'account_management:public_home' %}">Masa Remaja</a>
+                <a class="navbar-brand" href="{% url 'landing:landing_index' %}">
+                    <img src="{% static 'images/logo-transparent.png' %}" alt="Masa Remaja Logo" class="navbar-logo">
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -73,18 +85,18 @@
     
     <footer class="pt-4 pb-2">
         <div class="container-md">
-            <div class="row align-item-center">
+            <div class="row align-item-center justify-content-between">
                 <!-- Logo and Description -->
-                <div class="col-md-4 mb-4">
-                    <a href="" target="_blank" class="me-3"></a>
-                        <img src="{% static 'images/logo.png' %}" alt="Logo" class="img-fluid mb-3" style="max-width: 100px;">
-                        <p>Masa Remaja provides exceptional yearbook and creative services. Let us help you capture the best memories!</p>
+                <div class="col-md-4 text-center">
+                    <a href="{% url 'landing:landing_index' %}">
+                        <img src="{% static 'images/logo.png' %}" alt="Masa Remaja Logo" class="img-fluid mb-3" style="max-width: 100px;">
                     </a>
                 </div>
     
                 <!-- Social Media Links -->
-                <div class="col-md-4 my-2 text-center d-flex flex-column justify-content-center">
-                    <h5>Follow Us</h5>
+                {% comment %} <div class="col-md-4 my-2 text-center d-flex flex-column justify-content-center"> {% endcomment %}
+                <div class="col-md-4 text-center">
+                    <h5>Contact Us</h5>
                     <div class="d-flex justify-content-center"> <!-- Flexbox for horizontal alignment -->
                         <a href="https://www.instagram.com/masaremajacollective/" target="_blank" class="text-dark mx-3">
                             <i class="fab fa-instagram fa-lg"></i>
@@ -102,7 +114,7 @@
                 </div>
     
                 <!-- Office Location -->
-                <div class="col-md-4 d-flex text-center flex-column justify-content-center">
+                <div class="col-md-4 text-center">
                     <h5 class="text-center">Office Location</h5>
                     <p>
                         Jl. Bintaro Tengah No.20,<br>
@@ -124,6 +136,8 @@
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
     <script src="{% static 'js/scripts.js' %}"></script>
 
     {% block scripts %}
