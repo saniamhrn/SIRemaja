@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'landing/css/landing.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <img src="{% static 'landing/images/logo-transparent.png' %}" alt="Masa Remaja Logo" class="logo">
+    <p class="hero-text">360° Creative Community Agency</p>
+</section>
+
+<section id="why-us">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Why Us?</h2>
+        <p class="text-center">We deliver quality, creativity, and memorable designs that stand out.</p>
+    </div>
+</section>
+
+<section id="services">
+    <div class="landing-container">
+        <h2 style="text-align: center;">Our Services</h2>
+        <!-- Add services content -->
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <h3>Service 1</h3>
+                <p>Custom yearbook design for schools.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <h3>Service 2</h3>
+                <p>Photography and videography services.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <h3>Service 3</h3>
+                <p>Printing and delivery services.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="portfolio">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Portfolio</h2>
+        <p class="text-center">Check out our past projects and see the quality of our work.</p>
+    </div>
+</section>
+
+<section id="our-clients">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Our Trusted Clients</h2>        
+        <div class="client-ticker-wrapper">
+            <!-- Row 1: Scrolls left -->
+            <div class="ticker-row ticker-row-left">
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+                <!-- Repeat for infinite scrolling -->
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+            </div>
+            
+            <!-- Row 2: Scrolls right -->
+            <div class="ticker-row ticker-row-right">
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+                <!-- Repeat for infinite scrolling -->
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+            </div>
+            
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'landing/js/landing.js' %}" defer></script>
+{% endblock %}

@@ -26,11 +26,12 @@ handler404 = 'authentication.views.custom_404'
 handler500 = 'authentication.views.custom_500'
 
 urlpatterns = [
+    path('', include('landing.urls')),
     path('admin/', admin.site.urls),
     path('users/', include('user_management.urls')),
     path('auth/', include('authentication.urls')), 
     path('account/', include('account_management.urls')),
-    path('project/', include('projects.urls'))
+    path('project/', include('projects.urls')),
 ] 
 
 # Serve media files during development
