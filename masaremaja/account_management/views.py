@@ -15,9 +15,6 @@ from projects.views import projects_details_dashboard
 
 User = get_user_model()
 
-def public_home(request):
-    return render(request, 'account_management/public_home.html')
-
 @login_required
 def home_view(request):
     if request.user.role == 'Admin':
@@ -53,7 +50,6 @@ def update_email(request):
     user = request.user
     if request.method == 'POST':
         form = EmailUpdateForm(request.POST, instance=user)
-        print(form.errors)  # Debugging
         if form.is_valid():
             form.save()
             messages.success(request, 'Email updated successfully.')
@@ -75,7 +71,6 @@ def update_username(request):
         form = UsernameUpdateForm(instance=user)
     return render(request, 'account_management/update_username.html', {'form': form})
 
-# For testing
 @user_passes_test(is_admin)
 @login_required
 def admin_home(request):
