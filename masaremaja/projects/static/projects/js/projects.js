@@ -32,50 +32,6 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// function initializeDataTable() {
-//     const tableId = 'projectTable';
-    
-//     // Destroy existing instance to prevent multiple initializations
-//     if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
-//         $(`#${tableId}`).DataTable().destroy();
-//     }
-
-//     // Initialize DataTable
-//     $(`#${tableId}`).DataTable({
-//         paging: true,
-//         searching: true,
-//         ordering: true,
-//         info: true,
-//         lengthChange: true,
-//         pageLength: 10,
-//         autoWidth: false,
-//         order: [],  // Disable default sorting
-//     });
-// }
-
-// // Search function for table view
-// function searchTableView() {
-//     const table = $('#projectTable').DataTable();
-//     let searchInput = document.getElementById('searchProject').value.toLowerCase();
-//     table.search(searchInput).draw();
-// }
-
-// // Role filtering function for table view
-// function filterTableByRole() {
-//     const table = $('#projectTable').DataTable();
-//     let selectedRole = document.getElementById('roleFilter').value;
-//     table.column(5).search(selectedRole).draw();
-// }
-
-// // Utility functions for view preference
-// function saveViewPreference(view) {
-//     localStorage.setItem('viewPreference', view);
-// }
-
-// function loadViewPreference() {
-//     return localStorage.getItem('viewPreference') || 'card';
-// }
-
 function submitProjectForm() {
     const name = document.getElementById('project-name').value;
     const description = document.getElementById('project-description').value;
@@ -164,12 +120,12 @@ function showProjectDetail(projectId) {
             }
 
             // Update fields in the project detail modal with dynamic IDs
-            const nameElement = document.getElementById('projectDetailModalList-name');
+            const nameElement = document.getElementById(`${projectDetailModalId}-name`);
             nameElement.innerHTML = `
                 <span onclick="editField(this.parentElement, 'name', ${project.id})">${project.name}</span>
                 <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'name', ${project.id})"></i>
             `;
-            const descriptionElement = document.getElementById('projectDetailModalList-description');
+            const descriptionElement = document.getElementById(`${projectDetailModalId}-description`);
             descriptionElement.innerHTML = `
                 <span onclick="editField(this.parentElement, 'description', ${project.id})">${project.description}</span>
                 <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'description', ${project.id})"></i>
@@ -299,7 +255,7 @@ function updateProgressBar(taskItems) {
     }).length;
 
     const progressPercent = totalTasks ? (completedTasks / totalTasks) * 100 : 0;
-    const progressBar = document.getElementById('projectDetailModalList-progress-bar');
+    const progressBar = document.getElementById(`${projectDetailModalId}-progress-bar`);
 
     if (progressBar) {
         progressBar.style.width = `${progressPercent}%`;
@@ -311,7 +267,6 @@ function updateProgressBar(taskItems) {
 }
 
 function showCreateTaskModal(projectId, status = null, pageContext = 'list') {
-    console.log("showCreateTaskModal", projectId, status, pageContext)
     const statusText = document.getElementById('task-status-text');
     const statusSelect = document.getElementById('task-status-select');
     const projectSelect = document.getElementById('task-project-id');
@@ -725,18 +680,163 @@ if (addTaskModal) {
     addTaskModal.addEventListener('hidden.bs.modal', clearTaskForm);
 }
 
-function toggleTaskCollapse(projectId) {
+const projectsToExpand = new Set(); // Tracks projects to expand based on search
+const expandedProjects = new Set(); // Tracks projects expanded by search
+const manuallyCollapsedProjects = new Set(); // To track manually collapsed projects
+
+// Function to initialize project states when the page loads
+function initializeProjectStates() {
+    document.querySelectorAll('.project-row').forEach(projectRow => {
+        const projectId = projectRow.id.replace('project-', '');
+        const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
+        
+        // Check if any task rows are visible (collapsed or expanded)
+        const isCollapsed = Array.from(taskRows).every(taskRow => taskRow.style.display === "none");
+        
+        // If task rows are collapsed, mark project as collapsed, else mark as expanded
+        if (isCollapsed) {
+            expandedProjects.delete(projectId);
+        } else {
+            expandedProjects.add(projectId);
+        }
+    });
+}
+
+// Toggle task collapse (expand/collapse project rows)
+function toggleTaskCollapse(projectId, forceExpand = false) {
+    const projectRow = document.getElementById(`project-${projectId}`);
     const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
-    const toggleButton = document.querySelector(`button.toggle-task-btn[onclick="toggleTaskCollapse(${projectId})"]`);
+    const toggleButton = projectRow.querySelector('.toggle-task-btn');
     
-    // Toggle visibility of task rows
+    const isCollapsed = Array.from(taskRows).every(
+        taskRow => taskRow.style.display === "none" || taskRow.style.display === ""
+    );
+
+    if (forceExpand || isCollapsed) {
+        // Expand the project
+        taskRows.forEach(taskRow => {
+            taskRow.style.display = "table-row";
+        });
+        toggleButton.textContent = "⌄"; 
+        projectRow.classList.remove('collapsed');
+        expandedProjects.add(projectId); 
+        manuallyCollapsedProjects.delete(projectId);
+    } else{
+        // Collapse the project
+        taskRows.forEach(taskRow => {
+            taskRow.style.display = "none";
+        });
+        toggleButton.textContent = "›"; 
+        projectRow.classList.add('collapsed');
+        expandedProjects.delete(projectId);
+        manuallyCollapsedProjects.add(projectId);
+    }
+}
+
+// Function to highlight and expand projects based on search query
+function highlightAndExpandProjects(query) {
+    const taskRows = document.querySelectorAll('.task-row');
+    const projectRows = document.querySelectorAll('.project-row');
+    const taskCards = document.querySelectorAll('.task-card'); // For board view
+    const projectCards = document.querySelectorAll('.card-title'); // For card view
+
+    projectsToExpand.clear(); // Clear the set before populating it
+
+    // Handle task rows matching the query
     taskRows.forEach(taskRow => {
-        taskRow.style.display = (taskRow.style.display === "none" || taskRow.style.display === "") ? "table-row" : "none";
+        const taskTitle = taskRow.querySelector('.task-title');
+        if (!taskTitle) return;
+
+        const projectId = taskRow.dataset.projectId;
+        const taskTitleText = taskTitle.textContent.toLowerCase();
+
+        if (taskTitleText.includes(query.toLowerCase())) {
+            highlightMatches(taskTitle, query);
+            projectsToExpand.add(projectId); // Track projects to expand
+        } else {
+            taskTitle.innerHTML = taskTitle.textContent; // Reset highlights
+        }
     });
 
-    // Update the toggle button icon
-    const anyTaskVisible = Array.from(taskRows).some(taskRow => taskRow.style.display === "table-row");
-    toggleButton.textContent = anyTaskVisible ? "⌄" : "›";
+    // Handle project rows matching the query (only highlight, not expand)
+    projectRows.forEach(projectRow => {
+        const projectId = projectRow.id.replace('project-', '');
+        const projectTitle = projectRow.querySelector('.project-name');
+        const projectTitleText = projectTitle.textContent.toLowerCase();
+
+        if (projectTitleText.includes(query.toLowerCase()) && !projectsToExpand.has(projectId)) {
+            highlightMatches(projectTitle, query);
+        } else {
+            projectTitle.innerHTML = projectTitle.textContent; // Reset highlights
+        }
+    });
+
+     // Card View: Handle project cards matching the query (inside the card view)
+     projectCards.forEach(cardTitle => {
+        const projectTitleText = cardTitle.textContent.toLowerCase();
+
+        if (projectTitleText.includes(query.toLowerCase())) {
+            highlightMatches(cardTitle, query); // Highlight matching project name in card
+        } else {
+            cardTitle.innerHTML = cardTitle.textContent; // Reset highlights
+        }
+    });
+
+    // Board View: Handle task cards and project names matching the query
+    taskCards.forEach(taskCard => {
+        const taskTitle = taskCard.querySelector('p strong');
+        const projectName = taskCard.querySelector('p');
+        if (taskTitle) {
+            const taskTitleText = taskTitle.textContent.toLowerCase();
+            if (taskTitleText.includes(query.toLowerCase())) {
+                highlightMatches(taskTitle, query); // Highlight task titles
+            } else {
+                taskTitle.innerHTML = taskTitle.textContent; // Reset highlights
+            }
+        }
+
+        if (projectName) {
+            const projectNameText = projectName.textContent.toLowerCase();
+            if (projectNameText.includes(query.toLowerCase())) {
+                highlightMatches(projectName, query); // Highlight project name 
+            } else {
+                projectName.innerHTML = projectName.textContent; // Reset highlights
+            }
+        }
+    });
+
+    // Expand projects if a task matches or if the project is manually collapsed
+    projectsToExpand.forEach(projectId => {
+        if (!manuallyCollapsedProjects.has(projectId)) {
+            toggleTaskCollapse(projectId, true); // Force-expand if not manually expanded
+        }
+    });
+}
+
+// Function to reset highlights and collapse projects that were expanded by search
+function resetHighlightsAndCollapse() {
+    // Reset all highlights
+    document.querySelectorAll('.highlight').forEach(span => {
+        span.replaceWith(span.innerHTML); // Replace <span> with its inner text
+    });
+
+    document.querySelectorAll('.project-row').forEach(projectRow => {
+        const projectId = projectRow.id.replace('project-', '');
+        
+        // Collapse project if it's not in the expandedProjects or manuallyCollapsedProjects
+        if (!projectsToExpand && !expandedProjects.has(projectId) && !manuallyCollapsedProjects.has(projectId)) {
+            toggleTaskCollapse(projectId, false); // Collapse project
+        }
+    });
+}
+
+
+// Function to highlight matched text in search
+function highlightMatches(element, query) {
+    const regex = new RegExp(`(${query})`, 'gi'); // Create a case-insensitive regex to match the query
+    const text = element.textContent;
+    const replacedText = text.replace(regex, '<span class="highlight">$1</span>'); // Highlight the matched text
+    element.innerHTML = replacedText; 
 }
 
 async function editDate(element, field, id, isTask = false) {
@@ -987,9 +1087,9 @@ function closeDropdown(dropdownMenu) {
     if (dropdownMenu) {
         const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownMenu.closest('.dropdown-menu-container .dropdown-toggle'));
         if (dropdownInstance) {
-            dropdownInstance.hide(); // Use Bootstrap's hide method
+            dropdownInstance.hide(); 
         } else {
-            dropdownMenu.classList.remove('show'); // Fallback in case Bootstrap instance is missing
+            dropdownMenu.classList.remove('show'); 
         }
     }
 }
@@ -1137,11 +1237,9 @@ function updateProjectTableRow(projectId, updatedData) {
     const row = document.getElementById(`project-${projectId}`);
     if (row) {
         if (updatedData.name) row.querySelector('.project-name').textContent = updatedData.name;
-        // if (updatedData.description) row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
         if (updatedData.description && row.querySelector(`#description-${projectId} span`)) {
             row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
         }
-        // if (updatedData.status) row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
         if (updatedData.status && row.querySelector(`#status-${projectId} span`)) {
             row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
         }
@@ -1269,8 +1367,11 @@ document.addEventListener('click', function (event) {
     if (event.target.classList.contains('delete-task-btn') || event.target.classList.contains('delete-project-btn')) {
         const itemId = event.target.getAttribute('data-id');
         const itemType = event.target.getAttribute('data-type');
-        const rowElement = event.target.closest('tr');
-        showDeleteConfirmation(itemId, itemType, rowElement);
+        const rowElement = event.target.closest('tr') || event.target.closest('.col');
+        if (rowElement) {
+            // Show delete confirmation modal with the item information
+            showDeleteConfirmation(itemId, itemType, rowElement);
+        }
     }
 });
 
@@ -1315,60 +1416,100 @@ function moveTaskCard(taskId, newStatus) {
     }
 }
 
+// View Toggle Functions
+function saveViewPreference(view) {
+    localStorage.setItem('projectsViewPreference', view);
+}
+
+// Load the user's view preference from local storage
+function loadViewPreference() {
+    return localStorage.getItem('projectsViewPreference') || 'table'; // Default to 'table'
+}
+
+// Apply the saved view preference
+function applyViewPreference(view) {
+    if (view === 'table') {
+        // Only apply to pages that have table view
+        const tableView = document.getElementById('tableView');
+        const cardView = document.getElementById('cardView');
+        if (tableView && cardView) {
+            tableView.classList.remove('d-none');
+            cardView.classList.add('d-none');
+        }
+    } else if (view === 'card') {
+        // Only apply to pages that have card view
+        const tableView = document.getElementById('tableView');
+        const cardView = document.getElementById('cardView');
+        if (tableView && cardView) {
+            cardView.classList.remove('d-none');
+            tableView.classList.add('d-none');
+        }
+    }
+
+    // Highlight the active button only if the elements exist
+    const cardViewButton = document.getElementById('cardViewButton');
+    const tableViewButton = document.getElementById('tableViewButton');
+    const kanbanViewButton = document.getElementById('kanbanViewButton');
+    
+    if (cardViewButton) {
+        cardViewButton.classList.toggle('active', view === 'card');
+    }
+    if (tableViewButton) {
+        tableViewButton.classList.toggle('active', view === 'table');
+    }
+    if (kanbanViewButton) {
+        kanbanViewButton.classList.toggle('active', view === 'kanban');
+    }
+}
+
+// Initialize view switching
+function initializeViewSwitcher() {
+    const savedView = loadViewPreference();
+    applyViewPreference(savedView);
+
+    // Event listeners for buttons
+    document.getElementById('cardViewButton')?.addEventListener('click', function () {
+        saveViewPreference('card');
+        applyViewPreference('card');
+    });
+
+    document.getElementById('tableViewButton')?.addEventListener('click', function () {
+        saveViewPreference('table');
+        applyViewPreference('table');
+    });
+
+    document.getElementById('kanbanViewButton')?.addEventListener('click', function () {
+        saveViewPreference('kanban');
+        window.location.href = '/project/board/'; // Redirect to Kanban page
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    // initializeDataTable();
-    // // Initialize DataTable if Table View is active
-    // let savedView = loadViewPreference();  // Load saved view preference
-    // if (savedView === 'table') {
-    //     document.getElementById('tableView').classList.remove('d-none');
-    //     document.getElementById('cardView').classList.add('d-none');
-    //     initializeDataTable();
-    // }
+    initializeProjectStates(); 
 
-    // // Event listeners for toggling between Card View and Table View
-    // document.getElementById('cardViewButton').addEventListener('click', function () {
-    //     document.getElementById('cardView').classList.remove('d-none');
-    //     document.getElementById('tableView').classList.add('d-none');
-    //     saveViewPreference('card');
-    //     if ($.fn.DataTable.isDataTable('#projectTable')) {
-    //         $('#projectTable').DataTable().destroy();
-    //     }
-    // });
+    initializeViewSwitcher();
 
-    // document.getElementById('tableViewButton').addEventListener('click', function () {
-    //     document.getElementById('tableView').classList.remove('d-none');
-    //     document.getElementById('cardView').classList.add('d-none');
-    //     saveViewPreference('table');
-    //     initializeDataTable();
-    // });
+    const searchInput = document.getElementById('searchProject');
 
-    // // Optional: Additional search and filter functions for DataTables
-    // document.getElementById('searchProject').addEventListener('input', function () {
-    //     searchTableView();
-    // });
+    // Trigger search on input change
+    let debounceTimeout; 
 
-    // document.getElementById('sortbyNameProjects').addEventListener('change', function () {
-    //     filterTableByRole();
-    // });
-
-    // Add event listener to delete buttons
-    // document.querySelectorAll('.delete-task-btn').forEach(button => {
-    //     button.addEventListener('click', function() {
-    //         const taskId = this.getAttribute('data-task-id');
-    //         const rowElement = this.closest('tr');
-    //         showDeleteConfirmation(taskId, rowElement);
-    //     });
-    // });
-
-    // Event listener for confirm delete button in the delete confirmation modal
-    // document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-    //     if (taskToDeleteId && taskRowElement) {
-    //         deleteTask(taskToDeleteId, taskRowElement);  // Call deleteTask if confirmation is accepted
-    //     } else {
-    //         console.error("No task ID or row element found for deletion");
-    //     }
-    // });
+    searchInput.addEventListener('input', function (e) {
+        clearTimeout(debounceTimeout);
+    
+        // Prevent form submission on input
+        e.preventDefault();
+    
+        debounceTimeout = setTimeout(function () {
+            const query = searchInput.value.trim();
+    
+            if (query) {
+                highlightAndExpandProjects(query); // Highlight and expand matches
+            } else {
+                resetHighlightsAndCollapse(); // Reset everything if query is cleared
+            }
+        }, 300); // Debounce duration
+    });
 
     const projectDetailModal = document.getElementById(projectDetailModalId);
     if (projectDetailModal) {
