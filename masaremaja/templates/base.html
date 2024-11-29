@@ -35,41 +35,30 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Why Us?</a>
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}">Why Us?</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Portofolio</a>
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}">Portofolio</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Our Services</a>
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}">Our Services</a>
                         </li>
 
-                        <!-- Conditional Links for Logged-In Users -->
+                    <!-- Conditional Links for Logged-In Users -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="navbarProfile" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{% static 'images/profile-icon.png' %}" alt="Profile" class="rounded-circle" width="30" height="30"> <!-- Profile Icon -->
+                                <i class="fa-regular fa-user"></i> <!-- Profile Icon -->
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarProfile">
                                 {% if user.is_authenticated %}
                                     <a class="dropdown-item" href="{% url 'account_management:profile' %}">Profile</a>
-                            
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'account_management:home' %}">Dashboard</a>
-                                    </li>
-                                    
-                                    <li>
-                                        <a class="dropdown-item" href="{% url 'authentication:logout' %}" id="logoutLink">Logout</a>
-                                    </li>
-
+                                    <li><a class="dropdown-item" href="{% url 'account_management:home' %}">Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'authentication:logout' %}" id="logoutLink">Logout</a></li>
                                 {% else %}
-                                <!-- Show Login link only for non-authenticated users -->
-                                <li>
-                                    <a class="dropdown-item" href="{% url 'authentication:login' %}">Login</a>
-                                </li>
+                                    <li><a class="dropdown-item" href="{% url 'authentication:login' %}">Login</a></li>
                                 {% endif %}
                             </ul>
                         </li>
-                        
                     </ul>
                 </div>
             </div>
