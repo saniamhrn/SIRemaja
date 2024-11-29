@@ -85,8 +85,18 @@ def update_project(request, project_id):
 
 @login_required
 def view_all_projects(request):
+    # Get the search query from the request
+    search_query = request.GET.get('q', '').strip()
+
     # Get all projects with related client and project manager data
     projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
+
+    # Filter projects and tasks based on the search query
+    if search_query:
+        projects = projects.filter(
+            Q(name__icontains=search_query) |  # Search in project names
+            Q(tasks__title__icontains=search_query)  # Search in task titles
+        ).distinct()
 
     project_pm_client = []
     for project in projects:
@@ -118,12 +128,15 @@ def view_all_projects(request):
     client_list = list(User.objects.filter(role='Client').values('id', 'username'))
     pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
     creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
+    view_mode = request.GET.get('view', 'table')
 
     return render(request, 'list_projects.html', {
         'client_list': client_list,
         'pm_list': pm_list,
         'projects': project_pm_client,
-        'creative_list': creative_list
+        'creative_list': creative_list,
+        'view_mode': view_mode,
+        'search_query': search_query,
     })
 
 @user_passes_test(is_pm_or_admin)
@@ -175,8 +188,19 @@ def delete_task(request, task_id):
 
 @login_required
 def kanban_board(request):
+    # Get the search query from the request
+    search_query = request.GET.get('q', '').strip()
+
     # Get all projects with related client and project manager data
+    tasks = Task.objects.select_related('project').all()
     projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
+
+    # Filter tasks and projects based on the search query
+    if search_query:
+        tasks = tasks.filter(
+            Q(title__icontains=search_query) |  # Search in task titles
+            Q(project__name__icontains=search_query)  # Search in project names
+        ).distinct()
 
     project_pm_client = []
     for project in projects:
@@ -204,8 +228,6 @@ def kanban_board(request):
             ]
         })
 
-    tasks = Task.objects.all()
-    # projects = Project.objects.all()
     client_list = list(User.objects.filter(role='Client').values('id', 'username'))
     pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
     creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
@@ -216,7 +238,8 @@ def kanban_board(request):
         'client_list': client_list,
         'pm_list': pm_list,
         'creative_list': creative_list,
-        'projects': project_pm_client,
+        'project_list': project_pm_client,
+        'search_query': search_query,
     }
     return render(request, 'kanban_board.html', context)
 

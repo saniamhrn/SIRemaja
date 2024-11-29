@@ -13,20 +13,44 @@
 
     <div id="successMessage" style="display: none;"></div>
 
-    <div class="my-3 d-flex justify-content-between align-items-center">
-        <div>
-            <a href="/project/kanban/" class="btn btn-outline-secondary">Board View</a>
-            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
-            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+    <div class="my-2">
+        <div class="d-flex justify-content-between align-items-center">
+            <!-- Search Bar -->
+            <form id="searchForm" method="get" class="d-flex flex-grow-1 my-3">
+                <input 
+                    type="text" 
+                    name="q" 
+                    id="searchProject" 
+                    class="form-control me-2" 
+                    placeholder="Search projects or tasks" 
+                    value="{{ search_query|default:'' }}" 
+                    style="max-width: 300px;"
+                >
+                <input type="hidden" name="view" value="{{ view_mode }}"> <!-- Preserve current view -->
+            </form>
+
+            <!-- View Toggle and Add Project Buttons -->
+            <div class="d-flex flex-wrap flex-column flex-md-row justify-content-center justify-content-md-end align-items-center gap-2 view-toggle-container">
+            {% comment %} <div class="d-flex flex-wrap flex-column flex-md-row justify-content-center gap-2 mb-2 mb-md-0 view-toggle-container"> {% endcomment %}
+                <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
+                <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+                <a href="/project/board/" id="kanbanViewButton" class="btn btn-outline-secondary">Board View</a>
+                <button 
+                    type="button" 
+                    class="btn btn-primary" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#addProjectModal"
+                >
+                    + Add Project
+                </button>
+            </div>
         </div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-            + Add Project
-        </button>
     </div>
 
     <!-- Card View -->
-    <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div id="cardView" class="{% if view_mode != 'card' %}d-none{% endif %} row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for project in projects %}
+        <div class="col mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ project.name }}</h5>
@@ -40,11 +64,14 @@
                     <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                 </div>
             </div>
+        </div>
         {% endfor %}
     </div>
 
     <!-- Table View -->
-    <div id="tableView" class="table-responsive d-none">
+    <div id="tableView" class="{% if view_mode != 'table' %}d-none{% endif %} table-responsive">
+
+    {% comment %} <div id="tableView" class="table-responsive d-none"> {% endcomment %}
         <table id="projectTable" class="project-data-table table table-hover">
             <thead class="thead-dark">
                 <tr>
@@ -60,8 +87,8 @@
             <tbody id="projects-table-body">
                 {% for project in projects %}
                 <!-- Project Row -->
-                <tr id="project-{{ project.id }}" class="project-row">
-                    <td>
+                <tr id="project-{{ project.id }}" class="project-row collapsed">
+                    <td class="project-name-td">
                         <button class="toggle-task-btn" onclick="toggleTaskCollapse({{ project.id }})">›</button>
                         <span class="project-name" onclick="showProjectDetail({{ project.id }});" style="cursor: pointer; color: black;">
                             {{ project.name }}
@@ -185,13 +212,16 @@
             </tbody>                
         </table>
     </div>
-    
+</div>
+
+<!-- Calendar View -->
+<div class="container mt-5">
     <h1 class="text-center mb-4 card-title">Timeline</h1>
     <div id="calendar">
         <div class="calendar-header">
-            <button class="prev-month">&lt;</button>
+            <button class="prev-month">‹</button>
             <span id="calendar-month-year"></span>
-            <button class="next-month">&gt;</button>
+            <button class="next-month">›</button>
         </div>
         <div class="calendar-grid">
             <!-- Calendar days will be inserted dynamically -->
@@ -200,7 +230,7 @@
 </div>
 
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addProjectModalLabel">Add New Project</h5>
@@ -262,7 +292,7 @@
 
 <!-- Project Detail Modal -->
 <div class="modal fade" id="projectDetailModalList" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="projectDetailModalList-name"></h5>
@@ -270,7 +300,7 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-12">
                         <div class="mb-3">
                             <h6><strong>Description</strong></h6>
                             <p id="projectDetailModalList-description"></p>
@@ -337,7 +367,7 @@
                         
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-12">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0"><strong>Tasks</strong></h6>
                             <div>
@@ -374,7 +404,7 @@
 
 <!-- Task Detail Modal-->
 <div class="modal fade" id="taskDetailModalList" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="taskDetailModalList-title"></h5>
@@ -449,7 +479,7 @@
 
 <!-- Add/Edit Task Modal -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
@@ -467,7 +497,7 @@
                     <textarea class="form-control" id="task-description" required></textarea>
                 </div>
                 <div class="mb-3">
-                    <label for="task-status" class="form-label">Status</label>
+                    <label for="task-status-select" class="form-label">Status</label>
                     <p id="task-status-text" style="font-weight: bold; display: none;"></p> 
                     <select class="form-select" id="task-status-select" required>
                         <option value="To Do">To Do</option>
