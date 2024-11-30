@@ -14,9 +14,9 @@
     <div id="successMessage" style="display: none;"></div>
 
     <div class="my-2">
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center search-filter-bar">
             <!-- Search Bar -->
-            <form id="searchForm" method="get" class="d-flex flex-grow-1 my-3">
+            <form id="searchForm" method="get" class="d-flex flex-grow-1 flex-column flex-md-row gap-2 my-2">
                 <input 
                     type="text" 
                     name="q" 
@@ -30,8 +30,7 @@
             </form>
 
             <!-- View Toggle and Add Project Buttons -->
-            <div class="d-flex flex-wrap flex-column flex-md-row justify-content-center justify-content-md-end align-items-center gap-2 view-toggle-container">
-            {% comment %} <div class="d-flex flex-wrap flex-column flex-md-row justify-content-center gap-2 mb-2 mb-md-0 view-toggle-container"> {% endcomment %}
+            <div class="d-flex flex-wrap gap-2 justify-content-between justify-content-md-end view-toggle-bar">
                 <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
                 <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
                 <a href="/project/board/" id="kanbanViewButton" class="btn btn-outline-secondary">Board View</a>
@@ -70,8 +69,6 @@
 
     <!-- Table View -->
     <div id="tableView" class="{% if view_mode != 'table' %}d-none{% endif %} table-responsive">
-
-    {% comment %} <div id="tableView" class="table-responsive d-none"> {% endcomment %}
         <table id="projectTable" class="project-data-table table table-hover">
             <thead class="thead-dark">
                 <tr>

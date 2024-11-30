@@ -14,9 +14,9 @@
     <div id="successMessage" style="display: none;"></div>
 
     <div class="my-2">
-        <div class="d-flex flex-wrap justify-content-between align-items-center">
+        <div class="d-flex justify-content-between align-items-center search-filter-bar">
             <!-- Search Input -->
-            <form id="searchForm" method="get" class="d-flex flex-grow-1 my-3">
+            <form id="searchForm" method="get" class="d-flex flex-grow-1 flex-column flex-md-row gap-2 my-2">
                 <input 
                     type="text" 
                     name="q" 
@@ -27,7 +27,7 @@
                     style="max-width: 300px;"
                 >
             </form>
-            <div class="d-flex flex-wrap flex-column flex-md-row justify-content-center justify-content-md-end align-items-center gap-2 view-toggle-container">
+            <div class="d-flex flex-wrap gap-2 justify-content-between justify-content-md-end view-toggle-bar">
                 <a href="/project/view-all/?view=table" id="tableViewButton" class="btn btn-outline-secondary">Table View</a>
                 <a href="/project/view-all/?view=card" id="cardViewButton" class="btn btn-outline-secondary">Card View</a>
                 <button id="kanbanViewButton" class="btn btn-outline-secondary active">Board View</button>
