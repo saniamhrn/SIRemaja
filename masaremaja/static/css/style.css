@@ -134,7 +134,8 @@ form {
 .view-toggle-bar {
     display: flex;
     gap: 10px;
-    justify-content: end;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 /* Adjust the icon size */
@@ -209,11 +210,7 @@ form {
     .search-filter-bar {
         flex-wrap: wrap; 
         gap: 10px;
-    }
-
-    .view-toggle-bar {
-        flex-wrap: wrap;
-        justify-content: flex-start;
+        flex-direction: column;
     }
 
     .navbar-collapse {
@@ -229,7 +226,7 @@ form {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .card {
         max-width: 100%; 
     }
