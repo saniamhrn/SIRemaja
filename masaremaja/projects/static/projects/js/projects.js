@@ -1080,6 +1080,7 @@ async function selectOption(field, id, newValue, displayText, isTask) {
     const tempElement = { value: newValue, displayText: displayText };
     try {
         await saveField(tempElement, field, id, isTask);
+        await initCalendar();
 
         // Update progress bar if the field is "status"
         if (field === 'status' && isTask) {
@@ -1211,6 +1212,7 @@ async function saveField(element, field, id, isTask = false) {
                 }
             }
             updateTaskTableRow(id, updatedData, field);
+            
         } else {
             // For project fields, update the project data in the table if needed
             const updatedProjectData = { [field]: displayText };
