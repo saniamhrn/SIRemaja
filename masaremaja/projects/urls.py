@@ -20,4 +20,7 @@ urlpatterns = [
     path('delete_file/<int:file_id>/', views.delete_project_file, name='delete_project_file'),
     path('download_file/<int:file_id>/', views.download_file, name='download_file'),
     path('client-project/<int:project_id>/', views.client_project_detail, name='client_project_detail'),
+
+    path('submit-edit-testimony/<int:project_id>/', views.submit_edit_testimony, name='submit_edit_testimony'),
+
 ] 

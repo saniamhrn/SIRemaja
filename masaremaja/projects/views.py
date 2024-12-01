@@ -1,10 +1,10 @@
 import json
 from django.shortcuts import redirect, render, get_object_or_404
-from projects.forms import ProjectFileForm
+from projects.forms import ProjectFileForm, TestimonyForm
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Project, ProjectFile, Task
+from .models import Project, ProjectFile, Task, Testimony
 from user_management.models import CustomUser as User
 from .serializers import ProjectSerializer, TaskSerializer
 from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
@@ -435,3 +435,32 @@ def projects_details_dashboard(request):
         'projects': project_pm_client,
         'creative_list': creative_list
     }
+
+@user_passes_test(is_client)
+@login_required
+def submit_edit_testimony(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    testimony = Testimony.objects.filter(project=project).first()
+
+    if request.method == 'POST':
+        if testimony:
+            # Editing existing testimony
+            form = TestimonyForm(request.POST, instance=testimony)
+        else:
+            # Creating new testimony
+            form = TestimonyForm(request.POST)
+
+        if form.is_valid():
+            testimony = form.save(commit=False)
+            testimony.project = project
+            testimony.client = request.user  # Assigning logged-in user as the client
+            testimony.save()
+            return redirect('account_management:client_home')
+    else:
+        # If GET request
+        if testimony:
+            form = TestimonyForm(instance=testimony)
+        else:
+            form = TestimonyForm()
+
+    return render(request, 'submit_edit_testimony.html', {'form': form, 'project': project})

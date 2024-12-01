@@ -58,10 +58,11 @@
                     <th>Status</th>
                     <th>Created Date</th>
                     <th>Due Date</th>
-                    <th>Start Date</th>
-                    <th>Completion Date</th>
+                    <!-- <th>Start Date</th>
+                    <th>Completion Date</th> -->
                     <th>Progress Bar</th>
                     <th>Action</th> 
+                    <th>Testimony</th>
                 </tr>
             </thead>
             <tbody>
@@ -72,7 +73,7 @@
                     <td>{{ project.status }}</td> 
                     <td>{{ project.created_at|date:"D d M Y" }}</td> 
                     <td>{{ project.due_date|date:"D d M Y" }}</td> 
-                    <td>
+                    <!-- <td>
                         {% if project.start_date %}
                         {{ project.start_date|date:"D d M Y" }}
                         {% else %}
@@ -85,7 +86,7 @@
                         {% else %}
                         Project hasn't completed yet
                         {% endif %}
-                    </td>
+                    </td> -->
                     
                     <td>
                         <div class="progress">
@@ -98,6 +99,21 @@
                         <!-- Add link to view project details -->
                         <a href="{% url 'projects:client_project_detail' project.id %}" class="btn btn-info btn-sm">Detail</a>
                     </td>
+                    <td>
+                        {% if project.progress < 100 %}
+                            <i>Testimony can only be submitted <br> once the project is completed.</i>
+                            {% else %}
+                            {% if project.testimony %}
+                                <!-- If testimony exists, show Edit button -->
+                                <a href="{% url 'projects:submit_edit_testimony' project.id %}" class="btn btn-warning btn-sm">Edit Testimony</a>
+                            {% else %}
+                                <!-- If no testimony exists, show Submit button -->
+                                <a href="{% url 'projects:submit_edit_testimony' project.id %}" class="btn btn-success btn-sm">Submit Testimony</a>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    
+                    
                 </tr>
                 {% empty %}
                 <tr>

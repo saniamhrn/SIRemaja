@@ -125,6 +125,7 @@ def client_home(request):
             'due_date' : project.due_date,
             'start_date' : project.start_date,
             'completion_date' : project.completion_date,
+            'testimony' : getattr(project, 'testimony', None),
             'progress': int(
                 (project.tasks.filter(status="Done").count() / project.tasks.count()) * 100
             ) if project.tasks.count() > 0 else 0,

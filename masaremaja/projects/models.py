@@ -55,6 +55,9 @@ class Task(models.Model):
     def is_overdue(self):
         '''Returns True if the task is overdue'''
         return self.due_date < timezone.now() and self.status != 'Done'
+
+    def get_testimonials(self):
+        return self.testimonials.filter(approved=True)
     
     def save(self, *args, **kwargs):
         if self.status == 'In Progress' and not self.start_date:
@@ -72,3 +75,12 @@ class ProjectFile(models.Model):
 
     def __str__(self):
         return f"File for {self.project.name}"
+
+class Testimony(models.Model):
+    project = models.OneToOneField(Project, related_name='testimony', on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(i, f"{i} - {label}") for i, label in enumerate(["Poor", "Fair", "Good", "Very Good", "Excellent"], start=1)])
+    feedback = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Testimony for {self.project.name} by {self.client.username}"

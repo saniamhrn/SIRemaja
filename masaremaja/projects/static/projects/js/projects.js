@@ -752,7 +752,13 @@ async function editDate(element, field, id, isTask = false) {
     const dateValue = currentText && !currentText.includes('No Due Date')
         ? (() => {
               const parsedDate = new Date(currentText);
-              return isNaN(parsedDate) ? '' : parsedDate.toISOString().split('T')[0];
+              if (!isNaN(parsedDate)) {
+                const adjustedDate = new Date(
+                    parsedDate.getTime() - parsedDate.getTimezoneOffset() * 60000
+                );
+                return adjustedDate.toISOString().split('T')[0];
+            }
+            return '';
           })()
         : '';
 
@@ -790,6 +796,8 @@ async function editDate(element, field, id, isTask = false) {
         // Save the date via saveField
         try {
             await saveField(dateInput, field, id, isTask, 'date');
+            // Refresh the calendar after saving
+            await initCalendar();
         } catch (error) {
             console.error('Error saving date:', error);
         }
@@ -801,6 +809,7 @@ async function editDate(element, field, id, isTask = false) {
 
     element.appendChild(dateInput);
     dateInput.focus();
+
 }
 
 
@@ -1394,3 +1403,143 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Modal with ID taskDetailModal not found');
     }
 });
+
+// Load projects and extract tasks from the API
+const loadProjects = async () => {
+    try {
+        const response = await fetch('/project/all'); // Fetch projects from API
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const projects = await response.json(); // Parse JSON response
+
+        // Extract tasks from each project
+        const tasks = projects.flatMap(project =>
+            project.tasks.map(task => ({
+                id : task.id,
+                name: task.title,
+                description : task.description,
+                status : task.status,
+                project : task.project_name,
+                assignee: task.creative_name,
+                due_date: task.due_date,
+            }))
+        );
+
+        return tasks;
+    } catch (error) {
+        console.error("Failed to load projects:", error);
+        return [];
+    }
+};
+
+let tasks = [];
+
+// Helper function to calculate days in a month
+const daysInMonth = (year, month) => {
+    const date = new Date(year, month + 1, 0);
+    return date.getDate();
+};
+
+// Function to render the calendar
+const renderCalendar = (month, year) => {
+    const calendarGrid = document.querySelector('.calendar-grid');
+    const calendarMonthYear = document.querySelector('#calendar-month-year');
+    const totalDays = daysInMonth(year, month);
+
+    // Clear previous grid
+    calendarGrid.innerHTML = '';
+
+    // Set the month and year display
+    calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
+    // Create the grid with days of the month
+    for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.classList.add('calendar-day');
+        dayCell.innerHTML = `<span>${day}</span>`;
+
+        // Filter tasks for the current day
+        const dayTasks = tasks.filter(task => {
+            const taskDate = new Date(task.due_date);
+            return (
+                taskDate.getDate() === day &&
+                taskDate.getMonth() === month &&
+                taskDate.getFullYear() === year
+            );
+        });
+
+        // Add task details to the calendar day
+        if (dayTasks.length > 0) {
+            const taskList = document.createElement('ul');
+            dayTasks.forEach(task => {
+                const taskItem = document.createElement('li');
+                
+                // Determine background color based on task.status
+                let statusStyle = '';
+                if (task.status === 'To Do') {
+                    statusStyle = 'background: linear-gradient(90deg, #FF8C00, #FF6600); color: white; border-radius: 5px; padding: 4px 10px; font-weight: bold; font-size: 0.9rem;';
+                } else if (task.status === 'In Progress') {
+                    statusStyle = 'background: linear-gradient(90deg, #4682B4, #1E90FF); color: white; border-radius: 5px; padding: 4px 10px; font-weight: bold; font-size: 0.9rem;';
+                } else if (task.status === 'Done') {
+                    statusStyle = 'background: linear-gradient(90deg, #32CD32, #7CFC00); color: white; border-radius: 5px; padding: 4px 10px; font-weight: bold; font-size: 0.9rem;';
+                }
+                
+                // Dynamically add task details with styled status
+                taskItem.innerHTML = `
+                    <span class="task-status" style="${statusStyle}">
+                        ${task.status}
+                    </span>
+                    <br>
+                    <span 
+                        class="task-title" style="cursor: pointer; color: black;" 
+                        onclick="showTaskDetail(${task.id});">
+                        <strong>${task.name}</strong>
+                    </span>
+                    <br>${task.project}
+                    <br>Assignee: ${task.assignee}`;
+                
+                taskList.appendChild(taskItem);
+            });
+            dayCell.appendChild(taskList);
+        }
+        
+
+        calendarGrid.appendChild(dayCell);
+    }
+};
+
+// Initialize calendar to the current month
+const currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+
+// Event listeners for navigation buttons
+document.querySelector('.prev-month').addEventListener('click', () => {
+    currentMonth -= 1;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear -= 1;
+    }
+    renderCalendar(currentMonth, currentYear);
+});
+
+document.querySelector('.next-month').addEventListener('click', () => {
+    currentMonth += 1;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear += 1;
+    }
+    renderCalendar(currentMonth, currentYear);
+});
+
+// Function to initialize and render the calendar
+const initCalendar = async () => {
+    tasks = await loadProjects(); // Load tasks
+    renderCalendar(currentMonth, currentYear); // Render the calendar
+};
+
+// Render the calendar initially
+initCalendar();
+
+

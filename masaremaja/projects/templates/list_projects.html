@@ -186,7 +186,8 @@
         </table>
     </div>
     
-    <h1 class="text-center mb-4 card-title">Timeline</h1>
+    <!-- Timeline -->
+    <h1 class="text-center mt-8 mb-4 card-title">Timeline</h1>
     <div id="calendar">
         <div class="calendar-header">
             <button class="prev-month">&lt;</button>
@@ -199,6 +200,7 @@
     </div>
 </div>
 
+<!-- Add Project Modal -->
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -521,85 +523,6 @@
 {% endblock content %}
 
 {% block scripts %}
-<script>
-    const clientList = {{ client_list|safe }};
-    const pmList = {{ pm_list|safe }};
-    const projectList = {{ projects|safe }};
-    const creativeList = {{ creative_list|safe }};
 
-    const projects = [
-        {% for project in projects %}
-        {
-            name: '{{ project.name }}',
-            project_manager: '{{ project.pm_username }}',
-            due_date: '{{ project.due_date }}'  
-        },
-        {% endfor %}
-    ];
-
-    const daysInMonth = (year, month) => {
-        const date = new Date(year, month, 0);
-        return date.getDate();
-    };
-
-    const renderCalendar = (month, year) => {
-        const calendarGrid = document.querySelector('.calendar-grid');
-        const calendarMonthYear = document.querySelector('#calendar-month-year');
-        const totalDays = daysInMonth(year, month);
-
-        // Clear previous grid
-        calendarGrid.innerHTML = '';
-
-        // Set the month and year display
-        calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
-
-        // Create the grid with days of the month
-        for (let day = 1; day <= totalDays; day++) {
-            const dayCell = document.createElement('div');
-            dayCell.classList.add('calendar-day');
-            dayCell.innerHTML = `<span>${day}</span>`;
-            
-            // Add project events for the day
-            const dayProjects = projects.filter(project => new Date(project.due_date).getDate() === day && new Date(project.due_date).getMonth() === month && new Date(project.due_date).getFullYear() === year);
-            if (dayProjects.length > 0) {
-                const projectList = document.createElement('ul');
-                dayProjects.forEach(project => {
-                    const projectItem = document.createElement('li');
-                    projectItem.innerHTML = `<strong>${project.name}</strong><br>PM: ${project.project_manager}`;
-                    projectList.appendChild(projectItem);
-                });
-                dayCell.appendChild(projectList);
-            }
-
-            calendarGrid.appendChild(dayCell);
-        }
-    };
-
-    // Initialize calendar to the current month
-    const currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
-
-    document.querySelector('.prev-month').addEventListener('click', () => {
-        currentMonth -= 1;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear -= 1;
-        }
-        renderCalendar(currentMonth, currentYear);
-    });
-
-    document.querySelector('.next-month').addEventListener('click', () => {
-        currentMonth += 1;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear += 1;
-        }
-        renderCalendar(currentMonth, currentYear);
-    });
-
-    // Render the current month initially
-    renderCalendar(currentMonth, currentYear);
-</script>
 <script src="{% static 'projects/js/projects.js' %}"></script>
 {% endblock scripts %}

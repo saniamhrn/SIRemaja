@@ -1,6 +1,6 @@
 .add-task-btn {
-    visibility: hidden; 
-    background: none;
+    visibility: visible; 
+    background: #f8f9fa;
     border: none;
     color: #000;
     font-size: 1em;
@@ -15,9 +15,9 @@
 }
 
 /* Show the + button only when the specific td element is hovered */
-tr:hover .add-task-btn {
+/* tr:hover .add-task-btn {
     visibility: visible;
-}
+} */
 
 /* Style the toggle button and "+" button */
 .toggle-task-btn {
