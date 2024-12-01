@@ -37,6 +37,12 @@ header h1 {
     font-size: 2.5em;
 }
 
+.navbar-nav li,
+.dropdown-menu li,
+.navbar-profile-container li {
+    list-style: none !important; 
+}
+
 /* Links */
 a {
     color: #333;
@@ -111,15 +117,25 @@ form {
 
 /* Search and Filter */
 .search-filter-bar {
-    margin-bottom: 20px;
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; 
     align-items: center;
+    flex-direction: row; 
+    gap: 10px;
 }
 
 /* Search input and select styling */
 .search-filter-bar input, .search-filter-bar select {
-    margin-right: 10px;
+    /* margin-right: 10px; */
+    width: auto;
+    flex-grow: 0;
+}
+
+.view-toggle-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
 }
 
 /* Adjust the icon size */
@@ -158,7 +174,7 @@ form {
     text-align: left;
     margin-top: 15px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    height: 120px;  /* Fixed height for consistent sizing */
+    height: 120px; 
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -183,20 +199,62 @@ form {
 }
 
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
+.btn-group-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; 
+}
+
+/* Medium screens (768px to 992px) */
+@media (min-width: 768px) and (max-width: 992px) {
+    .search-filter-bar {
+        flex-wrap: wrap; 
+        gap: 10px;
+        flex-direction: column;
+    }
+
+    .navbar-collapse {
+        display: flex;
+        justify-content: center; 
+        align-items: center; 
+    }
+
+    .navbar-nav {
+        display: flex;
+        justify-content: center; 
+        width: 100%;
+    }
+}
+
+@media (max-width: 767px) {
     .card {
         max-width: 100%; 
     }
 
     .search-filter-bar {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: column; 
+        align-items: stretch;
+        gap: 10px;
     }
 
-    .search-filter-bar input, .search-filter-bar select {
-        margin-right: 0;
-        margin-bottom: 10px;
-        width: 100%;
+    .view-toggle-bar {
+        flex-wrap: wrap;
+        justify-content: center; 
+        gap: 10px;
+    }
+
+    .navbar-collapse {
+        display: flex;
+        justify-content: space-between; 
+        align-items: center;
+    }
+
+    .navbar-nav {
+        display: flex;
+        justify-content: flex-end; 
+    }
+
+    .btn-group-container a {
+        flex: 1 1 100%; 
     }
 }

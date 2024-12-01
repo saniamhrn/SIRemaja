@@ -14,32 +14,30 @@
     {% endif %}
 
     <h2 class="card-title text-center mb-4">User List</h2>
-    <br>
-    <a href="{% url 'user_management:user_create' %}" class="btn btn-primary">Add User</a>
-    
-
-    <!-- Toggle for View Mode -->
-    <div class="my-3 d-flex justify-content-between align-items-center">
-        <div>
+    <div class="my-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center search-filter-bar">
             <!-- Search and Filter Options -->
-            <input type="text" id="searchUser" class="form-control d-inline-block me-2" placeholder="Search by username or name" style="width: 250px;">
-            <select id="roleFilter" class="form-select d-inline-block me-2" style="width: 150px;">
-                <option value="">All Roles</option>
-                <option value="Admin">Admin</option>
-                <option value="Project Manager">Project Manager</option>
-                <option value="Creative Team">Creative Team</option>
-                <option value="Client">Client</option>
-            </select>
-            <select id="sortByName" class="form-select d-inline-block" style="width: 150px;">
-                <option value="asc">Sort by Name (A-Z)</option>
-                <option value="desc">Sort by Name (Z-A)</option>
-            </select>
-        </div>
+            <div class="d-flex flex-wrap flex-column flex-md-row gap-2 mb-2 mb-md-0">
+                <input type="text" id="searchUser" class="form-control" placeholder="Search by username or name" style="max-width: 250px;">
+                <select id="roleFilter" class="form-select" style="max-width: 150px;">
+                    <option value="">All Roles</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="Creative Team">Creative Team</option>
+                    <option value="Client">Client</option>
+                </select>
+                <select id="sortByName" class="form-select" style="max-width: 150px;">
+                    <option value="asc">Sort by Name (A-Z)</option>
+                    <option value="desc">Sort by Name (Z-A)</option>
+                </select>
+            </div>
 
-        <!-- Toggle between Card and Table View -->
-        <div>
-            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
-            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
+            <!-- View Toggle and Add User Button -->
+            <div class="d-flex flex-wrap gap-2 justify-content-end view-toggle-bar">
+                <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+                <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
+                <a href="{% url 'user_management:user_create' %}" class="btn btn-primary">+ Add User</a>
+            </div>
         </div>
     </div>
 

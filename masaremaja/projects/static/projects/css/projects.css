@@ -36,16 +36,23 @@
     padding: 0;
 }
 
-/* Background color on hover */
 .toggle-task-btn:hover,
 .add-task-btn:hover {
     background-color: #e0e0e0; 
+}
+
+.project-name-td {
+    gap: 10px; 
+    white-space: nowrap; 
 }
 
 /* Style for the project name */
 .project-name {
     color: black;
     text-decoration: none;
+    flex: 1; 
+    overflow: hidden; 
+    text-overflow: ellipsis;
 }
 
 /* Underline on hover for project name */
@@ -73,8 +80,10 @@ td[onclick]:hover {
 }
 
 .dropdown-toggle {
-    width: 110px;
+    width: auto; 
+    min-width: 110px; 
     text-align: left;
+    box-sizing: border-box; 
 }
 
 .dropdown-menu-container {
@@ -83,7 +92,7 @@ td[onclick]:hover {
 }
 
 .dropdown-menu {
-    display: none; /* Hidden by default */
+    display: none; 
     position: absolute;
     left: 0;
     z-index: 1000;
@@ -111,15 +120,21 @@ td[onclick]:hover {
 
 #kanban-board {
     display: flex;
-    gap: 20px;
+    gap: 10px;
+    overflow-x: auto; /* Allow horizontal scrolling */
+    white-space: nowrap; 
+    padding: 10px;
+    justify-content: space-between;
 }
 
 .kanban-column {
-    width: 30%;
-    padding: 10px;
-    background-color: #f7f9fc;
+    flex: 1;
+    min-width: 280px; 
+    max-width: 400px;
+    background-color: #f7f9fc; 
     border: 1px solid #ddd;
-    border-radius: 5px;
+    border-radius: 8px;
+    padding: 10px;
 }
 
 .kanban-column h3 {
@@ -128,7 +143,7 @@ td[onclick]:hover {
 }
 
 .task-list {
-    min-height: 400px;  /* Ensures the drop area is sizable even if empty */
+    min-height: 400px;  
     background-color: #f3f5f9;
     padding: 10px;
     border-radius: 8px;
@@ -149,11 +164,10 @@ td[onclick]:hover {
 }
 
 .project-name-link:hover {
-    color: black; /* Prevents color change on hover */
+    color: black; 
     text-decoration: underline;
 }
 
-/* Project Task List Styling */
 .task-item {
     border: 1px solid #e1e4e8;
     border-radius: 4px;
@@ -171,6 +185,7 @@ td[onclick]:hover {
     color: #24292f;
     text-decoration: none;
     flex: 2;
+    cursor: pointer;
 }
 
 .task-title:hover {
@@ -199,8 +214,8 @@ td[onclick]:hover {
 
 /* Ensure dropdown width consistency on edit */
 .task-status select,  .task-assignee select{
-    width: 100%; /* Ensures the dropdown takes the same width */
-    max-width: 80px; /* Same width as the display */
+    width: 100%; 
+    max-width: 80px; 
 }
 
 .task-assigned_to {
@@ -324,24 +339,24 @@ td[onclick]:hover {
 }
 
 #task-project-id[disabled] {
-    color: #000; /* Ensure text is visible */
-    background-color: #e9ecef; /* Match Bootstrap disabled look */
-    opacity: 1; /* Override default dimming */
+    color: #000; 
+    background-color: #e9ecef; 
+    opacity: 1; 
 }
 
 /* Flex container for text and icon */
 .editable-field {
     display: flex;
     align-items: center;
-    gap: 8px; /* Spacing between text and icon */
-    white-space: nowrap; /* Prevent wrapping */
+    gap: 8px; 
+    white-space: nowrap; 
 }
 
 /* Editable span */
 .editable-field span {
-    flex: 1; /* Use available space */
-    overflow: hidden; /* Ensure no overflow */
-    text-overflow: ellipsis; /* Add ellipsis for long text */
+    flex: 1; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
 }
 
 /* Text input styling */
@@ -351,7 +366,7 @@ td[onclick]:hover {
     font-size: inherit;
     font-family: inherit;
     background: none;
-    flex: 1; /* Same behavior as text */
+    flex: 1; 
     padding: 0;
     margin: 0;
     min-width: 0;
@@ -386,4 +401,76 @@ td[onclick]:hover {
 
 .edit-icon:hover {
     color: #000;
+}
+
+.highlight {
+    background-color: yellow;
+    font-weight: bold;
+}
+
+.view-toggle-bar {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
+    flex-wrap: nowrap; 
+}
+
+.search-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+#searchForm {
+    max-width: 300px; 
+}
+
+@media (min-width: 768px) and (max-width: 992px) {
+    .modal-dialog {
+        max-width: 80%;
+    }
+
+    .task-item {
+        flex-direction: column; 
+        gap: 10px;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 767px) {
+    #kanban-board {
+        gap: 20px; 
+        padding: 10px;
+        /* flex-wrap: nowrap;  */
+    }
+
+    .kanban-column {
+        min-width: 250px; 
+    }
+
+    .search-filter-bar {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+
+    #searchForm {
+        width: 100%;
+        max-width: 300px; 
+    }
+
+    .view-toggle-bar {
+        display: flex;
+        flex-direction: column; /* Stack buttons vertically */
+        gap: 10px;
+        width: 100%;
+    }
+
+    .view-toggle-bar button,
+    .view-toggle-bar a {
+        flex: 1 1 auto;
+        max-width: none; 
+    }
 }

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}User List{% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block content %}
 <div class="container mt-5" style="width: fit-content;">
@@ -23,8 +23,9 @@
         <p class="card-text"><strong>Status:</strong> {% if user.is_active %}Active{% else %}Inactive{% endif %}</p>
     </div>
 
-    <a href="{% url 'account_management:update_username' %}" class="btn btn-primary">Update Username</a>
-    <a href="{% url 'account_management:update_email' %}" class="btn btn-primary">Update Email</a>
-    <a href="{% url 'account_management:update_password' %}" class="btn btn-primary">Update Password</a>
-</div>
+    <div class="btn-group-container">
+        <a href="{% url 'account_management:update_username' %}" class="btn btn-primary">Update Username</a>
+        <a href="{% url 'account_management:update_email' %}" class="btn btn-primary">Update Email</a>
+        <a href="{% url 'account_management:update_password' %}" class="btn btn-primary">Update Password</a>
+    </div></div>
 {% endblock %}

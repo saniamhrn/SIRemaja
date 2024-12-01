@@ -13,9 +13,26 @@
 
     <div id="successMessage" style="display: none;"></div>
 
-    <div class="mb-3">
-        <a href="/project/kanban/" class="btn btn-outline-secondary">Board View</a>
-        <a href="/project/view-all" class="btn btn-outline-secondary">Table View</a>
+    <div class="my-2">
+        <div class="d-flex justify-content-between align-items-center search-filter-bar">
+            <!-- Search Input -->
+            <form id="searchForm" method="get" class="d-flex flex-grow-1 flex-column flex-md-row gap-2 my-2">
+                <input 
+                    type="text" 
+                    name="q" 
+                    id="searchProject" 
+                    class="form-control me-2" 
+                    placeholder="Search tasks or projects" 
+                    value="{{ search_query|default:'' }}" 
+                    style="max-width: 300px;"
+                >
+            </form>
+            <div class="d-flex flex-wrap gap-2 justify-content-between justify-content-md-end view-toggle-bar">
+                <a href="/project/view-all/?view=table" id="tableViewButton" class="btn btn-outline-secondary">Table View</a>
+                <a href="/project/view-all/?view=card" id="cardViewButton" class="btn btn-outline-secondary">Card View</a>
+                <button id="kanbanViewButton" class="btn btn-outline-secondary active">Board View</button>
+            </div>
+        </div>
     </div>
 
     <div id="kanban-board" class="d-flex justify-content-between">
@@ -31,7 +48,7 @@
                 {% for task in tasks %}
                     {% if task.status == "To Do" %}
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
-                            <p><strong>{{ task.title }}</strong></p>
+                            <p style="font-weight: bold">{{ task.title }}</p>
                             <p>{{ task.project.name }}</p>
                         </div>
                     {% endif %}
@@ -51,7 +68,7 @@
                 {% for task in tasks %}
                     {% if task.status == "In Progress" %}
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
-                            <p><strong>{{ task.title }}</strong></p>
+                            <p style="font-weight: bold">{{ task.title }}</p>
                             <p>{{ task.project.name }}</p>
                         </div>
                     {% endif %}
@@ -71,7 +88,7 @@
                 {% for task in tasks %}
                     {% if task.status == "Done" %}
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
-                            <p><strong>{{ task.title }}</strong></p>
+                            <p style="font-weight: bold">{{ task.title }}</p>
                             <p>{{ task.project.name }}</p>
                         </div>
                     {% endif %}
@@ -83,7 +100,7 @@
 
 <!-- Project Detail Modal -->
 <div class="modal fade" id="projectDetailModalKanban" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="projectDetailModalKanban-name" onclick="editField(this, 'name', currentProjectId)"></h5>
@@ -128,10 +145,6 @@
                                     </ul>
                                 </div>
                             </div>
-                            {% comment %} <div class="detail-item">
-                                <span class="detail-label">Status</span>
-                                <span id="projectDetailModalKanban-status" onclick="editStatus(this, 'status', currentProjectId)"></span>
-                            </div> {% endcomment %}
                             <div class="detail-item">
                                 <span class="detail-label">Status</span>
                                 <div class="dropdown-menu-container">
@@ -145,10 +158,13 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="detail-item">
-                                <span class="detail-label">Due Date</span>
-                                <span id="projectDetailModalKanban-due_date" onclick="editDate(this, 'due_date', currentProjectId)"></span>
-                            </div>
+                            <div class="detail-item editable-field">
+                                <span class="detail-label">Due Date:</span>
+                                <div class="editable-content">
+                                    <span id="projectDetailModalKanban-due_date"></span>
+                                    <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', currentProjectId)"></i>
+                                </div>
+                            </div>   
                         </div>
 
                         <div style="font-size: 0.7rem">
@@ -195,7 +211,7 @@
 
 <!-- Task Detail Modal-->
 <div class="modal fade" id="taskDetailModalKanban" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="taskDetailModalKanban-title"></h5>
@@ -239,10 +255,13 @@
                             </ul>
                         </div>
                     </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Due Date</span>
-                        <span id="taskDetailModalKanban-due_date" onclick="editDate(this, 'due_date', currentTaskId, true)"></span>
-                    </div>
+                    <div class="detail-item editable-field">
+                        <span class="detail-label">Due Date:</span>
+                        <div class="editable-content">
+                            <span id="taskDetailModalKanban-due_date"></span>
+                            <i class="fa fa-calendar edit-icon" title="Edit" onclick="editDate(this.parentElement, 'due_date', currentTaskId, true)"></i>
+                        </div>
+                    </div> 
                     <div class="detail-item">
                         <span class="detail-label">Start Date</span>
                         <span id="taskDetailModalKanban-start_date"></span>
@@ -267,7 +286,7 @@
 
 <!-- Add Task Modal -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
@@ -329,6 +348,25 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmationModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="deleteConfirmationMessage">
+                <!-- Message will be dynamically set -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -336,8 +374,7 @@
     const clientList = {{ client_list|safe }};
     const pmList = {{ pm_list|safe }};
     const creativeList = {{ creative_list|safe }}; 
-    const projectList = {{ projects|safe }};
-    console.log('project list:', projectList);       
+    const projectList = {{ project_list|safe }};
 
     document.addEventListener('DOMContentLoaded', function() {
         initializeSortableKanban();
@@ -345,8 +382,7 @@
     
     // Function to open the modal with the status preset based on the column
     function showCreateTaskModalWithStatus(defaultStatus) {
-        // Here we call the main showCreateTaskModal function from projectManagement.js
-        showCreateTaskModal(null, defaultStatus, 'kanban'); // null for projectId if not using specific project in Kanban
+        showCreateTaskModal(null, defaultStatus, 'kanban'); 
     }
     
     function initializeSortableKanban() {
@@ -391,9 +427,7 @@
             body: JSON.stringify({ status: newStatus })
         })
         .then(response => response.json())
-        .then(data => {
-            console.log('Task status updated:', data);
-            
+        .then(data => {            
             moveTaskCard(taskId, newStatus);    
         })
         .catch(error => console.error('Error updating task status:', error));
