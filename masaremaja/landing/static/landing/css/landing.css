@@ -32,7 +32,7 @@ section {
   margin-top: 20px;
 }
 
-#why-us, #services, #portfolio, #our-clients {
+#why-us, #services, #portfolio, #our-clients, #testimony {
   text-align: center;
   padding: 40px 20px;
   background: transparent; /* Remove distinct section backgrounds */
@@ -104,6 +104,24 @@ section {
   font-size: 1.2rem;
   font-weight: bold;
   white-space: nowrap; 
+}
+
+/* Testimony */
+.stars {
+  font-size: 1.5rem;
+}
+
+.star {
+  color: #ccc; /* Default empty star color */
+  margin-right: 5px;
+}
+
+.star.filled {
+  color: gold; /* Filled star color */
+}
+
+.star.empty {
+  color: #ccc; /* Empty star color */
 }
 
 @keyframes scrollLeft {

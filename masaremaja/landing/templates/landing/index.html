@@ -75,6 +75,76 @@
         </div>
     </div>
 </section>
+
+<section id="testimony">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Testimony</h2>
+
+        <!-- Sort Buttons -->
+        <div class="text-center mb-4">
+            <button id="sort-asc" class="btn btn-primary">Sort by Newest</button>
+            <button id="sort-desc" class="btn btn-secondary">Sort by Oldest</button>
+        </div>
+
+        <!-- Testimony List -->
+        <div id="testimony-list" class="row">
+            {% for testimony in testimonies %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ testimony.project.name }}</h5>
+                            <p class="card-text">
+                                <span class="stars">
+                                    {% for i in star_range %}
+                                        {% if i <= testimony.rating %}
+                                            <span class="star filled">★</span>
+                                        {% else %}
+                                            <span class="star empty">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </p>
+                            <p class="card-text"><strong>Client:</strong> {{ testimony.project.client.username }}</p> <!-- Client name -->
+                            <p class="card-text"><strong>Feedback:</strong> {{ testimony.feedback }}</p>
+                            <p class="card-text"><small class="text-muted">Posted on: {{ testimony.created_at|date:"F d, Y" }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+    // Sorting functionality
+    document.getElementById('sort-asc').addEventListener('click', function () {
+        sortTestimonies('asc');
+    });
+
+    document.getElementById('sort-desc').addEventListener('click', function () {
+        sortTestimonies('desc');
+    });
+
+    function sortTestimonies(order) {
+        const testimonies = [...document.querySelectorAll('#testimony-list .col-md-4')];
+        const sortedTestimonies = testimonies.sort((a, b) => {
+            const dateA = new Date(a.querySelector('.text-muted').textContent);
+            const dateB = new Date(b.querySelector('.text-muted').textContent);
+            return order === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+        document.getElementById('testimony-list').innerHTML = '';
+        sortedTestimonies.forEach(testimony => {
+            document.getElementById('testimony-list').appendChild(testimony);
+        });
+    }
+</script>
+
+<style>
+
+    
+</style>
+
+
 {% endblock %}
 
 {% block scripts %}

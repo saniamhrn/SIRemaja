@@ -265,7 +265,7 @@ def dashboard_view(request):
         days = average_task_duration.days
         hours, remainder = divmod(average_task_duration.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
-        average_task_duration_str = f"{days}d {hours}h {minutes}m {seconds}s"
+        average_task_duration_str = f"{days}d {hours}h"
     else:
         average_task_duration_str = None
 
