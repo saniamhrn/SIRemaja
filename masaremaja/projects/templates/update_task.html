@@ -48,11 +48,94 @@
 </table>
 
 <h3>Upload New File</h3>
+<!-- Instructions -->
+<div class="custom-alert custom-alert-info" role="alert">
+    <strong>File Upload Guidelines:</strong>
+    <ul>
+        <li>Max file size: 10 MB</li>
+        <li>Allowed file formats: JPG, PNG, PDF, DOCX</li>
+    </ul>
+</div>
+
+
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     {{ file_form.as_p }}
     <button type="submit" class="btn btn-primary">Add File</button>
 </form>
 </div>
+<style>
+    /* Base styles to mimic the Bootstrap alert */
+.custom-alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    background-color: #d1ecf1; /* Light blue background */
+    color: #0c5460; /* Text color */
+    border: 1px solid #bee5eb; /* Border color */
+    font-family: Arial, sans-serif;
+}
 
+.custom-alert strong {
+    font-weight: bold;
+}
+
+/* Style for the close button */
+.custom-alert .btn-close {
+    background: transparent;
+    border: none;
+    padding: 0;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: #0c5460;
+    cursor: pointer;
+}
+
+/* Change the color of the button on hover */
+.custom-alert .btn-close:hover {
+    color: #155724;
+    text-decoration: none;
+}
+
+/* Style for the list items */
+.custom-alert ul {
+    margin-top: 10px;
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.custom-alert ul li {
+    margin-bottom: 5px;
+}
+
+</style>
 {% endblock %}
+
+
+{% block scripts %}
+
+
+<script>
+    // File input validation
+    document.querySelector("form").addEventListener("submit", function (event) {
+        var fileInput = document.querySelector("input[type='file']");
+        var file = fileInput.files[0];
+
+        // Check file size (10 MB max)
+        if (file && file.size > 10 * 1024 * 1024) {
+            alert("File size exceeds the 10 MB limit.");
+            event.preventDefault();
+            return;
+        }
+
+        // Check file format
+        var allowedFormats = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (file && !allowedFormats.includes(file.type)) {
+            alert("Only JPG, PNG, PDF, and DOCX files are allowed.");
+            event.preventDefault();
+            return;
+        }
+    });
+    
+</script>
+{% endblock scripts %}

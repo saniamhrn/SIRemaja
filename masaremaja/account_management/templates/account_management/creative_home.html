@@ -44,7 +44,7 @@
                         <span>{{ task.due_date|date:"D d M Y" }}</span>
                     </td>
                     <td>
-                        <a href="{% url 'projects:upload_file_task' task.id %}" class="btn btn-warning btn-sm">Update</a>
+                        <a href="{% url 'projects:upload_file_task' task.id %}" class="btn btn-warning btn-sm">Upload File</a>
                         <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
                     </td>
                 </tr>

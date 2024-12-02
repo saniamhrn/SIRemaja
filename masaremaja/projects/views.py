@@ -344,8 +344,23 @@ def upload_file_task(request, task_id):
 
     if request.method == 'POST':
         file_form = ProjectFileForm(request.POST, request.FILES)
+
         if file_form.is_valid():
             new_file = file_form.save(commit=False)
+
+            # Validate file size (10 MB max)
+            uploaded_file = request.FILES['file']
+            if uploaded_file.size > 10 * 1024 * 1024:  # 10 MB
+                file_form.add_error('file', 'File size exceeds the 10 MB limit.')
+                return render(request, 'update_task.html', {'file_form': file_form, 'task': task, 'project': project, 'project_files': project_files})
+
+            # Validate file type
+            allowed_formats = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            if uploaded_file.content_type not in allowed_formats:
+                file_form.add_error('file', 'Invalid file format. Only JPG, PNG, PDF, and DOCX are allowed.')
+                return render(request, 'update_task.html', {'file_form': file_form, 'task': task, 'project': project, 'project_files': project_files})
+
+            # Save the file if validation passes
             new_file.project = project
             new_file.save()
             print("file masuk")
@@ -361,13 +376,16 @@ def upload_file_task(request, task_id):
     }
     return render(request, 'update_task.html', context)
 
-
+@user_passes_test(is_creative)
+@login_required
 def delete_project_file(request, file_id):
     file = get_object_or_404(ProjectFile, id=file_id)
     
     file.delete()
 
     return redirect('projects:upload_file_task', task_id=file.project.id)  # Replace 'project_files_view' with the actual view name
+
+@login_required
 
 def download_file(request, file_id):
     # Get the file object by ID or return 404 if not found
