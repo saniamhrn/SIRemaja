@@ -35,13 +35,22 @@
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'landing:landing_index' %}">Why Us?</a>
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}#why-us">Why Us?</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'landing:landing_index' %}">Portofolio</a>
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}#services">Our Services</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'landing:landing_index' %}">Our Services</a>
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}#portfolio">Portofolio</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}#our-clients">Our Clients</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'landing:landing_index' %}#testimony">Testimony</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#contact-us">Contact Us</a>
                         </li>
 
                     <!-- Conditional Links for Logged-In Users -->
@@ -72,7 +81,7 @@
     </div>
 
     
-    <footer class="pt-4 pb-2">
+    <footer id="contact-us" class="pt-4 pb-2">
         <div class="container-md">
             <div class="row align-item-center justify-content-between">
                 <!-- Logo and Description -->

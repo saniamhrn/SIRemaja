@@ -37,8 +37,9 @@ section {
 
 #why-us, #services, #portfolio, #our-clients, #testimony {
   text-align: center;
-  padding: 40px 20px;
-  background: linear-gradient(to right, #ece9e6, #ffffff);
+  padding: 20px 20px;
+  background: #fff;
+  /* background: linear-gradient(to right, #ece9e6, #ffffff); */
 }
 
 
@@ -285,4 +286,67 @@ html {
 
 .project-details p {
   line-height: 1.6;
+}
+
+
+
+#why-us {
+  background-color: #f8f9fa;
+}
+
+.why-us-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+
+.why-us-item {
+  text-align: center;
+  padding: 10px 20px;
+  border-right: 1px solid #dee2e6;
+}
+
+.why-us-item:last-child {
+  border-right: none;
+}
+
+.why-us-icon {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 15px;
+}
+
+.why-us-item h4 {
+  font-size: 1.25rem;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.why-us-item p {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .why-us-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+  }
+
+  .why-us-item {
+      border-right: none;
+      border-bottom: 1px solid #dee2e6;
+  }
+
+  .why-us-item:last-child {
+      border-bottom: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .why-us-grid {
+      grid-template-columns: 1fr;
+  }
 }
