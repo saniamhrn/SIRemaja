@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Task
+from .models import Project, Task, ProjectFile
 from user_management.models import CustomUser as User
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -33,3 +33,8 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_client_name(self, obj):
         # Handle unassigned client case
         return obj.client.username if obj.client else "Unassigned"
+
+class FileProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectFile
+        fields = ['id', 'file', 'uploaded_at', 'project']
