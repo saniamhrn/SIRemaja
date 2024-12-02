@@ -306,6 +306,9 @@
     </div>
 </section>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
     // Sorting functionality
     document.getElementById('sort-asc').addEventListener('click', function () {
@@ -329,15 +332,5 @@
         });
     }
 </script>
-
-<style>
-
-    
-</style>
-
-
-{% endblock %}
-
-{% block scripts %}
 <script src="{% static 'landing/js/landing.js' %}" defer></script>
 {% endblock %}
