@@ -382,13 +382,17 @@
                         <div class="d-flex justify-content-between align-items-center my-3">
                             <h6 class="mb-0"><strong>Files</strong></h6>
                             <div>
-                                <button class="add-task-btn" style="visibility: visible;">
+                                <button class="add-task-btn" style="visibility: visible;" onclick="triggerFileInput()">
                                     <i class="fa fa-link"></i>
                                 </button>                                
                             </div>
                         </div>
 
-                        <div id="project-file-list"></div>
+                        <!-- Hidden file input -->
+                        <input type="file" id="fileInput" style="display: none;" onchange="uploadFile()">
+
+                        <div id="projectDetailModalList-file-list"></div>
+
                     </div>
                 </div>
             </div>
@@ -546,9 +550,14 @@
     </div>
 </div>
 
-{% endblock content %}
+{% endblock %}
 
 {% block scripts %}
-
+<script>
+    const clientList = {{ client_list|safe }};
+    const pmList = {{ pm_list|safe }};
+    const projectList = {{ projects|safe }};
+    const creativeList = {{ creative_list|safe }};
+</script>
 <script src="{% static 'projects/js/projects.js' %}"></script>
 {% endblock scripts %}

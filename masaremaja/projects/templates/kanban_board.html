@@ -191,13 +191,17 @@
                         <div class="d-flex justify-content-between align-items-center my-3">
                             <h6 class="mb-0"><strong>Files</strong></h6>
                             <div>
-                                <button class="add-task-btn" style="visibility: visible;">
+                                <button class="add-task-btn" style="visibility: visible;" onclick="triggerFileInput()">
                                     <i class="fa fa-link"></i>
                                 </button>                                
                             </div>
                         </div>
 
-                        <div id="project-file-list"></div>
+                        <!-- Hidden file input -->
+                        <input type="file" id="fileInput" style="display: none;" onchange="uploadFile()">
+
+                        <div id="projectDetailModalKanban-file-list"></div>
+
                     </div>
                 </div>
             </div>
