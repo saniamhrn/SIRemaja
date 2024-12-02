@@ -193,11 +193,129 @@ function showProjectDetail(projectId) {
             // Load tasks and calculate progress
             loadProjectTasks(project.tasks);
 
+            // Load files
+            loadProjectFiles(projectId);
+
             // Show the modal
             const detailModal = new bootstrap.Modal(document.getElementById(projectDetailModalId));
             detailModal.show();
         })
         .catch(error => console.error('Error fetching project details:', error));
+}
+
+function loadProjectFiles(projectId) {
+    const fileList = document.getElementById(`${projectDetailModalId}-file-list`);
+    fileList.innerHTML = '';
+    fetch(`/project/detail/${projectId}/`)
+        .then(response => response.json())
+        .then(project => {
+            project.files.forEach(file => {
+                const uploadedAt = new Date(file.uploaded_at);
+                const formattedDate = uploadedAt.toLocaleString('default', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true  // AM/PM format
+                });
+
+                const fileName = file.file.split('/').pop();
+
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('task-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'p-2');
+                fileItem.id = `file-item-${file.id}`;  // Set the ID to target the file for deletion
+
+                fileItem.innerHTML = `
+                    <div>
+                        <span>${fileName}</span> <!-- Show only the file name -->
+                        <p class="text-muted" style="font-size: 0.7rem;"><strong>Uploaded On</strong> <span>${formattedDate}</span></p>
+                    </div>
+                    <div class="task-actions">
+                        <a href="${file.file}" class="btn btn-sm btn-secondary" download>
+                            <i class="fa fa-download"></i> 
+                        </a>
+                        <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
+                            <i class="fa fa-trash"></i> 
+                        </button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        })
+        .catch(error => console.error('Error loading project files:', error));
+}
+
+// Function to trigger the file input click event
+function triggerFileInput() {
+    document.getElementById('fileInput').click();  // Open the file selection dialog
+}
+
+// Handle the file upload automatically after a file is selected
+function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];  // Get the selected file
+    console.log(file);
+    console.log(currentProjectId);
+    
+    if (file) {
+        const formData = new FormData();
+        formData.append('file', file);  // Append the selected file to the form data
+        formData.append('project', currentProjectId);  // Append the project ID
+
+        const csrftoken = getCookie('csrftoken');
+
+        // Make the AJAX request to upload the file
+        fetch(`/project/upload-file/${currentProjectId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,  // Add CSRF token to the request headers
+            },
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadProjectFiles(currentProjectId);  // Reload the file list in the modal
+                alert('File uploaded successfully!');
+            } else {
+                console.error('Error uploading file:', data.error);
+                alert('Error uploading file!');
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading file:', error);
+            alert('Error uploading file!');
+        });
+    }
+}
+
+function deleteFile(fileId) {
+    if (confirm('Are you sure you want to delete this file?')) {
+        fetch(`/project/delete-file/${fileId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                // Remove the file from the UI
+                const fileItem = document.getElementById(`file-item-${fileId}`);
+                if (fileItem) {
+                    fileItem.remove();
+                }
+                alert('File deleted successfully!');
+            } else {
+                alert('Error deleting file!');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting file:', error);
+            alert('Error deleting file!');
+        });
+    }
 }
 
 function loadProjectTasks(tasks) {
