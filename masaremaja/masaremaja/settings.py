@@ -155,8 +155,8 @@ if DEBUG:
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     # For production (Render)
-    MEDIA_ROOT = '/app/data/media/'
-    
+    MEDIA_ROOT = '/opt/render/data/media/'
+
 STATIC_URL = '/static/'
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
