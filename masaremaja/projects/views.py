@@ -561,33 +561,3 @@ def delete_file(request, file_id):
         return JsonResponse({'error': 'File not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-    
-    # try:
-    #     file = get_object_or_404(ProjectFile, id=file_id)
-    #     # Delete the file from the storage
-    #     file.delete()
-    #     return JsonResponse({'message': 'File deleted successfully'}, status=200)
-    # except ProjectFile.DoesNotExist:
-    #     return JsonResponse({'error': 'File not found'}, status=404)
-
-# test media files
-def list_media_files(request):
-    # List all files in MEDIA_ROOT
-    media_dir = os.path.join(settings.MEDIA_ROOT, 'project_files')
-    
-    if not os.path.exists(media_dir):
-        return HttpResponse("No media directory found.", status=500)
-    
-    # Get all files in the project_files directory
-    try:
-        media_files = os.listdir(media_dir)
-    except Exception as e:
-        return HttpResponse(f"Error reading files: {str(e)}", status=500)
-
-    # If there are no files, return a message
-    if not media_files:
-        return HttpResponse("No media files found.", status=200)
-
-    # Create an HTML response to display the file names
-    file_list = "<br>".join(media_files)
-    return HttpResponse(file_list)

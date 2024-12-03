@@ -25,7 +25,4 @@ urlpatterns = [
     path('client-project/<int:project_id>/', views.client_project_detail, name='client_project_detail'),
 
     path('submit-edit-testimony/<int:project_id>/', views.submit_edit_testimony, name='submit_edit_testimony'),
-
-    # test
-    path('list-media-files/', views.list_media_files, name='list-media-files'),
 ] 
