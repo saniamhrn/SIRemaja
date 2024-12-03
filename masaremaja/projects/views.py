@@ -541,9 +541,26 @@ def upload_project_file(request, project_id):
 @login_required
 def delete_file(request, file_id):
     try:
+        # Retrieve the file record
         file = get_object_or_404(ProjectFile, id=file_id)
-        # Delete the file from the storage
+        
+        # Delete the file from the storage (filesystem)
+        if file.file:
+            file.file.delete(save=False)  # This deletes the file from the filesystem
+
+        # Delete the record from the database
         file.delete()
+
         return JsonResponse({'message': 'File deleted successfully'}, status=200)
     except ProjectFile.DoesNotExist:
         return JsonResponse({'error': 'File not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+    # try:
+    #     file = get_object_or_404(ProjectFile, id=file_id)
+    #     # Delete the file from the storage
+    #     file.delete()
+    #     return JsonResponse({'message': 'File deleted successfully'}, status=200)
+    # except ProjectFile.DoesNotExist:
+    #     return JsonResponse({'error': 'File not found'}, status=404)
