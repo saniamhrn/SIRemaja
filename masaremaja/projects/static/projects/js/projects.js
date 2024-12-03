@@ -263,8 +263,6 @@ function triggerFileInput() {
 function uploadFile() {
     const fileInput = document.getElementById('fileInput');
     const file = fileInput.files[0];  // Get the selected file
-    console.log(file);
-    console.log(currentProjectId);
     
     if (file) {
         const formData = new FormData();
