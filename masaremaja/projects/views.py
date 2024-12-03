@@ -1,4 +1,6 @@
 import json
+import os
+from django.conf import settings
 from django.shortcuts import redirect, render, get_object_or_404
 from projects.forms import ProjectFileForm, TestimonyForm
 from rest_framework import status
@@ -10,7 +12,7 @@ from .serializers import FileProjectSerializer, ProjectSerializer, TaskSerialize
 from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
 from authentication.views import is_client, is_creative, is_pm_or_admin
 # from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse, Http404, FileResponse
+from django.http import HttpResponse, JsonResponse, Http404, FileResponse
 from django.template.loader import render_to_string
 from django.db.models import Avg, Count, Q, F, ExpressionWrapper, DurationField
 from django.utils import timezone
@@ -564,3 +566,25 @@ def delete_file(request, file_id):
     #     return JsonResponse({'message': 'File deleted successfully'}, status=200)
     # except ProjectFile.DoesNotExist:
     #     return JsonResponse({'error': 'File not found'}, status=404)
+
+# test media files
+def list_media_files(request):
+    # List all files in MEDIA_ROOT
+    media_dir = os.path.join(settings.MEDIA_ROOT, 'project_files')
+    
+    if not os.path.exists(media_dir):
+        return HttpResponse("No media directory found.", status=500)
+    
+    # Get all files in the project_files directory
+    try:
+        media_files = os.listdir(media_dir)
+    except Exception as e:
+        return HttpResponse(f"Error reading files: {str(e)}", status=500)
+
+    # If there are no files, return a message
+    if not media_files:
+        return HttpResponse("No media files found.", status=200)
+
+    # Create an HTML response to display the file names
+    file_list = "<br>".join(media_files)
+    return HttpResponse(file_list)
