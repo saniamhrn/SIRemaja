@@ -1,12 +1,12 @@
 import json
 from django.shortcuts import redirect, render, get_object_or_404
-from projects.forms import ProjectFileForm
+from projects.forms import ProjectFileForm, TestimonyForm
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Project, ProjectFile, Task
+from .models import Project, ProjectFile, Task, Testimony
 from user_management.models import CustomUser as User
-from .serializers import ProjectSerializer, TaskSerializer
+from .serializers import FileProjectSerializer, ProjectSerializer, TaskSerializer
 from django.contrib.auth.decorators import user_passes_test, permission_required, login_required
 from authentication.views import is_client, is_creative, is_pm_or_admin
 # from django.views.decorators.csrf import csrf_exempt
@@ -37,13 +37,16 @@ def get_project_detail(request, project_id):
         project = Project.objects.get(pk=project_id)
         serializer = ProjectSerializer(project)
         project_data = serializer.data
-        #debug
-        print(project_data)
 
         # Include tasks associated with this project
         tasks = Task.objects.filter(project=project)
         task_serializer = TaskSerializer(tasks, many=True)
         project_data['tasks'] = task_serializer.data
+
+        # Include files associated with this project
+        files = ProjectFile.objects.filter(project=project)
+        file_serializer = FileProjectSerializer(files, many=True)
+        project_data['files'] = file_serializer.data
         
         return JsonResponse(project_data)
     except Project.DoesNotExist:
@@ -67,9 +70,6 @@ def update_project(request, project_id):
     except Project.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
      
-    # Log the incoming request data for debugging
-    print("Request data:", request.data)
-
     serializer = ProjectSerializer(project, data=request.data, partial=True)
     if serializer.is_valid():
         serializer.save()
@@ -85,8 +85,18 @@ def update_project(request, project_id):
 
 @login_required
 def view_all_projects(request):
+    # Get the search query from the request
+    search_query = request.GET.get('q', '').strip()
+
     # Get all projects with related client and project manager data
     projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
+
+    # Filter projects and tasks based on the search query
+    if search_query:
+        projects = projects.filter(
+            Q(name__icontains=search_query) |  # Search in project names
+            Q(tasks__title__icontains=search_query)  # Search in task titles
+        ).distinct()
 
     project_pm_client = []
     for project in projects:
@@ -111,6 +121,13 @@ def view_all_projects(request):
                     'created_at': task.created_at.strftime('%B %d, %Y') if task.created_at else None,
                     'updated_at': task.updated_at.strftime('%B %d, %Y') if task.updated_at else None,
                 } for task in project.tasks.all().order_by('id')
+            ],
+            'files': [
+                {
+                    'id': file.id,
+                    'file': file.file.url,
+                    'uploaded_at': file.uploaded_at.strftime('%B %d, %Y') if file.uploaded_at else None,
+                } for file in project.files.all().order_by('id')
             ]
         })
 
@@ -118,12 +135,15 @@ def view_all_projects(request):
     client_list = list(User.objects.filter(role='Client').values('id', 'username'))
     pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
     creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
+    view_mode = request.GET.get('view', 'table')
 
     return render(request, 'list_projects.html', {
         'client_list': client_list,
         'pm_list': pm_list,
         'projects': project_pm_client,
-        'creative_list': creative_list
+        'creative_list': creative_list,
+        'view_mode': view_mode,
+        'search_query': search_query,
     })
 
 @user_passes_test(is_pm_or_admin)
@@ -153,13 +173,10 @@ def update_task(request, task_id):
 @login_required
 @api_view(['GET'])
 def get_task_detail(request, task_id):
-    print('Task ID:', Task.objects.get(pk=task_id))
     task = Task.objects.get(pk=task_id)
-    print(task.project)
     try:
         task = Task.objects.get(pk=task_id)
         serializer = TaskSerializer(task)
-        print('task selializer:', serializer.data)
         return Response(serializer.data)
     except Task.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
@@ -175,8 +192,19 @@ def delete_task(request, task_id):
 
 @login_required
 def kanban_board(request):
+    # Get the search query from the request
+    search_query = request.GET.get('q', '').strip()
+
     # Get all projects with related client and project manager data
+    tasks = Task.objects.select_related('project').all()
     projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
+
+    # Filter tasks and projects based on the search query
+    if search_query:
+        tasks = tasks.filter(
+            Q(title__icontains=search_query) |  # Search in task titles
+            Q(project__name__icontains=search_query)  # Search in project names
+        ).distinct()
 
     project_pm_client = []
     for project in projects:
@@ -204,8 +232,6 @@ def kanban_board(request):
             ]
         })
 
-    tasks = Task.objects.all()
-    # projects = Project.objects.all()
     client_list = list(User.objects.filter(role='Client').values('id', 'username'))
     pm_list = list(User.objects.filter(role='Project Manager').values('id', 'username'))
     creative_list = list(User.objects.filter(role='Creative Team').values('id', 'username'))
@@ -216,7 +242,8 @@ def kanban_board(request):
         'client_list': client_list,
         'pm_list': pm_list,
         'creative_list': creative_list,
-        'projects': project_pm_client,
+        'project_list': project_pm_client,
+        'search_query': search_query,
     }
     return render(request, 'kanban_board.html', context)
 
@@ -242,7 +269,7 @@ def dashboard_view(request):
         days = average_task_duration.days
         hours, remainder = divmod(average_task_duration.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
-        average_task_duration_str = f"{days}d {hours}h {minutes}m {seconds}s"
+        average_task_duration_str = f"{days}d {hours}h"
     else:
         average_task_duration_str = None
 
@@ -321,8 +348,23 @@ def upload_file_task(request, task_id):
 
     if request.method == 'POST':
         file_form = ProjectFileForm(request.POST, request.FILES)
+
         if file_form.is_valid():
             new_file = file_form.save(commit=False)
+
+            # Validate file size (10 MB max)
+            uploaded_file = request.FILES['file']
+            if uploaded_file.size > 10 * 1024 * 1024:  # 10 MB
+                file_form.add_error('file', 'File size exceeds the 10 MB limit.')
+                return render(request, 'update_task.html', {'file_form': file_form, 'task': task, 'project': project, 'project_files': project_files})
+
+            # Validate file type
+            allowed_formats = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            if uploaded_file.content_type not in allowed_formats:
+                file_form.add_error('file', 'Invalid file format. Only JPG, PNG, PDF, and DOCX are allowed.')
+                return render(request, 'update_task.html', {'file_form': file_form, 'task': task, 'project': project, 'project_files': project_files})
+
+            # Save the file if validation passes
             new_file.project = project
             new_file.save()
             print("file masuk")
@@ -338,13 +380,16 @@ def upload_file_task(request, task_id):
     }
     return render(request, 'update_task.html', context)
 
-
+@user_passes_test(is_creative)
+@login_required
 def delete_project_file(request, file_id):
     file = get_object_or_404(ProjectFile, id=file_id)
     
     file.delete()
 
     return redirect('projects:upload_file_task', task_id=file.project.id)  # Replace 'project_files_view' with the actual view name
+
+@login_required
 
 def download_file(request, file_id):
     # Get the file object by ID or return 404 if not found
@@ -390,10 +435,7 @@ def projects_details_dashboard(request):
     projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
 
     project_pm_client = []
-    for project in projects:
-        # debug
-        print(list(project.tasks.all()))
-        
+    for project in projects:        
         # Calculate Task Completion Rate For Each Project
         total_project_tasks = project.tasks.count()
         completed_project_tasks = project.tasks.filter(status="Done").count()
@@ -435,3 +477,90 @@ def projects_details_dashboard(request):
         'projects': project_pm_client,
         'creative_list': creative_list
     }
+
+@user_passes_test(is_client)
+@login_required
+def submit_edit_testimony(request, project_id):
+    project = get_object_or_404(Project, id=project_id)
+    testimony = Testimony.objects.filter(project=project).first()
+
+    if request.method == 'POST':
+        if testimony:
+            # Editing existing testimony
+            form = TestimonyForm(request.POST, instance=testimony)
+        else:
+            # Creating new testimony
+            form = TestimonyForm(request.POST)
+
+        if form.is_valid():
+            testimony = form.save(commit=False)
+            testimony.project = project
+            testimony.client = request.user  # Assigning logged-in user as the client
+            testimony.save()
+            return redirect('account_management:client_home')
+    else:
+        # If GET request
+        if testimony:
+            form = TestimonyForm(instance=testimony)
+        else:
+            form = TestimonyForm()
+
+    return render(request, 'submit_edit_testimony.html', {'form': form, 'project': project})
+
+"""
+The following code snippets are used in the Project Detail Modal to upload and delete project files.
+"""
+@login_required
+def upload_project_file(request, project_id):
+    try:
+        # Retrieve the project by ID
+        project = get_object_or_404(Project, id=project_id)
+
+        # Retrieve the uploaded file
+        uploaded_file = request.FILES.get('file')
+
+        # Validate the file size (e.g., 10MB limit)
+        if uploaded_file.size > 10 * 1024 * 1024:  # 10 MB max size
+            return JsonResponse({'error': 'File size exceeds the 10 MB limit.'}, status=400)
+
+        # Validate the file type (image, PDF, DOCX, etc.)
+        allowed_formats = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        if uploaded_file.content_type not in allowed_formats:
+            return JsonResponse({'error': 'Invalid file format. Only JPG, PNG, PDF, and DOCX are allowed.'}, status=400)
+
+        # Create a new ProjectFile instance and associate it with the project
+        project_file = ProjectFile(project=project, file=uploaded_file)
+        project_file.save()
+
+        return JsonResponse({'success': True, 'file_url': project_file.file.url, 'uploaded_at': project_file.uploaded_at.strftime('%B %d, %Y')})
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+@api_view(['DELETE'])
+@login_required
+def delete_file(request, file_id):
+    try:
+        # Retrieve the file record
+        file = get_object_or_404(ProjectFile, id=file_id)
+        
+        # Delete the file from the storage (filesystem)
+        if file.file:
+            file.file.delete(save=False)  # This deletes the file from the filesystem
+
+        # Delete the record from the database
+        file.delete()
+
+        return JsonResponse({'message': 'File deleted successfully'}, status=200)
+    except ProjectFile.DoesNotExist:
+        return JsonResponse({'error': 'File not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+    
+    # try:
+    #     file = get_object_or_404(ProjectFile, id=file_id)
+    #     # Delete the file from the storage
+    #     file.delete()
+    #     return JsonResponse({'message': 'File deleted successfully'}, status=200)
+    # except ProjectFile.DoesNotExist:
+    #     return JsonResponse({'error': 'File not found'}, status=404)

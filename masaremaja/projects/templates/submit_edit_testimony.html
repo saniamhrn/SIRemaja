@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>
+        {% if form.instance.pk %}
+            Edit Testimony for "{{ project.name }}"
+        {% else %}
+            Submit Testimony for "{{ project.name }}"
+        {% endif %}
+    </h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="rating" class="form-label">Rating</label>
+            <select class="form-select" id="rating" name="rating" required>
+                <option value="" selected disabled>Choose a rating</option>
+                <option value="1" {% if form.rating.value == 1 %}selected{% endif %}>1 - Poor</option>
+                <option value="2" {% if form.rating.value == 2 %}selected{% endif %}>2 - Fair</option>
+                <option value="3" {% if form.rating.value == 3 %}selected{% endif %}>3 - Good</option>
+                <option value="4" {% if form.rating.value == 4 %}selected{% endif %}>4 - Very Good</option>
+                <option value="5" {% if form.rating.value == 5 %}selected{% endif %}>5 - Excellent</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="feedback" class="form-label">Testimony</label>
+            {% if form.feedback.value %}
+            <textarea class="form-control" id="feedback" name="feedback" rows="5" required>{{ form.feedback.value }}</textarea>
+            {% else %}
+            <textarea class="form-control" id="feedback" name="feedback" rows="5" required placeholder="Enter your testimony for {{ project.name }}"></textarea>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">
+            {% if form.instance.pk %}
+                Update Testimony
+            {% else %}
+                Submit Testimony
+            {% endif %}
+        </button>
+        <a href="{% url 'account_management:client_home' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

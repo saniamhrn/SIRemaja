@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'landing/css/landing.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <img src="{% static 'landing/images/logo-transparent.png' %}" alt="Masa Remaja Logo" class="logo">
+    <p class="hero-text">360° Creative Community Agency</p>
+</section>
+
+<section id="why-us" style="padding-top: 40px;">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Why Us?</h2>
+        <p class="text-center mb-5">We deliver quality, creativity, and memorable designs that stand out.</p>
+        <div class="why-us-grid">
+            <div class="why-us-item">
+                <img src="../../static/landing/images/why_us1.png" alt="Budget-Friendly Options" class="why-us-icon">
+                <h4>Budget-Friendly Options</h4>
+                <p>We provide services that can be tailored to your budget without compromising on quality.</p>
+            </div>
+            <div class="why-us-item">
+                <img src="../../static/landing/images/why_us2.png" alt="Guaranteed Quality" class="why-us-icon">
+                <h4>Guaranteed Quality</h4>
+                <p>Every product is crafted with high standards to ensure satisfying results.</p>
+            </div>
+            <div class="why-us-item">
+                <img src="../../static/landing/images/why_us3.png" alt="Flexible Payment Plans" class="why-us-icon">
+                <h4>Flexible Payment Plans</h4>
+                <p>Our flexible payment options make it easier for everyone to access our services.</p>
+            </div>
+            <div class="why-us-item">
+                <img src="../../static/landing/images/why_us4.png" alt="Modern & Up-to-Date Designs" class="why-us-icon">
+                <h4>Modern & Up-to-Date Designs</h4>
+                <p>Our designs always follow the latest trends, ensuring fresh and relevant outcomes.</p>
+            </div>
+            <div class="why-us-item">
+                <img src="../../static/landing/images/why_us5.png" alt="Unlimited Revisions" class="why-us-icon">
+                <h4>Unlimited Revisions</h4>
+                <p>We offer unlimited revisions until you are completely satisfied with the final product.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<section id="services">
+    <div class="landing-container">
+        <h2 style="text-align: center; margin-bottom: 40px; color: #333;">Our Services</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img class="image-services" src="../../static/landing/images/services1.png" alt="Yearbook Design">
+                    <div class="overlay">
+                        <h3>Custom Yearbook Design</h3>
+                        <p>Creative yearbook designs tailored to your school's personality.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img class="image-services" src="../../static/landing/images/services2.png" alt="Photography and Videography">
+                    <div class="overlay">
+                        <h3>Photography & Videography</h3>
+                        <p>Professional photo and video services for memorable moments.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="service-card">
+                    <img class="image-services" src="../../static/landing/images/services3.png" alt="Printing and Delivery">
+                    <div class="overlay">
+                        <h3>Printing & Delivery</h3>
+                        <p>Quality printing and hassle-free delivery to your doorstep.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<section id="portfolio">
+    <div class="landing-container">
+        <h2 class="text-center mb-4" style="color: #333;">Portofolio</h2>
+        <p class="text-center mb-4" style="color: #777;">Check out our past projects and see the quality of our work.</p>
+
+        <div class="row">
+            <!-- Project 1 -->
+            <div class="col-md-6 mb-4">
+                <div class="portfolio-item">
+                    <!-- Image Carousel -->
+                    <div id="carouselProject1" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="../../static/landing/images/sman6foto.png" class="d-block w-100" alt="Project 1 Image 1">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sman6foto1.png" class="d-block w-100" alt="Project 1 Image 2">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sman6foto2.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sman6foto3.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselProject1" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselProject1" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <!-- Project Details -->
+                    <div class="project-details mt-3">
+                        <h3 style="font-size: 1.5rem; color: #555;">SMAN 6 Jakarta</h3>
+                        <p style="color: #777;">Basecamp-nya siswa berprestasi yang selalu up to date, dari akademik sampai ekskul!</p>
+                    </div>
+                </div>
+            </div>
+            <!-- Project 2 -->
+            <div class="col-md-6 mb-4">
+                <div class="portfolio-item">
+                    <!-- Image Carousel -->
+                    <div id="carouselProject2" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="../../static/landing/images/sman70foto.png" class="d-block w-100" alt="Project 1 Image 1">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sman70foto1.png" class="d-block w-100" alt="Project 1 Image 2">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sman70foto2.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselProject2" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselProject2" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <!-- Project Details -->
+                    <div class="project-details mt-3">
+                        <h3 style="font-size: 1.5rem; color: #555;">SMAN 70 Jakarta</h3>
+                        <p style="color: #777;">Markas anak hits Jaksel yang jago akademik, olahraga, sampai seni!</p>
+                    </div>
+                </div>
+            </div>
+            <!-- End Repeat -->
+             <!-- Project 3 -->
+            <div class="col-md-6 mb-4">
+                <div class="portfolio-item">
+                    <!-- Image Carousel -->
+                    <div id="carouselProject3" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="../../static/landing/images/smaalazharfoto.png" class="d-block w-100" alt="Project 1 Image 1">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/smaalazharfoto1.png" class="d-block w-100" alt="Project 1 Image 2">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/smaalazharfoto2.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/smaalazharfoto3.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselProject3" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselProject3" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <!-- Project Details -->
+                    <div class="project-details mt-3">
+                        <h3 style="font-size: 1.5rem; color: #555;">SMA Al Azhar 1 Jakarta</h3>
+                        <p style="color: #777;">Sekolah keren yang mix antara ilmu dunia, akhirat, dan vibes Islami yang asik!</p>
+                    </div>
+                </div>
+            </div>
+            <!-- End Repeat -->
+             <!-- Project 3 -->
+            <div class="col-md-6 mb-4">
+                <div class="portfolio-item">
+                    <!-- Image Carousel -->
+                    <div id="carouselProject4" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <img src="../../static/landing/images/sma3medanfoto1.png" class="d-block w-100" alt="Project 1 Image 1">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sma3medanfoto1.png" class="d-block w-100" alt="Project 1 Image 2">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sma3medanfoto2.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                            <div class="carousel-item">
+                                <img src="../../static/landing/images/sma3medanfoto3.png" class="d-block w-100" alt="Project 1 Image 3">
+                            </div>
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselProject4" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselProject4" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+
+                    <!-- Project Details -->
+                    <div class="project-details mt-3">
+                        <h3 style="font-size: 1.5rem; color: #555;">SMA Harapan 3 Medan</h3>
+                        <p style="color: #777;">Tempatnya anak Medan ngejar mimpi sambil tetap fun bareng bestie!</p>
+                    </div>
+                </div>
+            </div>
+            <!-- End Repeat -->
+        </div>
+    </div>
+</section>
+
+<section id="our-clients">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Our Trusted Clients</h2>        
+        <div class="client-ticker-wrapper">
+            <!-- Row 1: Scrolls left -->
+            <div class="ticker-row ticker-row-left">
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+                <!-- Repeat for infinite scrolling -->
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+            </div>
+            
+            <!-- Row 2: Scrolls right -->
+            <div class="ticker-row ticker-row-right">
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+                <!-- Repeat for infinite scrolling -->
+                {% for client in clients %}
+                <span class="client-name">{{ client }}</span>
+                {% endfor %}
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+<section id="testimony" style="padding-bottom: 60px;">
+    <div class="landing-container">
+        <h2 class="text-center mb-4">Testimony</h2>
+
+        <!-- Sort Buttons -->
+        <div class="text-center mb-4">
+            <button id="sort-asc" class="btn btn-primary">Sort by Newest</button>
+            <button id="sort-desc" class="btn btn-secondary">Sort by Oldest</button>
+        </div>
+
+        <!-- Testimony List -->
+        <div id="testimony-list" class="row">
+            {% for testimony in testimonies %}
+                <div class="col-md-4 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ testimony.project.name }}</h5>
+                            <p class="card-text">
+                                <span class="stars">
+                                    {% for i in star_range %}
+                                        {% if i <= testimony.rating %}
+                                            <span class="star filled">★</span>
+                                        {% else %}
+                                            <span class="star empty">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </span>
+                            </p>
+                            <p class="card-text"><strong>Client:</strong> {{ testimony.project.client.username }}</p> <!-- Client name -->
+                            <p class="card-text"><strong>Feedback:</strong> {{ testimony.feedback }}</p>
+                            <p class="card-text"><small class="text-muted">Posted on: {{ testimony.created_at|date:"F d, Y" }}</small></p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Sorting functionality
+    document.getElementById('sort-asc').addEventListener('click', function () {
+        sortTestimonies('asc');
+    });
+
+    document.getElementById('sort-desc').addEventListener('click', function () {
+        sortTestimonies('desc');
+    });
+
+    function sortTestimonies(order) {
+        const testimonies = [...document.querySelectorAll('#testimony-list .col-md-4')];
+        const sortedTestimonies = testimonies.sort((a, b) => {
+            const dateA = new Date(a.querySelector('.text-muted').textContent);
+            const dateB = new Date(b.querySelector('.text-muted').textContent);
+            return order === 'asc' ? dateA - dateB : dateB - dateA;
+        });
+        document.getElementById('testimony-list').innerHTML = '';
+        sortedTestimonies.forEach(testimony => {
+            document.getElementById('testimony-list').appendChild(testimony);
+        });
+    }
+</script>
+<script src="{% static 'landing/js/landing.js' %}" defer></script>
+{% endblock %}

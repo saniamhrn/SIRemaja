@@ -1,5 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Project List{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static 'projects/css/projects.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
@@ -7,20 +13,43 @@
 
     <div id="successMessage" style="display: none;"></div>
 
-    <div class="my-3 d-flex justify-content-between align-items-center">
-        <div>
-            <a href="/project/kanban/" class="btn btn-outline-secondary">Board View</a>
-            <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
-            <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+    <div class="my-2">
+        <div class="d-flex justify-content-between align-items-center search-filter-bar">
+            <!-- Search Bar -->
+            <form id="searchForm" method="get" class="d-flex flex-grow-1 flex-column flex-md-row gap-2 my-2">
+                <input 
+                    type="text" 
+                    name="q" 
+                    id="searchProject" 
+                    class="form-control me-2" 
+                    placeholder="Search projects or tasks" 
+                    value="{{ search_query|default:'' }}" 
+                    style="max-width: 300px;"
+                >
+                <input type="hidden" name="view" value="{{ view_mode }}"> <!-- Preserve current view -->
+            </form>
+
+            <!-- View Toggle and Add Project Buttons -->
+            <div class="d-flex flex-wrap gap-2 justify-content-between justify-content-md-end view-toggle-bar">
+                <button id="tableViewButton" class="btn btn-outline-secondary">Table View</button>
+                <button id="cardViewButton" class="btn btn-outline-secondary">Card View</button>
+                <a href="/project/board/" id="kanbanViewButton" class="btn btn-outline-secondary">Board View</a>
+                <button 
+                    type="button" 
+                    class="btn btn-primary" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#addProjectModal"
+                >
+                    + Add Project
+                </button>
+            </div>
         </div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
-            + Add Project
-        </button>
     </div>
 
     <!-- Card View -->
-    <div id="cardView" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div id="cardView" class="{% if view_mode != 'card' %}d-none{% endif %} row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         {% for project in projects %}
+        <div class="col mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
                     <h5 class="card-title">{{ project.name }}</h5>
@@ -31,15 +60,15 @@
                 </div>
                 <div class="card-footer d-flex justify-content-between">
                     <button class="btn btn-primary btn-sm" onclick="showProjectDetail({{ project.id }})">Detail</button>
-                    {% comment %} <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button> {% endcomment %}
                     <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                 </div>
             </div>
+        </div>
         {% endfor %}
     </div>
 
     <!-- Table View -->
-    <div id="tableView" class="table-responsive-sm d-none">
+    <div id="tableView" class="{% if view_mode != 'table' %}d-none{% endif %} table-responsive">
         <table id="projectTable" class="project-data-table table table-hover">
             <thead class="thead-dark">
                 <tr>
@@ -55,8 +84,8 @@
             <tbody id="projects-table-body">
                 {% for project in projects %}
                 <!-- Project Row -->
-                <tr id="project-{{ project.id }}" class="project-row">
-                    <td>
+                <tr id="project-{{ project.id }}" class="project-row collapsed">
+                    <td class="project-name-td">
                         <button class="toggle-task-btn" onclick="toggleTaskCollapse({{ project.id }})">›</button>
                         <span class="project-name" onclick="showProjectDetail({{ project.id }});" style="cursor: pointer; color: black;">
                             {{ project.name }}
@@ -116,7 +145,6 @@
                         </div>
                     </td>
                     <td>
-                        {% comment %} <button class="btn btn-danger btn-sm" onclick="deleteProject({{ project.id }}, this.closest('tr'))">Delete</button> {% endcomment %}
                         <button class="btn btn-danger btn-sm delete-project-btn" data-id="{{ project.id }}" data-type="project">Delete</button>
                     </td>
                 </tr>
@@ -181,13 +209,16 @@
             </tbody>                
         </table>
     </div>
-    
-    <h1 class="text-center mb-4 card-title">Timeline</h1>
+</div>
+
+<!-- Calendar View -->
+<div class="container mt-5">
+    <h1 class="text-center mt-4 mb-4 card-title">Timeline</h1>
     <div id="calendar">
         <div class="calendar-header">
-            <button class="prev-month">&lt;</button>
+            <button class="prev-month">‹</button>
             <span id="calendar-month-year"></span>
-            <button class="next-month">&gt;</button>
+            <button class="next-month">›</button>
         </div>
         <div class="calendar-grid">
             <!-- Calendar days will be inserted dynamically -->
@@ -195,8 +226,9 @@
     </div>
 </div>
 
+<!-- Add Project Modal -->
 <div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addProjectModalLabel">Add New Project</h5>
@@ -258,7 +290,7 @@
 
 <!-- Project Detail Modal -->
 <div class="modal fade" id="projectDetailModalList" tabindex="-1" aria-labelledby="projectDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="projectDetailModalList-name"></h5>
@@ -266,7 +298,7 @@
             </div>
             <div class="modal-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-12">
                         <div class="mb-3">
                             <h6><strong>Description</strong></h6>
                             <p id="projectDetailModalList-description"></p>
@@ -333,7 +365,7 @@
                         
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-6 col-12">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0"><strong>Tasks</strong></h6>
                             <div>
@@ -350,13 +382,17 @@
                         <div class="d-flex justify-content-between align-items-center my-3">
                             <h6 class="mb-0"><strong>Files</strong></h6>
                             <div>
-                                <button class="add-task-btn" style="visibility: visible;">
+                                <button class="add-task-btn" style="visibility: visible;" onclick="triggerFileInput()">
                                     <i class="fa fa-link"></i>
                                 </button>                                
                             </div>
                         </div>
 
-                        <div id="project-file-list"></div>
+                        <!-- Hidden file input -->
+                        <input type="file" id="fileInput" style="display: none;" onchange="uploadFile()">
+
+                        <div id="projectDetailModalList-file-list"></div>
+
                     </div>
                 </div>
             </div>
@@ -370,7 +406,7 @@
 
 <!-- Task Detail Modal-->
 <div class="modal fade" id="taskDetailModalList" tabindex="-1" aria-labelledby="taskDetailModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="taskDetailModalList-title"></h5>
@@ -445,7 +481,7 @@
 
 <!-- Add/Edit Task Modal -->
 <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addTaskModalLabel">Add New Task</h5>
@@ -463,7 +499,7 @@
                     <textarea class="form-control" id="task-description" required></textarea>
                 </div>
                 <div class="mb-3">
-                    <label for="task-status" class="form-label">Status</label>
+                    <label for="task-status-select" class="form-label">Status</label>
                     <p id="task-status-text" style="font-weight: bold; display: none;"></p> 
                     <select class="form-select" id="task-status-select" required>
                         <option value="To Do">To Do</option>
@@ -514,9 +550,7 @@
     </div>
 </div>
 
-{% endblock content %}
-
-{% load static %}
+{% endblock %}
 
 {% block scripts %}
 <script>
@@ -524,80 +558,6 @@
     const pmList = {{ pm_list|safe }};
     const projectList = {{ projects|safe }};
     const creativeList = {{ creative_list|safe }};
-
-    const projects = [
-        {% for project in projects %}
-        {
-            name: '{{ project.name }}',
-            project_manager: '{{ project.pm_username }}',
-            due_date: '{{ project.due_date }}'  // Should be in YYYY-MM-DD format for accurate date handling
-        },
-        {% endfor %}
-    ];
-
-    const daysInMonth = (year, month) => {
-        const date = new Date(year, month, 0);
-        return date.getDate();
-    };
-
-    const renderCalendar = (month, year) => {
-        const calendarGrid = document.querySelector('.calendar-grid');
-        const calendarMonthYear = document.querySelector('#calendar-month-year');
-        const totalDays = daysInMonth(year, month);
-
-        // Clear previous grid
-        calendarGrid.innerHTML = '';
-
-        // Set the month and year display
-        calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
-
-        // Create the grid with days of the month
-        for (let day = 1; day <= totalDays; day++) {
-            const dayCell = document.createElement('div');
-            dayCell.classList.add('calendar-day');
-            dayCell.innerHTML = `<span>${day}</span>`;
-            
-            // Add project events for the day
-            const dayProjects = projects.filter(project => new Date(project.due_date).getDate() === day && new Date(project.due_date).getMonth() === month && new Date(project.due_date).getFullYear() === year);
-            if (dayProjects.length > 0) {
-                const projectList = document.createElement('ul');
-                dayProjects.forEach(project => {
-                    const projectItem = document.createElement('li');
-                    projectItem.innerHTML = `<strong>${project.name}</strong><br>PM: ${project.project_manager}`;
-                    projectList.appendChild(projectItem);
-                });
-                dayCell.appendChild(projectList);
-            }
-
-            calendarGrid.appendChild(dayCell);
-        }
-    };
-
-    // Initialize calendar to the current month
-    const currentDate = new Date();
-    let currentMonth = currentDate.getMonth();
-    let currentYear = currentDate.getFullYear();
-
-    document.querySelector('.prev-month').addEventListener('click', () => {
-        currentMonth -= 1;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear -= 1;
-        }
-        renderCalendar(currentMonth, currentYear);
-    });
-
-    document.querySelector('.next-month').addEventListener('click', () => {
-        currentMonth += 1;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear += 1;
-        }
-        renderCalendar(currentMonth, currentYear);
-    });
-
-    // Render the current month initially
-    renderCalendar(currentMonth, currentYear);
 </script>
-<script src="{% static 'js/projectManagement.js' %}"></script>
+<script src="{% static 'projects/js/projects.js' %}"></script>
 {% endblock scripts %}

@@ -32,50 +32,6 @@ function getCookie(name) {
     return cookieValue;
 }
 
-// function initializeDataTable() {
-//     const tableId = 'projectTable';
-    
-//     // Destroy existing instance to prevent multiple initializations
-//     if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
-//         $(`#${tableId}`).DataTable().destroy();
-//     }
-
-//     // Initialize DataTable
-//     $(`#${tableId}`).DataTable({
-//         paging: true,
-//         searching: true,
-//         ordering: true,
-//         info: true,
-//         lengthChange: true,
-//         pageLength: 10,
-//         autoWidth: false,
-//         order: [],  // Disable default sorting
-//     });
-// }
-
-// // Search function for table view
-// function searchTableView() {
-//     const table = $('#projectTable').DataTable();
-//     let searchInput = document.getElementById('searchProject').value.toLowerCase();
-//     table.search(searchInput).draw();
-// }
-
-// // Role filtering function for table view
-// function filterTableByRole() {
-//     const table = $('#projectTable').DataTable();
-//     let selectedRole = document.getElementById('roleFilter').value;
-//     table.column(5).search(selectedRole).draw();
-// }
-
-// // Utility functions for view preference
-// function saveViewPreference(view) {
-//     localStorage.setItem('viewPreference', view);
-// }
-
-// function loadViewPreference() {
-//     return localStorage.getItem('viewPreference') || 'card';
-// }
-
 function submitProjectForm() {
     const name = document.getElementById('project-name').value;
     const description = document.getElementById('project-description').value;
@@ -164,12 +120,12 @@ function showProjectDetail(projectId) {
             }
 
             // Update fields in the project detail modal with dynamic IDs
-            const nameElement = document.getElementById('projectDetailModalList-name');
+            const nameElement = document.getElementById(`${projectDetailModalId}-name`);
             nameElement.innerHTML = `
                 <span onclick="editField(this.parentElement, 'name', ${project.id})">${project.name}</span>
                 <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'name', ${project.id})"></i>
             `;
-            const descriptionElement = document.getElementById('projectDetailModalList-description');
+            const descriptionElement = document.getElementById(`${projectDetailModalId}-description`);
             descriptionElement.innerHTML = `
                 <span onclick="editField(this.parentElement, 'description', ${project.id})">${project.description}</span>
                 <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'description', ${project.id})"></i>
@@ -237,11 +193,137 @@ function showProjectDetail(projectId) {
             // Load tasks and calculate progress
             loadProjectTasks(project.tasks);
 
+            // Load files
+            loadProjectFiles(projectId);
+
             // Show the modal
             const detailModal = new bootstrap.Modal(document.getElementById(projectDetailModalId));
             detailModal.show();
         })
         .catch(error => console.error('Error fetching project details:', error));
+}
+
+function loadProjectFiles(projectId) {
+    const fileList = document.getElementById(`${projectDetailModalId}-file-list`);
+    fileList.innerHTML = '';
+    fetch(`/project/detail/${projectId}/`)
+        .then(response => response.json())
+        .then(project => {
+            if (project.files.length === 0) {
+                fileList.innerHTML = `
+                <div>
+                    <p class="text-muted" style="font-size: 0.9rem;">No files uploaded for this project.</p>
+                </div>`
+            } else {
+                project.files.forEach(file => {
+                    const uploadedAt = new Date(file.uploaded_at);
+                    const formattedDate = uploadedAt.toLocaleString('default', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true  // AM/PM format
+                    });
+    
+                    const fileName = file.file.split('/').pop();
+                    const fileUrl = file.file;
+    
+                    const fileItem = document.createElement('div');
+                    fileItem.classList.add('task-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'p-2');
+                    fileItem.id = `file-item-${file.id}`;  // Set the ID to target the file for deletion
+    
+                    fileItem.innerHTML = `
+                        <div>
+                            <span class="file-name" style="font-weight: bold; cursor: pointer;" onclick="window.open('${fileUrl}', '_blank')">${fileName}</span> <!-- Directly open file URL in a new tab -->
+                            <p class="text-muted" style="font-size: 0.7rem;"><strong>Uploaded On</strong> <span>${formattedDate}</span></p>
+                        </div>
+                        <div class="task-actions">
+                            <a href="${file.file}" class="btn btn-sm btn-secondary" download>
+                                <i class="fa fa-download"></i> 
+                            </a>
+                            <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
+                                <i class="fa fa-trash"></i> 
+                            </button>
+                        </div>
+                    `;
+                    fileList.appendChild(fileItem);
+                });
+            }
+        })
+        .catch(error => console.error('Error loading project files:', error));
+}
+
+// Function to trigger the file input click event
+function triggerFileInput() {
+    document.getElementById('fileInput').click();  // Open the file selection dialog
+}
+
+// Handle the file upload automatically after a file is selected
+function uploadFile() {
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];  // Get the selected file
+    console.log(file);
+    console.log(currentProjectId);
+    
+    if (file) {
+        const formData = new FormData();
+        formData.append('file', file);  // Append the selected file to the form data
+        formData.append('project', currentProjectId);  // Append the project ID
+
+        const csrftoken = getCookie('csrftoken');
+
+        // Make the AJAX request to upload the file
+        fetch(`/project/upload-file/${currentProjectId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,  // Add CSRF token to the request headers
+            },
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadProjectFiles(currentProjectId);  // Reload the file list in the modal
+                alert('File uploaded successfully!');
+            } else {
+                console.error('Error uploading file:', data.error);
+                alert('Error uploading file!');
+            }
+        })
+        .catch(error => {
+            console.error('Error uploading file:', error);
+            alert('Error uploading file!');
+        });
+    }
+}
+
+function deleteFile(fileId) {
+    if (confirm('Are you sure you want to delete this file?')) {
+        fetch(`/project/delete-file/${fileId}/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                // Remove the file from the UI
+                const fileItem = document.getElementById(`file-item-${fileId}`);
+                if (fileItem) {
+                    fileItem.remove();
+                }
+                alert('File deleted successfully!');
+            } else {
+                alert('Error deleting file!');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting file:', error);
+            alert('Error deleting file!');
+        });
+    }
 }
 
 function loadProjectTasks(tasks) {
@@ -299,7 +381,7 @@ function updateProgressBar(taskItems) {
     }).length;
 
     const progressPercent = totalTasks ? (completedTasks / totalTasks) * 100 : 0;
-    const progressBar = document.getElementById('projectDetailModalList-progress-bar');
+    const progressBar = document.getElementById(`${projectDetailModalId}-progress-bar`);
 
     if (progressBar) {
         progressBar.style.width = `${progressPercent}%`;
@@ -311,7 +393,6 @@ function updateProgressBar(taskItems) {
 }
 
 function showCreateTaskModal(projectId, status = null, pageContext = 'list') {
-    console.log("showCreateTaskModal", projectId, status, pageContext)
     const statusText = document.getElementById('task-status-text');
     const statusSelect = document.getElementById('task-status-select');
     const projectSelect = document.getElementById('task-project-id');
@@ -725,18 +806,163 @@ if (addTaskModal) {
     addTaskModal.addEventListener('hidden.bs.modal', clearTaskForm);
 }
 
-function toggleTaskCollapse(projectId) {
+const projectsToExpand = new Set(); // Tracks projects to expand based on search
+const expandedProjects = new Set(); // Tracks projects expanded by search
+const manuallyCollapsedProjects = new Set(); // To track manually collapsed projects
+
+// Function to initialize project states when the page loads
+function initializeProjectStates() {
+    document.querySelectorAll('.project-row').forEach(projectRow => {
+        const projectId = projectRow.id.replace('project-', '');
+        const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
+        
+        // Check if any task rows are visible (collapsed or expanded)
+        const isCollapsed = Array.from(taskRows).every(taskRow => taskRow.style.display === "none");
+        
+        // If task rows are collapsed, mark project as collapsed, else mark as expanded
+        if (isCollapsed) {
+            expandedProjects.delete(projectId);
+        } else {
+            expandedProjects.add(projectId);
+        }
+    });
+}
+
+// Toggle task collapse (expand/collapse project rows)
+function toggleTaskCollapse(projectId, forceExpand = false) {
+    const projectRow = document.getElementById(`project-${projectId}`);
     const taskRows = document.querySelectorAll(`.task-row[data-project-id="${projectId}"]`);
-    const toggleButton = document.querySelector(`button.toggle-task-btn[onclick="toggleTaskCollapse(${projectId})"]`);
+    const toggleButton = projectRow.querySelector('.toggle-task-btn');
     
-    // Toggle visibility of task rows
+    const isCollapsed = Array.from(taskRows).every(
+        taskRow => taskRow.style.display === "none" || taskRow.style.display === ""
+    );
+
+    if (forceExpand || isCollapsed) {
+        // Expand the project
+        taskRows.forEach(taskRow => {
+            taskRow.style.display = "table-row";
+        });
+        toggleButton.textContent = "⌄"; 
+        projectRow.classList.remove('collapsed');
+        expandedProjects.add(projectId); 
+        manuallyCollapsedProjects.delete(projectId);
+    } else{
+        // Collapse the project
+        taskRows.forEach(taskRow => {
+            taskRow.style.display = "none";
+        });
+        toggleButton.textContent = "›"; 
+        projectRow.classList.add('collapsed');
+        expandedProjects.delete(projectId);
+        manuallyCollapsedProjects.add(projectId);
+    }
+}
+
+// Function to highlight and expand projects based on search query
+function highlightAndExpandProjects(query) {
+    const taskRows = document.querySelectorAll('.task-row');
+    const projectRows = document.querySelectorAll('.project-row');
+    const taskCards = document.querySelectorAll('.task-card'); // For board view
+    const projectCards = document.querySelectorAll('.card-title'); // For card view
+
+    projectsToExpand.clear(); // Clear the set before populating it
+
+    // Handle task rows matching the query
     taskRows.forEach(taskRow => {
-        taskRow.style.display = (taskRow.style.display === "none" || taskRow.style.display === "") ? "table-row" : "none";
+        const taskTitle = taskRow.querySelector('.task-title');
+        if (!taskTitle) return;
+
+        const projectId = taskRow.dataset.projectId;
+        const taskTitleText = taskTitle.textContent.toLowerCase();
+
+        if (taskTitleText.includes(query.toLowerCase())) {
+            highlightMatches(taskTitle, query);
+            projectsToExpand.add(projectId); // Track projects to expand
+        } else {
+            taskTitle.innerHTML = taskTitle.textContent; // Reset highlights
+        }
     });
 
-    // Update the toggle button icon
-    const anyTaskVisible = Array.from(taskRows).some(taskRow => taskRow.style.display === "table-row");
-    toggleButton.textContent = anyTaskVisible ? "⌄" : "›";
+    // Handle project rows matching the query (only highlight, not expand)
+    projectRows.forEach(projectRow => {
+        const projectId = projectRow.id.replace('project-', '');
+        const projectTitle = projectRow.querySelector('.project-name');
+        const projectTitleText = projectTitle.textContent.toLowerCase();
+
+        if (projectTitleText.includes(query.toLowerCase()) && !projectsToExpand.has(projectId)) {
+            highlightMatches(projectTitle, query);
+        } else {
+            projectTitle.innerHTML = projectTitle.textContent; // Reset highlights
+        }
+    });
+
+     // Card View: Handle project cards matching the query (inside the card view)
+     projectCards.forEach(cardTitle => {
+        const projectTitleText = cardTitle.textContent.toLowerCase();
+
+        if (projectTitleText.includes(query.toLowerCase())) {
+            highlightMatches(cardTitle, query); // Highlight matching project name in card
+        } else {
+            cardTitle.innerHTML = cardTitle.textContent; // Reset highlights
+        }
+    });
+
+    // Board View: Handle task cards and project names matching the query
+    taskCards.forEach(taskCard => {
+        const taskTitle = taskCard.querySelector('p strong');
+        const projectName = taskCard.querySelector('p');
+        if (taskTitle) {
+            const taskTitleText = taskTitle.textContent.toLowerCase();
+            if (taskTitleText.includes(query.toLowerCase())) {
+                highlightMatches(taskTitle, query); // Highlight task titles
+            } else {
+                taskTitle.innerHTML = taskTitle.textContent; // Reset highlights
+            }
+        }
+
+        if (projectName) {
+            const projectNameText = projectName.textContent.toLowerCase();
+            if (projectNameText.includes(query.toLowerCase())) {
+                highlightMatches(projectName, query); // Highlight project name 
+            } else {
+                projectName.innerHTML = projectName.textContent; // Reset highlights
+            }
+        }
+    });
+
+    // Expand projects if a task matches or if the project is manually collapsed
+    projectsToExpand.forEach(projectId => {
+        if (!manuallyCollapsedProjects.has(projectId)) {
+            toggleTaskCollapse(projectId, true); // Force-expand if not manually expanded
+        }
+    });
+}
+
+// Function to reset highlights and collapse projects that were expanded by search
+function resetHighlightsAndCollapse() {
+    // Reset all highlights
+    document.querySelectorAll('.highlight').forEach(span => {
+        span.replaceWith(span.innerHTML); // Replace <span> with its inner text
+    });
+
+    document.querySelectorAll('.project-row').forEach(projectRow => {
+        const projectId = projectRow.id.replace('project-', '');
+        
+        // Collapse project if it's not in the expandedProjects or manuallyCollapsedProjects
+        if (!projectsToExpand && !expandedProjects.has(projectId) && !manuallyCollapsedProjects.has(projectId)) {
+            toggleTaskCollapse(projectId, false); // Collapse project
+        }
+    });
+}
+
+
+// Function to highlight matched text in search
+function highlightMatches(element, query) {
+    const regex = new RegExp(`(${query})`, 'gi'); // Create a case-insensitive regex to match the query
+    const text = element.textContent;
+    const replacedText = text.replace(regex, '<span class="highlight">$1</span>'); // Highlight the matched text
+    element.innerHTML = replacedText; 
 }
 
 async function editDate(element, field, id, isTask = false) {
@@ -752,7 +978,13 @@ async function editDate(element, field, id, isTask = false) {
     const dateValue = currentText && !currentText.includes('No Due Date')
         ? (() => {
               const parsedDate = new Date(currentText);
-              return isNaN(parsedDate) ? '' : parsedDate.toISOString().split('T')[0];
+              if (!isNaN(parsedDate)) {
+                const adjustedDate = new Date(
+                    parsedDate.getTime() - parsedDate.getTimezoneOffset() * 60000
+                );
+                return adjustedDate.toISOString().split('T')[0];
+            }
+            return '';
           })()
         : '';
 
@@ -790,6 +1022,8 @@ async function editDate(element, field, id, isTask = false) {
         // Save the date via saveField
         try {
             await saveField(dateInput, field, id, isTask, 'date');
+            // Refresh the calendar after saving
+            await initCalendar();
         } catch (error) {
             console.error('Error saving date:', error);
         }
@@ -801,6 +1035,7 @@ async function editDate(element, field, id, isTask = false) {
 
     element.appendChild(dateInput);
     dateInput.focus();
+
 }
 
 
@@ -971,6 +1206,7 @@ async function selectOption(field, id, newValue, displayText, isTask) {
     const tempElement = { value: newValue, displayText: displayText };
     try {
         await saveField(tempElement, field, id, isTask);
+        await initCalendar();
 
         // Update progress bar if the field is "status"
         if (field === 'status' && isTask) {
@@ -987,9 +1223,9 @@ function closeDropdown(dropdownMenu) {
     if (dropdownMenu) {
         const dropdownInstance = bootstrap.Dropdown.getInstance(dropdownMenu.closest('.dropdown-menu-container .dropdown-toggle'));
         if (dropdownInstance) {
-            dropdownInstance.hide(); // Use Bootstrap's hide method
+            dropdownInstance.hide(); 
         } else {
-            dropdownMenu.classList.remove('show'); // Fallback in case Bootstrap instance is missing
+            dropdownMenu.classList.remove('show'); 
         }
     }
 }
@@ -1102,6 +1338,7 @@ async function saveField(element, field, id, isTask = false) {
                 }
             }
             updateTaskTableRow(id, updatedData, field);
+            
         } else {
             // For project fields, update the project data in the table if needed
             const updatedProjectData = { [field]: displayText };
@@ -1137,11 +1374,9 @@ function updateProjectTableRow(projectId, updatedData) {
     const row = document.getElementById(`project-${projectId}`);
     if (row) {
         if (updatedData.name) row.querySelector('.project-name').textContent = updatedData.name;
-        // if (updatedData.description) row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
         if (updatedData.description && row.querySelector(`#description-${projectId} span`)) {
             row.querySelector(`#description-${projectId} span`).textContent = updatedData.description;
         }
-        // if (updatedData.status) row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
         if (updatedData.status && row.querySelector(`#status-${projectId} span`)) {
             row.querySelector(`#status-${projectId} span`).textContent = updatedData.status;
         }
@@ -1269,8 +1504,11 @@ document.addEventListener('click', function (event) {
     if (event.target.classList.contains('delete-task-btn') || event.target.classList.contains('delete-project-btn')) {
         const itemId = event.target.getAttribute('data-id');
         const itemType = event.target.getAttribute('data-type');
-        const rowElement = event.target.closest('tr');
-        showDeleteConfirmation(itemId, itemType, rowElement);
+        const rowElement = event.target.closest('tr') || event.target.closest('.col');
+        if (rowElement) {
+            // Show delete confirmation modal with the item information
+            showDeleteConfirmation(itemId, itemType, rowElement);
+        }
     }
 });
 
@@ -1315,60 +1553,100 @@ function moveTaskCard(taskId, newStatus) {
     }
 }
 
+// View Toggle Functions
+function saveViewPreference(view) {
+    localStorage.setItem('projectsViewPreference', view);
+}
+
+// Load the user's view preference from local storage
+function loadViewPreference() {
+    return localStorage.getItem('projectsViewPreference') || 'table'; // Default to 'table'
+}
+
+// Apply the saved view preference
+function applyViewPreference(view) {
+    if (view === 'table') {
+        // Only apply to pages that have table view
+        const tableView = document.getElementById('tableView');
+        const cardView = document.getElementById('cardView');
+        if (tableView && cardView) {
+            tableView.classList.remove('d-none');
+            cardView.classList.add('d-none');
+        }
+    } else if (view === 'card') {
+        // Only apply to pages that have card view
+        const tableView = document.getElementById('tableView');
+        const cardView = document.getElementById('cardView');
+        if (tableView && cardView) {
+            cardView.classList.remove('d-none');
+            tableView.classList.add('d-none');
+        }
+    }
+
+    // Highlight the active button only if the elements exist
+    const cardViewButton = document.getElementById('cardViewButton');
+    const tableViewButton = document.getElementById('tableViewButton');
+    const kanbanViewButton = document.getElementById('kanbanViewButton');
+    
+    if (cardViewButton) {
+        cardViewButton.classList.toggle('active', view === 'card');
+    }
+    if (tableViewButton) {
+        tableViewButton.classList.toggle('active', view === 'table');
+    }
+    if (kanbanViewButton) {
+        kanbanViewButton.classList.toggle('active', view === 'kanban');
+    }
+}
+
+// Initialize view switching
+function initializeViewSwitcher() {
+    const savedView = loadViewPreference();
+    applyViewPreference(savedView);
+
+    // Event listeners for buttons
+    document.getElementById('cardViewButton')?.addEventListener('click', function () {
+        saveViewPreference('card');
+        applyViewPreference('card');
+    });
+
+    document.getElementById('tableViewButton')?.addEventListener('click', function () {
+        saveViewPreference('table');
+        applyViewPreference('table');
+    });
+
+    document.getElementById('kanbanViewButton')?.addEventListener('click', function () {
+        saveViewPreference('kanban');
+        window.location.href = '/project/board/'; // Redirect to Kanban page
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    // initializeDataTable();
-    // // Initialize DataTable if Table View is active
-    // let savedView = loadViewPreference();  // Load saved view preference
-    // if (savedView === 'table') {
-    //     document.getElementById('tableView').classList.remove('d-none');
-    //     document.getElementById('cardView').classList.add('d-none');
-    //     initializeDataTable();
-    // }
+    initializeProjectStates(); 
 
-    // // Event listeners for toggling between Card View and Table View
-    // document.getElementById('cardViewButton').addEventListener('click', function () {
-    //     document.getElementById('cardView').classList.remove('d-none');
-    //     document.getElementById('tableView').classList.add('d-none');
-    //     saveViewPreference('card');
-    //     if ($.fn.DataTable.isDataTable('#projectTable')) {
-    //         $('#projectTable').DataTable().destroy();
-    //     }
-    // });
+    initializeViewSwitcher();
 
-    // document.getElementById('tableViewButton').addEventListener('click', function () {
-    //     document.getElementById('tableView').classList.remove('d-none');
-    //     document.getElementById('cardView').classList.add('d-none');
-    //     saveViewPreference('table');
-    //     initializeDataTable();
-    // });
+    const searchInput = document.getElementById('searchProject');
 
-    // // Optional: Additional search and filter functions for DataTables
-    // document.getElementById('searchProject').addEventListener('input', function () {
-    //     searchTableView();
-    // });
+    // Trigger search on input change
+    let debounceTimeout; 
 
-    // document.getElementById('sortbyNameProjects').addEventListener('change', function () {
-    //     filterTableByRole();
-    // });
-
-    // Add event listener to delete buttons
-    // document.querySelectorAll('.delete-task-btn').forEach(button => {
-    //     button.addEventListener('click', function() {
-    //         const taskId = this.getAttribute('data-task-id');
-    //         const rowElement = this.closest('tr');
-    //         showDeleteConfirmation(taskId, rowElement);
-    //     });
-    // });
-
-    // Event listener for confirm delete button in the delete confirmation modal
-    // document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
-    //     if (taskToDeleteId && taskRowElement) {
-    //         deleteTask(taskToDeleteId, taskRowElement);  // Call deleteTask if confirmation is accepted
-    //     } else {
-    //         console.error("No task ID or row element found for deletion");
-    //     }
-    // });
+    searchInput.addEventListener('input', function (e) {
+        clearTimeout(debounceTimeout);
+    
+        // Prevent form submission on input
+        e.preventDefault();
+    
+        debounceTimeout = setTimeout(function () {
+            const query = searchInput.value.trim();
+    
+            if (query) {
+                highlightAndExpandProjects(query); // Highlight and expand matches
+            } else {
+                resetHighlightsAndCollapse(); // Reset everything if query is cleared
+            }
+        }, 300); // Debounce duration
+    });
 
     const projectDetailModal = document.getElementById(projectDetailModalId);
     if (projectDetailModal) {
@@ -1394,3 +1672,143 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('Modal with ID taskDetailModal not found');
     }
 });
+
+// Load projects and extract tasks from the API
+const loadProjects = async () => {
+    try {
+        const response = await fetch('/project/all'); // Fetch projects from API
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const projects = await response.json(); // Parse JSON response
+
+        // Extract tasks from each project
+        const tasks = projects.flatMap(project =>
+            project.tasks.map(task => ({
+                id : task.id,
+                name: task.title,
+                description : task.description,
+                status : task.status,
+                project : task.project_name,
+                assignee: task.creative_name,
+                due_date: task.due_date,
+            }))
+        );
+
+        return tasks;
+    } catch (error) {
+        console.error("Failed to load projects:", error);
+        return [];
+    }
+};
+
+let tasks = [];
+
+// Helper function to calculate days in a month
+const daysInMonth = (year, month) => {
+    const date = new Date(year, month + 1, 0);
+    return date.getDate();
+};
+
+// Function to render the calendar
+const renderCalendar = (month, year) => {
+    const calendarGrid = document.querySelector('.calendar-grid');
+    const calendarMonthYear = document.querySelector('#calendar-month-year');
+    const totalDays = daysInMonth(year, month);
+
+    // Clear previous grid
+    calendarGrid.innerHTML = '';
+
+    // Set the month and year display
+    calendarMonthYear.innerText = `${new Date(year, month).toLocaleString('default', { month: 'long' })} ${year}`;
+
+    // Create the grid with days of the month
+    for (let day = 1; day <= totalDays; day++) {
+        const dayCell = document.createElement('div');
+        dayCell.classList.add('calendar-day');
+        dayCell.innerHTML = `<span>${day}</span>`;
+
+        // Filter tasks for the current day
+        const dayTasks = tasks.filter(task => {
+            const taskDate = new Date(task.due_date);
+            return (
+                taskDate.getDate() === day &&
+                taskDate.getMonth() === month &&
+                taskDate.getFullYear() === year
+            );
+        });
+
+        // Add task details to the calendar day
+        if (dayTasks.length > 0) {
+            const taskList = document.createElement('ul');
+            dayTasks.forEach(task => {
+                const taskItem = document.createElement('li');
+                
+                // Determine background color based on task.status
+                let statusStyle = '';
+                if (task.status === 'To Do') {
+                    statusStyle = 'background: linear-gradient(90deg, #FF8C00, #FF6600); color: white; border-radius: 5px; padding: 4px 10px; font-weight: bold; font-size: 0.9rem;';
+                } else if (task.status === 'In Progress') {
+                    statusStyle = 'background: linear-gradient(90deg, #4682B4, #1E90FF); color: white; border-radius: 5px; padding: 4px 10px; font-weight: bold; font-size: 0.9rem;';
+                } else if (task.status === 'Done') {
+                    statusStyle = 'background: linear-gradient(90deg, #32CD32, #7CFC00); color: white; border-radius: 5px; padding: 4px 10px; font-weight: bold; font-size: 0.9rem;';
+                }
+                
+                // Dynamically add task details with styled status
+                taskItem.innerHTML = `
+                    <span class="task-status" style="${statusStyle}">
+                        ${task.status}
+                    </span>
+                    <br>
+                    <span 
+                        class="task-title" style="cursor: pointer; color: black;" 
+                        onclick="showTaskDetail(${task.id});">
+                        <strong>${task.name}</strong>
+                    </span>
+                    <br>${task.project}
+                    <br>Assignee: ${task.assignee}`;
+                
+                taskList.appendChild(taskItem);
+            });
+            dayCell.appendChild(taskList);
+        }
+        
+
+        calendarGrid.appendChild(dayCell);
+    }
+};
+
+// Initialize calendar to the current month
+const currentDate = new Date();
+let currentMonth = currentDate.getMonth();
+let currentYear = currentDate.getFullYear();
+
+// Event listeners for navigation buttons
+document.querySelector('.prev-month').addEventListener('click', () => {
+    currentMonth -= 1;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear -= 1;
+    }
+    renderCalendar(currentMonth, currentYear);
+});
+
+document.querySelector('.next-month').addEventListener('click', () => {
+    currentMonth += 1;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear += 1;
+    }
+    renderCalendar(currentMonth, currentYear);
+});
+
+// Function to initialize and render the calendar
+const initCalendar = async () => {
+    tasks = await loadProjects(); // Load tasks
+    renderCalendar(currentMonth, currentYear); // Render the calendar
+};
+
+// Render the calendar initially
+initCalendar();
+
+
