@@ -209,39 +209,47 @@ function loadProjectFiles(projectId) {
     fetch(`/project/detail/${projectId}/`)
         .then(response => response.json())
         .then(project => {
-            project.files.forEach(file => {
-                const uploadedAt = new Date(file.uploaded_at);
-                const formattedDate = uploadedAt.toLocaleString('default', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    hour12: true  // AM/PM format
+            if (project.files.length === 0) {
+                fileList.innerHTML = `
+                <div>
+                    <p class="text-muted" style="font-size: 0.9rem;">No files uploaded for this project.</p>
+                </div>`
+            } else {
+                project.files.forEach(file => {
+                    const uploadedAt = new Date(file.uploaded_at);
+                    const formattedDate = uploadedAt.toLocaleString('default', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true  // AM/PM format
+                    });
+    
+                    const fileName = file.file.split('/').pop();
+                    const fileUrl = file.file;
+    
+                    const fileItem = document.createElement('div');
+                    fileItem.classList.add('task-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'p-2');
+                    fileItem.id = `file-item-${file.id}`;  // Set the ID to target the file for deletion
+    
+                    fileItem.innerHTML = `
+                        <div>
+                            <span class="file-name" style="font-weight: bold; cursor: pointer;" onclick="window.open('${fileUrl}', '_blank')">${fileName}</span> <!-- Directly open file URL in a new tab -->
+                            <p class="text-muted" style="font-size: 0.7rem;"><strong>Uploaded On</strong> <span>${formattedDate}</span></p>
+                        </div>
+                        <div class="task-actions">
+                            <a href="${file.file}" class="btn btn-sm btn-secondary" download>
+                                <i class="fa fa-download"></i> 
+                            </a>
+                            <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
+                                <i class="fa fa-trash"></i> 
+                            </button>
+                        </div>
+                    `;
+                    fileList.appendChild(fileItem);
                 });
-
-                const fileName = file.file.split('/').pop();
-
-                const fileItem = document.createElement('div');
-                fileItem.classList.add('task-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'p-2');
-                fileItem.id = `file-item-${file.id}`;  // Set the ID to target the file for deletion
-
-                fileItem.innerHTML = `
-                    <div>
-                        <span>${fileName}</span> <!-- Show only the file name -->
-                        <p class="text-muted" style="font-size: 0.7rem;"><strong>Uploaded On</strong> <span>${formattedDate}</span></p>
-                    </div>
-                    <div class="task-actions">
-                        <a href="${file.file}" class="btn btn-sm btn-secondary" download>
-                            <i class="fa fa-download"></i> 
-                        </a>
-                        <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
-                            <i class="fa fa-trash"></i> 
-                        </button>
-                    </div>
-                `;
-                fileList.appendChild(fileItem);
-            });
+            }
         })
         .catch(error => console.error('Error loading project files:', error));
 }

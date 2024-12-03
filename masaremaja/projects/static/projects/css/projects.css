@@ -232,6 +232,20 @@ td[onclick]:hover {
     text-align: center;
 }
 
+.file-name {
+    max-width: 200px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    display: inline-block;
+    color: #24292f;
+}
+
+.file-name:hover {
+    color: #24292f;
+    text-decoration: underline;
+}
+
 /* Detail Box Styling */
 .detail-box {
     border: 1px solid #ddd;
