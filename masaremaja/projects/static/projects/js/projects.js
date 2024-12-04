@@ -239,7 +239,7 @@ function loadProjectFiles(projectId) {
                             <p class="text-muted" style="font-size: 0.7rem;"><strong>Uploaded On</strong> <span>${formattedDate}</span></p>
                         </div>
                         <div class="task-actions">
-                            <a href="${fileUrl}?response-cache=download" class="btn btn-sm btn-secondary" download>
+                            <a href="${fileUrl}?response-content-disposition=attachment" class="btn btn-sm btn-secondary" download>
                                 <i class="fa fa-download"></i> 
                             </a>
                             <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
@@ -500,7 +500,7 @@ function showTaskDetail(taskId) {
             const taskTitleElement = document.getElementById(`${taskDetailModalId}-title`);
             taskTitleElement.innerHTML = `
                 <a href="javascript:void(0);" onclick="showProjectDetail(${projectId})" class="project-name-link">${projectName}</a> / 
-                <span ondblclick="editField(this.parentElement, 'title', ${taskId}, true)">${data.title}</span>
+                <span>${data.title}</span>
                 <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'title', ${taskId}, true)"></i>
             `;
 
@@ -696,12 +696,15 @@ function submitTaskForm(projectId, taskId = null, status = null, pageContext = '
 
             taskRow.innerHTML = `
                 <td style="padding-left: 50px;">
-                    <span onclick="showEditTaskModal(${data.id});" style="cursor: pointer; color: black;">
+                    <span class="task-title" onclick="showTaskDetail(${data.id});" style="cursor: pointer; color: black;">
                         ${data.title}
                     </span>
                 </td>
-                <td id="task-description-${data.id}" onclick="editField(this, 'description', ${data.id}, true)">
-                    <span>${data.description}</span>
+                <td id="task-description-${data.id}">
+                    <div class="editable-field">
+                        <span>${data.description}</span>
+                        <i class="fa fa-edit edit-icon" onclick="editField(this.parentElement, 'description', ${data.id}, true)" title="Edit"></i>
+                    </div>
                 </td>
                 <td id="task-status-${data.id}">
                     <div class="dropdown-menu-container">
@@ -1330,8 +1333,8 @@ async function saveField(element, field, id, isTask = false) {
                     // Update the title while ensuring the project link is not duplicated
                     titleElement.innerHTML = `
                         ${projectLinkHTML} / 
-                        <span ondblclick="editField(this, '${field}', ${id}, true)">${displayText}</span>
-                        <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'description', ${id}, true)" title="Edit"></i>
+                        <span>${displayText}</span>
+                        <i class="fa fa-edit edit-icon" title="Edit" onclick="editField(this.parentElement, 'title', ${id}, true)" title="Edit"></i>
                     `;
                 }
             }
