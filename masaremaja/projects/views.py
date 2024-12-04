@@ -534,9 +534,6 @@ def upload_project_file(request, project_id):
         project_file = ProjectFile(project=project, file=uploaded_file)
         project_file.save()
 
-        # test
-        print(f"File uploaded to: {project_file.file.path}")  # Check the full path
-
         return JsonResponse({'success': True, 'file_url': project_file.file.url, 'uploaded_at': project_file.uploaded_at.strftime('%B %d, %Y')})
 
     except Exception as e:
