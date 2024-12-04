@@ -37,3 +37,4 @@ urlpatterns = [
 # Serve media files during development
 if settings.DEBUG:  # Ensure this is only in development (DEBUG=True)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)  # Serve static files
