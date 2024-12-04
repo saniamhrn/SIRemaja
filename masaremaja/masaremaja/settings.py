@@ -167,29 +167,50 @@ AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 AWS_S3_FILE_OVERWRITE = False
 AWS_DEFAULT_ACL = None
 
-# Media file management
-if DEBUG:
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-else:
-    # For production 
-    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
-    MEDIA_ROOT = None
+# Static and Media files configuration (staticfiles and media)
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Configure Django storages for S3
+STORAGES = {
+    'default': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
+        'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
+        'AWS_S3_REGION_NAME': AWS_S3_REGION_NAME,
+        'AWS_STORAGE_BUCKET_NAME': AWS_STORAGE_BUCKET_NAME,
+        'AWS_S3_CUSTOM_DOMAIN': AWS_S3_CUSTOM_DOMAIN,
+        'AWS_S3_FILE_OVERWRITE': AWS_S3_FILE_OVERWRITE,
+        'AWS_DEFAULT_ACL': AWS_DEFAULT_ACL,
+    },
+    'staticfiles': {
+        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+        'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
+        'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
+        'AWS_S3_REGION_NAME': AWS_S3_REGION_NAME,
+        'AWS_STORAGE_BUCKET_NAME': AWS_STORAGE_BUCKET_NAME,
+        'AWS_S3_CUSTOM_DOMAIN': AWS_S3_CUSTOM_DOMAIN,
+        'AWS_S3_FILE_OVERWRITE': AWS_S3_FILE_OVERWRITE,
+        'AWS_DEFAULT_ACL': AWS_DEFAULT_ACL,
+    },
+}
+
+# If not in DEBUG mode (i.e., production), use S3 for static and media files
+if not DEBUG:
+    # Use S3 for media and static files in production
     DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
-if DEBUG:
-    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
-    STATIC_URL = '/static/'
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
-else:
-    # For production
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    # Media URL setup for production
+    MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
+    MEDIA_ROOT = None  
+
+    # Static files URL and configuration
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-    STATICFILES_DIRS = []
+    STATICFILES_DIRS = []  
     STATIC_ROOT = None
-    # STATIC_ROOT = '/tmp/staticfiles'
