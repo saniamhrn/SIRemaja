@@ -169,20 +169,14 @@ AWS_DEFAULT_ACL = None
 
 # Media file management
 if DEBUG:
-    # For development, use local file storage for media files
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-else:
-    # For production, use S3 storage for media files
-    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-
-# Media files (user uploaded files)
-if DEBUG:
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 else:
     # For production 
     MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
     MEDIA_ROOT = None
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -197,5 +191,5 @@ else:
     STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
     STATICFILES_DIRS = []
-    # STATIC_ROOT = None
-    STATIC_ROOT = '/tmp/staticfiles'
+    STATIC_ROOT = None
+    # STATIC_ROOT = '/tmp/staticfiles'
