@@ -1,4 +1,7 @@
 from django.db import models
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage 
+from .storages import CustomS3Boto3Storage 
 from django.utils import timezone
 from user_management.models import CustomUser as User
 
@@ -67,10 +70,19 @@ class Task(models.Model):
         if self.completion_date and self.status != 'Done':
             self.completion_date = None
         super().save(*args, **kwargs)
-    
+
+
+# Conditionally set the storage backend
+if settings.DEBUG:
+    # For development: Use local file storage
+    file_storage = FileSystemStorage(location=settings.MEDIA_ROOT)
+else:
+    # For production: Use S3 storage
+    file_storage = CustomS3Boto3Storage()
+
 class ProjectFile(models.Model):
     project = models.ForeignKey(Project, related_name='files', on_delete=models.CASCADE)
-    file = models.FileField(upload_to='project_files/')
+    file = models.FileField(upload_to='project_files/', storage=file_storage)
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
