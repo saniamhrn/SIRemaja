@@ -176,30 +176,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-# Configure Django storages for S3
-STORAGES = {
-    'default': {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
-        'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
-        'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
-        'AWS_S3_REGION_NAME': AWS_S3_REGION_NAME,
-        'AWS_STORAGE_BUCKET_NAME': AWS_STORAGE_BUCKET_NAME,
-        'AWS_S3_CUSTOM_DOMAIN': AWS_S3_CUSTOM_DOMAIN,
-        'AWS_S3_FILE_OVERWRITE': AWS_S3_FILE_OVERWRITE,
-        'AWS_DEFAULT_ACL': AWS_DEFAULT_ACL,
-    },
-    'staticfiles': {
-        'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
-        'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
-        'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
-        'AWS_S3_REGION_NAME': AWS_S3_REGION_NAME,
-        'AWS_STORAGE_BUCKET_NAME': AWS_STORAGE_BUCKET_NAME,
-        'AWS_S3_CUSTOM_DOMAIN': AWS_S3_CUSTOM_DOMAIN,
-        'AWS_S3_FILE_OVERWRITE': AWS_S3_FILE_OVERWRITE,
-        'AWS_DEFAULT_ACL': AWS_DEFAULT_ACL,
-    },
-}
-
 # If not in DEBUG mode (i.e., production), use S3 for static and media files
 if not DEBUG:
     # Use S3 for media and static files in production
@@ -214,3 +190,36 @@ if not DEBUG:
     STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
     STATICFILES_DIRS = []  
     STATIC_ROOT = None
+
+    # Configure Django storages for S3
+    STORAGES = {
+        'default': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+            'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
+            'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
+            'AWS_S3_REGION_NAME': AWS_S3_REGION_NAME,
+            'AWS_STORAGE_BUCKET_NAME': AWS_STORAGE_BUCKET_NAME,
+            'AWS_S3_CUSTOM_DOMAIN': AWS_S3_CUSTOM_DOMAIN,
+            'AWS_S3_FILE_OVERWRITE': AWS_S3_FILE_OVERWRITE,
+            'AWS_DEFAULT_ACL': AWS_DEFAULT_ACL,
+        },
+        'staticfiles': {
+            'BACKEND': 'storages.backends.s3boto3.S3Boto3Storage',
+            'AWS_ACCESS_KEY_ID': AWS_ACCESS_KEY_ID,
+            'AWS_SECRET_ACCESS_KEY': AWS_SECRET_ACCESS_KEY,
+            'AWS_S3_REGION_NAME': AWS_S3_REGION_NAME,
+            'AWS_STORAGE_BUCKET_NAME': AWS_STORAGE_BUCKET_NAME,
+            'AWS_S3_CUSTOM_DOMAIN': AWS_S3_CUSTOM_DOMAIN,
+            'AWS_S3_FILE_OVERWRITE': AWS_S3_FILE_OVERWRITE,
+            'AWS_DEFAULT_ACL': AWS_DEFAULT_ACL,
+        },
+    }
+else:
+    # Use local file storage for static and media files during development
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    STATIC_URL = '/static/'
+    MEDIA_URL = '/media/'
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
