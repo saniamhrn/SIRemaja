@@ -273,36 +273,41 @@
 
         <!-- Sort Buttons -->
         <div class="text-center mb-4">
-            <button id="sort-asc" class="btn btn-primary">Sort by Newest</button>
-            <button id="sort-desc" class="btn btn-secondary">Sort by Oldest</button>
+            <button id="sort-asc" class="btn btn-outline-primary">Sort by Oldest</button>
+            <button id="sort-desc" class="btn btn-outline-primary">Sort by Newest</button>
         </div>
 
         <!-- Testimony List -->
-        <div id="testimony-list" class="row">
-            {% for testimony in testimonies %}
-                <div class="col-md-4 mb-4">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ testimony.project.name }}</h5>
-                            <p class="card-text">
-                                <span class="stars">
-                                    {% for i in star_range %}
-                                        {% if i <= testimony.rating %}
-                                            <span class="star filled">★</span>
-                                        {% else %}
-                                            <span class="star empty">☆</span>
-                                        {% endif %}
-                                    {% endfor %}
-                                </span>
-                            </p>
-                            <p class="card-text"><strong>Client:</strong> {{ testimony.project.client.username }}</p> <!-- Client name -->
-                            <p class="card-text"><strong>Feedback:</strong> {{ testimony.feedback }}</p>
-                            <p class="card-text"><small class="text-muted">Posted on: {{ testimony.created_at|date:"F d, Y" }}</small></p>
-                        </div>
+<div id="testimony-container">
+    <div id="testimony-list" class="row">
+        {% for testimony in testimonies %}
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ testimony.project.name }}</h5>
+                        <p class="card-text">
+                            <span class="stars">
+                                {% for i in star_range %}
+                                    {% if i <= testimony.rating %}
+                                        <span class="star filled">★</span>
+                                    {% else %}
+                                        <span class="star empty">☆</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
+                        </p>
+                        <p class="card-text"><strong>Client:</strong> {{ testimony.project.client.username }}</p>
+                        <p class="card-text"><strong>Feedback:</strong> {{ testimony.feedback }}</p>
+                        <p class="card-text"><small class="text-muted">Posted on: {{ testimony.created_at|date:"F d, Y" }}</small></p>
                     </div>
                 </div>
-            {% endfor %}
-        </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="d-flex justify-content-center mt-4"></div>
+</div>
     </div>
 </section>
 
@@ -310,27 +315,81 @@
 
 {% block scripts %}
 <script>
-    // Sorting functionality
-    document.getElementById('sort-asc').addEventListener('click', function () {
-        sortTestimonies('asc');
-    });
+    document.addEventListener('DOMContentLoaded', () => {
+    const testimonies = [...document.querySelectorAll('#testimony-list .col-md-4')];
+    const itemsPerPage = 3;
+    let currentPage = 1;
 
-    document.getElementById('sort-desc').addEventListener('click', function () {
-        sortTestimonies('desc');
-    });
+    function renderPagination(totalItems, itemsPerPage) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const pagination = document.getElementById('pagination');
+        pagination.innerHTML = '';
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            pageButton.className = `btn btn-outline-secondary mx-1 ${i === currentPage ? 'active' : ''}`;
+            pageButton.addEventListener('click', () => {
+                currentPage = i;
+                displayPage();
+            });
+            pagination.appendChild(pageButton);
+        }
+    }
+
+    function displayPage() {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+
+        testimonies.forEach((testimony, index) => {
+            testimony.style.display = index >= startIndex && index < endIndex ? 'block' : 'none';
+        });
+
+        renderPagination(testimonies.length, itemsPerPage);
+    }
 
     function sortTestimonies(order) {
-        const testimonies = [...document.querySelectorAll('#testimony-list .col-md-4')];
         const sortedTestimonies = testimonies.sort((a, b) => {
             const dateA = new Date(a.querySelector('.text-muted').textContent);
             const dateB = new Date(b.querySelector('.text-muted').textContent);
             return order === 'asc' ? dateA - dateB : dateB - dateA;
         });
+
         document.getElementById('testimony-list').innerHTML = '';
         sortedTestimonies.forEach(testimony => {
             document.getElementById('testimony-list').appendChild(testimony);
         });
+
+        displayPage();
     }
+
+    // Handle button click and change styles
+    function handleSortButtons() {
+        const sortAscButton = document.getElementById('sort-asc');
+        const sortDescButton = document.getElementById('sort-desc');
+
+        sortAscButton.addEventListener('click', () => {
+            sortAscButton.classList.remove('btn-outline-primary');
+            sortAscButton.classList.add('btn-primary');
+            sortDescButton.classList.remove('btn-primary');
+            sortDescButton.classList.add('btn-outline-primary');
+            sortTestimonies('asc');
+        });
+
+        sortDescButton.addEventListener('click', () => {
+            sortDescButton.classList.remove('btn-outline-primary');
+            sortDescButton.classList.add('btn-primary');
+            sortAscButton.classList.remove('btn-primary');
+            sortAscButton.classList.add('btn-outline-primary');
+            sortTestimonies('desc');
+        });
+    }
+
+    // Initialize
+    displayPage();
+    handleSortButtons();
+});
+
 </script>
 <script src="{% static 'landing/js/landing.js' %}" defer></script>
 {% endblock %}
