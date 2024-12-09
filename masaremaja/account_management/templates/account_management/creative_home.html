@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load static %}
+
 
 {% block title %}Creative Team Dashboard{% endblock %}
 
@@ -23,17 +25,26 @@
                 {% for task in tasks %}
                 <!-- Task Row -->
                 <tr id="task-{{ task.id }}" class="task-row">
-                    <td style="padding-left: 50px;">
-                        <span class="task-title" onclick="showTaskDetail({{ task.id }});" style="cursor: pointer; color: black;">
+                    <td style="padding-left: 10px;">
+                        <span class="task-title" style="cursor: pointer; color: black;">
                             {{ task.title }}
                         </span>
                     </td>
                     <td id="task-description-{{ task.id }}" onclick="editField(this, 'description', {{ task.id }}, true)">
                         <span>{{ task.description }}</span>
                     </td>
-                    <td id="task-status-{{ task.id }}" ondblclick="editStatus(this, 'status', {{ task.id }}, true)">
-                        <span>{{ task.status }}</span>
-                    </td>
+                    <td id="task-status-{{ task.id }}">
+                        <div class="dropdown-menu-container">
+                            <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
+                                <span>{{ task.status }}</span> 
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ task.id }}, 'To Do', 'To Do', true); event.preventDefault();">To Do</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ task.id }}, 'In Progress', 'In Progress', true); event.preventDefault();">In Progress</a></li>
+                                <li><a href="#" class="dropdown-item" onclick="selectOption('status', {{ task.id }}, 'Done', 'Done', true); event.preventDefault();">Done</a></li>
+                            </ul>
+                        </div>
+                    </td>    
                     <td>
                         <span>{{ task.project.name }}</span>
                     </td>
@@ -44,7 +55,7 @@
                         <span>{{ task.due_date|date:"D d M Y" }}</span>
                     </td>
                     <td>
-                        <a href="{% url 'projects:upload_file_task' task.id %}" class="btn btn-warning btn-sm">Upload File</a>
+                        <a href="{% url 'projects:upload_file_task' task.id %}" class="btn btn-primary btn-sm">Upload File</a>
                         <button class="btn btn-danger btn-sm delete-task-btn" data-task-id="{{ task.id }}">Delete</button>
                     </td>
                 </tr>
@@ -60,4 +71,8 @@
     </div>
     <a href="{% url 'projects:view_all_projects' %}" class="btn btn-primary">Manage Projects</a>
 </div>
+
 {% endblock %}
+{% block scripts %}
+<script src="{% static 'account_management/js/account.js' %}"></script>
+{% endblock scripts %}

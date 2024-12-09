@@ -988,11 +988,15 @@ async function editDate(element, field, id, isTask = false) {
           })()
         : '';
 
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
     // Create the date input
     const dateInput = document.createElement('input');
     dateInput.type = 'date';
     dateInput.value = dateValue;
     dateInput.classList.add('inline-date-input');
+    dateInput.min = today; // Set the minimum date to today
 
     // Add blur event to save the date
     dateInput.addEventListener('blur', async function () {
