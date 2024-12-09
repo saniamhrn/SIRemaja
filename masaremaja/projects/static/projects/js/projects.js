@@ -239,9 +239,6 @@ function loadProjectFiles(projectId) {
                             <p class="text-muted" style="font-size: 0.7rem;"><strong>Uploaded On</strong> <span>${formattedDate}</span></p>
                         </div>
                         <div class="task-actions">
-                            <a href="${fileUrl}?response-content-disposition=attachment" class="btn btn-sm btn-secondary" download>
-                                <i class="fa fa-download"></i> 
-                            </a>
                             <button class="btn btn-sm btn-danger" onclick="deleteFile(${file.id})">
                                 <i class="fa fa-trash"></i> 
                             </button>
