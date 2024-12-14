@@ -290,6 +290,9 @@ def dashboard_view(request):
     overdue_projects_count = overdue_projects.count()
     ongoing_projects = Project.objects.filter(status="In Progress")
     ongoing_projects_count = ongoing_projects.count()
+    
+    # Live Coding
+    all_projects_dashboard = Project.object.filter(status="Done", status="In Progress", status="To Do")
 
     done_tasks = Task.objects.filter(status="Done")
     done_tasks_count = done_tasks.count()
