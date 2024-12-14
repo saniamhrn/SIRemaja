@@ -328,10 +328,9 @@ function deleteFile(fileId) {
 
 function loadProjectTasks(tasks) {
     const taskList = document.getElementById(`${projectDetailModalId}-task-list`);
-    taskList.innerHTML = '';  // Clear previous tasks
+    taskList.innerHTML = '';
 
     tasks.forEach(task => {
-        // Create each task item as a list item
         const taskItem = document.createElement('div');
         taskItem.classList.add('task-item', 'd-flex', 'justify-content-between', 'align-items-center', 'mb-2', 'p-2');
 
@@ -340,19 +339,17 @@ function loadProjectTasks(tasks) {
                 <span class="task-title" onclick="showTaskDetail(${task.id})" style="font-weight: bold;">${task.title}</span>
             </div>
             <div class="task-actions">
-                <!-- Assignee Dropdown with unique ID for modal -->
                 <div id="modal-task-assigned_to-${task.id}" class="dropdown-menu-container">
                     <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
                         <span>${task.creative_name || 'Unassigned'}</span>
                     </button>
                     <ul class="dropdown-menu assigned_to-dropdown-menu">
                         ${creativeList.map(creative => `
-                            <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', ${task.id}, '${creative.id}', '${creative.username}', true, 'modal'); event.preventDefault();">${creative.username}</a></li>
+                            <li><a href="#" class="dropdown-item" onclick="validateAssign(${task.id}, ${creative.id}, '${creative.username}')">${creative.username}</a></li>
                         `).join('')}
                     </ul>
                 </div>
 
-                <!-- Status Dropdown with unique ID for modal -->
                 <div id="modal-task-status-${task.id}" class="dropdown-menu-container">
                     <button type="button" class="btn btn-light btn-sm dropdown-toggle" onclick="toggleDropdownMenu(this)">
                         <span>${task.status}</span>
@@ -371,8 +368,48 @@ function loadProjectTasks(tasks) {
     updateProgressBar(taskList.querySelectorAll('.task-item'));
 }
 
+function validateAssign(taskId, creativeId, creativeName) {
+    const inProgressTasks = tasks.filter(task => task.creative_id === creativeId && task.status === 'In Progress').length;
+
+    if (inProgressTasks >= 3) {
+        alert(`${creativeName} sudah memiliki 3 tugas dengan status In Progress.`);
+        return false; // Tidak mengizinkan assign
+    } else {
+        return true; // Izinkan assign
+    }
+}
+
+
+function updateTaskAssignment(taskId, creativeId, creativeName) {
+    const taskIndex = tasks.findIndex(task => task.id === taskId);
+
+    if (taskIndex > -1) {
+        tasks[taskIndex].creative_id = creativeId;
+        tasks[taskIndex].creative_name = creativeName;
+
+        const element = document.querySelector(`#modal-task-assigned_to-${taskId} .dropdown-toggle span`);
+        if (element) element.textContent = creativeName;
+
+        console.log(`Tugas ID: ${taskId} diassign ke ${creativeName}`);
+    }
+}
+
+function selectOption(field, taskId, valueId, valueName, updateServer = true, modalType = 'modal') {
+    const taskIndex = tasks.findIndex(task => task.id === taskId);
+    if (taskIndex > -1) {
+        tasks[taskIndex][field] = valueId;
+    }
+
+    const element = document.querySelector(`#modal-task-${field}-${taskId} .dropdown-toggle span`);
+    if (element) element.textContent = valueName;
+
+    if (updateServer) {
+        console.log(`Updated ${field} for Task ID ${taskId} to ${valueName}`);
+    }
+}
+
 function updateProgressBar(taskItems) {
-    const tasks = Array.from(taskItems); // Convert NodeList to array
+    const tasks = Array.from(taskItems);
 
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(task => {
@@ -725,7 +762,11 @@ function submitTaskForm(projectId, taskId = null, status = null, pageContext = '
                         </button>
                         <ul class="dropdown-menu assigned_to-dropdown-menu">
                             ${creativeList.map(creative => `
-                                <li><a href="#" class="dropdown-item" onclick="selectOption('assigned_to', ${data.id}, '${creative.id}', '${creative.username}', true); event.preventDefault();">${creative.username}</a></li>
+                                <li>
+                                    <a href="#" class="dropdown-item" onclick="assignTask(${task.id}, ${creative.id}, '${creative.username}'); event.preventDefault();">
+                                        ${creative.username}
+                                    </a>
+                                </li>
                             `).join('')}
                         </ul>
                     </div>
