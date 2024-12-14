@@ -14,20 +14,36 @@
     <div id="successMessage" style="display: none;"></div>
 
     <div class="my-2">
-        <div class="d-flex justify-content-between align-items-center search-filter-bar">
-            <!-- Search Input -->
-            <form id="searchForm" method="get" class="d-flex flex-grow-1 flex-column flex-md-row gap-2 my-2">
-                <input 
-                    type="text" 
-                    name="q" 
-                    id="searchProject" 
-                    class="form-control me-2" 
-                    placeholder="Search tasks or projects" 
-                    value="{{ search_query|default:'' }}" 
-                    style="max-width: 300px;"
-                >
-            </form>
-            <div class="d-flex flex-wrap gap-2 justify-content-between justify-content-md-end view-toggle-bar">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center search-filter-bar gap-3">
+            <!-- Search and Filter Section -->
+            <div class="d-flex flex-grow-1 gap-3">
+                <!-- Search Input -->
+                <form id="searchForm" method="get" class="d-flex flex-grow-1 my-3">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        id="searchProject" 
+                        class="form-control" 
+                        placeholder="Search tasks or projects" 
+                        value="{{ search_query|default:'' }}" 
+                    >
+                </form>
+                
+                <!-- Filter Dropdown (Demo Live Coding) -->
+                <form id="filterForm" method="get" class="d-flex flex-grow-1 my-3">
+                    <select name="assignee" id="assignee-filter" class="form-select" onchange="document.getElementById('filterForm').submit();">
+                        <option value="">All Assignee</option>
+                        {% for creative in creative_list %}
+                            <option value="{{ creative.username }}" {% if assignee_filter == creative.username %}selected{% endif %}>
+                                {{ creative.username }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+    
+            <!-- Buttons Section -->
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
                 <a href="/project/view-all/?view=table" id="tableViewButton" class="btn btn-outline-secondary">Table View</a>
                 <a href="/project/view-all/?view=card" id="cardViewButton" class="btn btn-outline-secondary">Card View</a>
                 <button id="kanbanViewButton" class="btn btn-outline-secondary active">Board View</button>
@@ -50,6 +66,7 @@
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
                             <p style="font-weight: bold">{{ task.title }}</p>
                             <p>{{ task.project.name }}</p>
+                            <p>{{ task.assigned_to }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -70,6 +87,7 @@
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
                             <p style="font-weight: bold">{{ task.title }}</p>
                             <p>{{ task.project.name }}</p>
+                            <p>{{ task.assigned_to }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}
@@ -90,6 +108,7 @@
                         <div class="task-card" data-task-id="{{ task.id }}" onclick="showTaskDetail({{ task.id }})">
                             <p style="font-weight: bold">{{ task.title }}</p>
                             <p>{{ task.project.name }}</p>
+                            <p>{{ task.assigned_to }}</p>
                         </div>
                     {% endif %}
                 {% endfor %}

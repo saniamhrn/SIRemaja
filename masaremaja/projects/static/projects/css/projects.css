@@ -431,14 +431,24 @@ td[onclick]:hover {
 
 .search-filter-bar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: space-between;
     align-items: center;
     gap: 15px;
 }
 
-#searchForm {
-    max-width: 300px; 
+.search-filter-bar > .d-flex {
+    flex-grow: 1; 
+    gap: 15px; 
+}
+
+#searchForm, #filterForm {
+    max-width: 250px; 
+    flex-grow: 1;
+}
+
+#searchProject, #assignee-filter {
+    width: 100%; 
 }
 
 @media (min-width: 768px) and (max-width: 992px) {
@@ -470,7 +480,7 @@ td[onclick]:hover {
         gap: 15px;
     }
 
-    #searchForm {
+    #searchForm, #filterForm {
         width: 100%;
         max-width: 300px; 
     }

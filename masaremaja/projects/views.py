@@ -197,6 +197,9 @@ def kanban_board(request):
     # Get the search query from the request
     search_query = request.GET.get('q', '').strip()
 
+    # Demo Live Coding
+    assignee_filter = request.GET.get('assignee', '').strip()
+
     # Get all projects with related client and project manager data
     tasks = Task.objects.select_related('project').all()
     projects = Project.objects.select_related('client', 'project_manager').prefetch_related('tasks').all().order_by('id')
@@ -207,6 +210,9 @@ def kanban_board(request):
             Q(title__icontains=search_query) |  # Search in task titles
             Q(project__name__icontains=search_query)  # Search in project names
         ).distinct()
+
+    if assignee_filter:
+        tasks = tasks.filter(assigned_to__username=assignee_filter)
 
     project_pm_client = []
     for project in projects:
@@ -246,6 +252,7 @@ def kanban_board(request):
         'creative_list': creative_list,
         'project_list': project_pm_client,
         'search_query': search_query,
+        'assignee_filter': assignee_filter,
     }
     return render(request, 'kanban_board.html', context)
 
